@@ -14,6 +14,9 @@ public class DietappApp {
     private Scanner scanner;
     private MealPlanningService mealPlanningService;
     private MealPlanningMenu mealPlanningMenu;
+    // Yeni eklenen değişkenler
+    private CalorieNutrientTrackingService calorieNutrientService;
+    private CalorieNutrientTrackingMenu calorieNutrientMenu;
     
     /**
      * Constructor for DietAppApp class.
@@ -24,6 +27,11 @@ public class DietappApp {
         this.scanner = new Scanner(System.in);
         this.mealPlanningService = new MealPlanningService();
         this.mealPlanningMenu = new MealPlanningMenu(mealPlanningService, dietApp.getAuthService(), scanner);
+        
+        // Yeni servisleri ekle
+        this.calorieNutrientService = new CalorieNutrientTrackingService(mealPlanningService);
+        this.calorieNutrientMenu = new CalorieNutrientTrackingMenu(
+            calorieNutrientService, mealPlanningService, dietApp.getAuthService(), scanner);
     }
     
     /**
@@ -150,9 +158,8 @@ public class DietappApp {
                 mealPlanningMenu.displayMenu();
                 return true;
             case 2:
-                // Handle Calorie and Nutrient Tracking (to be implemented by teammates)
-                System.out.println("\nYou've successfully accessed the Calorie and Nutrient Tracking feature.");
-                System.out.println("This feature will be implemented by your teammate.");
+                // Handle Calorie and Nutrient Tracking
+                calorieNutrientMenu.displayMenu();
                 return true;
             case 3:
                 // Handle Personalized Diet Recommendations (to be implemented by teammates)
