@@ -29,7 +29,7 @@ import com.berkant.kagan.haluk.irem.dietapp.dietappApp;
 @details The dietappAppTest class provides test methods to verify the behavior of the dietappApp class. It includes test methods for successful execution, object creation, and error handling scenarios.
 @author ugur.coruh
 */
-public class dietappAppTest {
+public class DietappAppTest {
 
   /**
    * @brief This method is executed once before all test methods.
@@ -83,7 +83,7 @@ public class dietappAppTest {
     System.setOut(new PrintStream(outputStream));
     String[] args = new String[] {"0"};
     // Call the main method of dietappApp
-    dietappApp.main(args);
+    DietappApp.main(args);
     // Restore original System.in and System.out
     System.setIn(originalIn);
     System.setOut(originalOut);
@@ -99,7 +99,7 @@ public class dietappAppTest {
   @Test
   public void testMainObject() {
     // Creating an instance of dietappApp
-    dietappApp app = new dietappApp();
+    DietappApp app = new DietappApp();
     // Asserting the successful creation of the object
     assertTrue(true);
   }

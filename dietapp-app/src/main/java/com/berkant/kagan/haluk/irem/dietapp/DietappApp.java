@@ -12,6 +12,8 @@ public class DietappApp {
     // Private fields for encapsulation
     private Dietapp dietApp;
     private Scanner scanner;
+    private MealPlanningService mealPlanningService;
+    private MealPlanningMenu mealPlanningMenu;
     
     /**
      * Constructor for DietAppApp class.
@@ -20,6 +22,8 @@ public class DietappApp {
     public DietappApp() {
         this.dietApp = new Dietapp();
         this.scanner = new Scanner(System.in);
+        this.mealPlanningService = new MealPlanningService();
+        this.mealPlanningMenu = new MealPlanningMenu(mealPlanningService, dietApp.getAuthService(), scanner);
     }
     
     /**
@@ -48,25 +52,18 @@ public class DietappApp {
         System.out.println("Welcome to Diet Planner Application!");
         
         while (running) {
-            printMainMenu();
+            if (dietApp.isUserLoggedIn()) {
+                printUserMainMenu();
+            } else {
+                printAuthMenu();
+            }
+            
             int choice = getUserChoice();
             
-            switch (choice) {
-                case 1:
-                    handleLogin();
-                    break;
-                case 2:
-                    handleRegistration();
-                    break;
-                case 3:
-                    handleGuestMode();
-                    break;
-                case 0:
-                    running = false;
-                    System.out.println("Thank you for using Diet Planner. Goodbye!");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+            if (dietApp.isUserLoggedIn()) {
+                running = handleUserMainMenu(choice);
+            } else {
+                handleAuthMenu(choice);
             }
         }
         
@@ -75,21 +72,30 @@ public class DietappApp {
     }
     
     /**
-     * Prints the main authentication menu.
+     * Prints the authentication menu.
      */
-    private void printMainMenu() {
+    private void printAuthMenu() {
         System.out.println("\n===== Diet Planner Authentication =====");
-        if (dietApp.isUserLoggedIn()) {
-            User currentUser = dietApp.getCurrentUser();
-            System.out.println("Logged in as: " + currentUser.getUsername());
-            System.out.println("1. Log out");
-            System.out.println("0. Exit");
-        } else {
-            System.out.println("1. Login");
-            System.out.println("2. Register");
-            System.out.println("3. Continue as Guest");
-            System.out.println("0. Exit");
-        }
+        System.out.println("1. Login");
+        System.out.println("2. Register");
+        System.out.println("3. Continue as Guest");
+        System.out.println("0. Exit");
+        System.out.print("Enter your choice: ");
+    }
+    
+    /**
+     * Prints the main user menu after authentication.
+     */
+    private void printUserMainMenu() {
+        User currentUser = dietApp.getCurrentUser();
+        System.out.println("\n===== Diet Planner Main Menu =====");
+        System.out.println("Logged in as: " + currentUser.getUsername());
+        System.out.println("1. Meal Planning and Logging");
+        System.out.println("2. Calorie and Nutrient Tracking");
+        System.out.println("3. Personalized Diet Recommendations");
+        System.out.println("4. Shopping List Generator");
+        System.out.println("5. Log out");
+        System.out.println("0. Exit");
         System.out.print("Enter your choice: ");
     }
     
@@ -107,16 +113,75 @@ public class DietappApp {
     }
     
     /**
+     * Handles the authentication menu choices.
+     * 
+     * @param choice The user's menu choice
+     */
+    private void handleAuthMenu(int choice) {
+        switch (choice) {
+            case 1:
+                handleLogin();
+                break;
+            case 2:
+                handleRegistration();
+                break;
+            case 3:
+                handleGuestMode();
+                break;
+            case 0:
+                System.out.println("Thank you for using Diet Planner. Goodbye!");
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+        }
+    }
+    
+    /**
+     * Handles the main user menu choices.
+     * 
+     * @param choice The user's menu choice
+     * @return true to continue running, false to exit
+     */
+    private boolean handleUserMainMenu(int choice) {
+        switch (choice) {
+            case 1:
+                // Handle Meal Planning and Logging
+                mealPlanningMenu.displayMenu();
+                return true;
+            case 2:
+                // Handle Calorie and Nutrient Tracking (to be implemented by teammates)
+                System.out.println("\nYou've successfully accessed the Calorie and Nutrient Tracking feature.");
+                System.out.println("This feature will be implemented by your teammate.");
+                return true;
+            case 3:
+                // Handle Personalized Diet Recommendations (to be implemented by teammates)
+                System.out.println("\nYou've successfully accessed the Personalized Diet Recommendations feature.");
+                System.out.println("This feature will be implemented by your teammate.");
+                return true;
+            case 4:
+                // Handle Shopping List Generator (to be implemented by teammates)
+                System.out.println("\nYou've successfully accessed the Shopping List Generator feature.");
+                System.out.println("This feature will be implemented by your teammate.");
+                return true;
+            case 5:
+                // Log out
+                dietApp.logoutUser();
+                System.out.println("You have been logged out.");
+                return true;
+            case 0:
+                System.out.println("Thank you for using Diet Planner. Goodbye!");
+                return false;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                return true;
+        }
+    }
+    
+    /**
      * Handles the user login process.
      */
     private void handleLogin() {
-        if (dietApp.isUserLoggedIn()) {
-            // Log out if already logged in
-            dietApp.logoutUser();
-            System.out.println("You have been logged out.");
-            return;
-        }
-        
         System.out.println("\n===== Login =====");
         
         System.out.print("Enter username: ");

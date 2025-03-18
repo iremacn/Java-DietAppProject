@@ -23,7 +23,7 @@ import com.berkant.kagan.haluk.irem.dietapp.dietapp;
 @details The dietappTest class provides test methods to verify the behavior of the dietapp class. It includes test methods for addition, subtraction, multiplication, and division operations.
 @author ugur.coruh
 */
-public class dietappTest {
+public class DietappTest {
 
   /**
    * @brief This method is executed once before all test methods.
