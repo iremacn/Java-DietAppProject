@@ -184,4 +184,84 @@ public class DietappApp {
       dietapp.enableGuestMode();
       System.out.println("You are now using the application as a guest. Some features may be limited.");
   }
+  
+  public void showMainMenu() {
+      while (true) {
+          System.out.println("\n===== Main Menu =====");
+          System.out.println("1. Customizable Work/Break Intervals");
+          System.out.println("2. Progress Tracking");
+          System.out.println("3. Reminder Alarms");
+          System.out.println("4. Statistics on Study Patterns");
+          System.out.println("0. Exit");
+          System.out.print("Enter your choice: ");
+          
+          int choice = scanner.nextInt();
+          scanner.nextLine();
+          
+          switch (choice) {
+              case 1:
+                  showWorkBreakMenu();
+                  break;
+              case 2:
+                  showProgressTrackingMenu();
+                  break;
+              case 3:
+                  showReminderMenu();
+                  break;
+              case 4:
+                  showStatisticsMenu();
+                  break;
+              case 0:
+                  System.out.println("Exiting... Goodbye!");
+                  return;
+              default:
+                  System.out.println("Invalid choice! Please try again.");
+          }
+      }
+  }
+  
+  private void showWorkBreakMenu() {
+      System.out.println("\n===== Customizable Work/Break Intervals =====");
+      System.out.println("1. Set Work Interval");
+      System.out.println("2. Set Break Interval");
+  }
+  
+  private void showProgressTrackingMenu() {
+      System.out.println("\n===== Progress Tracking =====");
+      System.out.println("1. Start Study Session");
+      System.out.println("2. Pause Study Session");
+      System.out.println("3. Resume Study Session");
+  }
+  
+  private void showReminderMenu() {
+      System.out.println("\n===== Reminder Alarms =====");
+      System.out.println("1. Set Alarms");
+  }
+  
+  private void showStatisticsMenu() {
+      System.out.println("\n===== Statistics on Study Patterns =====");
+      System.out.println("1. View Study Statistics");
+  }
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }
