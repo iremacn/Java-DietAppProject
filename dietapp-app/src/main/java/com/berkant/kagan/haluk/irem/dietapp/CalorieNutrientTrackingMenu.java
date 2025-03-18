@@ -42,10 +42,8 @@ public class CalorieNutrientTrackingMenu {
         
         while (running) {
             System.out.println("\n===== Calorie and Nutrient Tracking =====");
-            System.out.println("1. Set Nutrition Goals");
-            System.out.println("2. Log Food with Nutrients");
-            System.out.println("3. View Nutrition Report");
-            System.out.println("4. Calculate Suggested Calories");
+            System.out.println("1. Set Goals");
+            System.out.println("2. View Nutrition Report");
             System.out.println("0. Return to Main Menu");
             System.out.print("Enter your choice: ");
             
@@ -56,13 +54,7 @@ public class CalorieNutrientTrackingMenu {
                     handleSetNutritionGoals();
                     break;
                 case 2:
-                    handleLogFoodWithNutrients();
-                    break;
-                case 3:
                     handleViewNutritionReport();
-                    break;
-                case 4:
-                    handleCalculateSuggestedCalories();
                     break;
                 case 0:
                     running = false;
