@@ -2,6 +2,8 @@ package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.util.Scanner;
 
+
+
 /**
  * This class represents the main application class for the DietApp.
  * @details The DietAppApp class provides the entry point for the DietApp. It initializes the necessary components,
@@ -20,6 +22,9 @@ public class DietappApp {
     // Alışveriş listesi için eklenen değişkenler
     private ShoppingListService shoppingListService;
     private ShoppingListMenu shoppingListMenu;
+ // PersonalizedDietRecommendations için eklenen değişkenler
+    private PersonalizedDietRecommendationService personalizedDietService;
+    private PersonalizedDietRecommendationMenu personalizedDietMenu;
     
     /**
      * Constructor for DietAppApp class.
@@ -40,6 +45,13 @@ public class DietappApp {
         this.shoppingListService = new ShoppingListService(mealPlanningService);
         this.shoppingListMenu = new ShoppingListMenu(
             shoppingListService, mealPlanningService, dietApp.getAuthService(), scanner);
+        
+        
+     // Personalized Diet Recommendations servislerini ekle
+        this.personalizedDietService = new PersonalizedDietRecommendationService(
+            calorieNutrientService, mealPlanningService);
+        this.personalizedDietMenu = new PersonalizedDietRecommendationMenu(
+            personalizedDietService, dietApp.getAuthService(), scanner);
     }
     
     /**
@@ -170,9 +182,8 @@ public class DietappApp {
                 calorieNutrientMenu.displayMenu();
                 return true;
             case 3:
-                // Handle Personalized Diet Recommendations (to be implemented by teammates)
-                System.out.println("\nYou've successfully accessed the Personalized Diet Recommendations feature.");
-                System.out.println("This feature will be implemented by your teammate.");
+            	// Handle Personalized Diet Recommendations
+                personalizedDietMenu.displayMenu();
                 return true;
             case 4:
                 // Handle Shopping List Generator
