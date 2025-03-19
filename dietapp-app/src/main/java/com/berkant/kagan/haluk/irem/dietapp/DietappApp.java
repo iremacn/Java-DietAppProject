@@ -17,6 +17,9 @@ public class DietappApp {
     // Yeni eklenen değişkenler
     private CalorieNutrientTrackingService calorieNutrientService;
     private CalorieNutrientTrackingMenu calorieNutrientMenu;
+    // Alışveriş listesi için eklenen değişkenler
+    private ShoppingListService shoppingListService;
+    private ShoppingListMenu shoppingListMenu;
     
     /**
      * Constructor for DietAppApp class.
@@ -32,6 +35,11 @@ public class DietappApp {
         this.calorieNutrientService = new CalorieNutrientTrackingService(mealPlanningService);
         this.calorieNutrientMenu = new CalorieNutrientTrackingMenu(
             calorieNutrientService, mealPlanningService, dietApp.getAuthService(), scanner);
+        
+        // Alışveriş listesi servislerini ekle
+        this.shoppingListService = new ShoppingListService(mealPlanningService);
+        this.shoppingListMenu = new ShoppingListMenu(
+            shoppingListService, mealPlanningService, dietApp.getAuthService(), scanner);
     }
     
     /**
@@ -167,9 +175,8 @@ public class DietappApp {
                 System.out.println("This feature will be implemented by your teammate.");
                 return true;
             case 4:
-                // Handle Shopping List Generator (to be implemented by teammates)
-                System.out.println("\nYou've successfully accessed the Shopping List Generator feature.");
-                System.out.println("This feature will be implemented by your teammate.");
+                // Handle Shopping List Generator
+                shoppingListMenu.displayMenu();
                 return true;
             case 5:
                 // Log out
