@@ -193,6 +193,7 @@ public class FoodNutrient extends Food {
      * 
      * @return true if all nutrient values are valid, false otherwise
      */
+    @Override
     public boolean isValid() {
         // Check if base food properties are valid
         if (!super.isValid()) {
