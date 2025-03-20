@@ -2,8 +2,6 @@ package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.util.Scanner;
 
-
-
 /**
  * This class represents the main application class for the DietApp.
  * @details The DietAppApp class provides the entry point for the DietApp. It initializes the necessary components,
@@ -22,7 +20,7 @@ public class DietappApp {
     // Alışveriş listesi için eklenen değişkenler
     private ShoppingListService shoppingListService;
     private ShoppingListMenu shoppingListMenu;
- // PersonalizedDietRecommendations için eklenen değişkenler
+    // PersonalizedDietRecommendations için eklenen değişkenler
     private PersonalizedDietRecommendationService personalizedDietService;
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
     
@@ -46,8 +44,7 @@ public class DietappApp {
         this.shoppingListMenu = new ShoppingListMenu(
             shoppingListService, mealPlanningService, dietApp.getAuthService(), scanner);
         
-        
-     // Personalized Diet Recommendations servislerini ekle
+        // Personalized Diet Recommendations servislerini ekle
         this.personalizedDietService = new PersonalizedDietRecommendationService(
             calorieNutrientService, mealPlanningService);
         this.personalizedDietMenu = new PersonalizedDietRecommendationMenu(
@@ -128,15 +125,30 @@ public class DietappApp {
     }
     
     /**
-     * Gets the user's menu choice from the console.
+     * Gets the user's menu choice from the console with improved validation.
      * 
      * @return The user's choice as an integer
      */
     private int getUserChoice() {
+        String input = scanner.nextLine().trim();
+        
+        // Check if input is empty
+        if (input.isEmpty()) {
+            System.out.println("Boş giriş. Lütfen bir sayı girin.");
+            return -1;
+        }
+        
+        // Check if input contains only digits
+        if (!input.matches("^\\d+$")) {
+            System.out.println("Geçersiz seçim. Lütfen sadece sayı girin.");
+            return -1;
+        }
+        
         try {
-            return Integer.parseInt(scanner.nextLine());
+            return Integer.parseInt(input);
         } catch (NumberFormatException e) {
-            return -1; // Invalid input
+            System.out.println("Geçersiz seçim. Lütfen geçerli bir sayı girin.");
+            return -1;
         }
     }
     
@@ -161,7 +173,7 @@ public class DietappApp {
                 System.exit(0);
                 break;
             default:
-                System.out.println("Invalid choice. Please try again.");
+                System.out.println("Geçersiz seçim. Lütfen tekrar deneyin.");
         }
     }
     
@@ -182,7 +194,7 @@ public class DietappApp {
                 calorieNutrientMenu.displayMenu();
                 return true;
             case 3:
-            	// Handle Personalized Diet Recommendations
+                // Handle Personalized Diet Recommendations
                 personalizedDietMenu.displayMenu();
                 return true;
             case 4:
@@ -198,7 +210,7 @@ public class DietappApp {
                 System.out.println("Thank you for using Diet Planner. Goodbye!");
                 return false;
             default:
-                System.out.println("Invalid choice. Please try again.");
+                System.out.println("Geçersiz seçim. Lütfen tekrar deneyin.");
                 return true;
         }
     }
@@ -209,11 +221,23 @@ public class DietappApp {
     private void handleLogin() {
         System.out.println("\n===== Login =====");
         
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
+        String username = "";
+        while (username.trim().isEmpty()) {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine().trim();
+            if (username.isEmpty()) {
+                System.out.println("Kullanıcı adı boş olamaz. Lütfen tekrar deneyin.");
+            }
+        }
         
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
+        String password = "";
+        while (password.trim().isEmpty()) {
+            System.out.print("Enter password: ");
+            password = scanner.nextLine().trim();
+            if (password.isEmpty()) {
+                System.out.println("Şifre boş olamaz. Lütfen tekrar deneyin.");
+            }
+        }
         
         boolean success = dietApp.loginUser(username, password);
         
@@ -225,22 +249,50 @@ public class DietappApp {
     }
     
     /**
-     * Handles the user registration process.
+     * Handles the user registration process with improved validation.
      */
     private void handleRegistration() {
         System.out.println("\n===== Registration =====");
         
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
+        // Get and validate username
+        String username = "";
+        while (username.trim().isEmpty()) {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine().trim();
+            if (username.isEmpty()) {
+                System.out.println("Kullanıcı adı boş olamaz. Lütfen tekrar deneyin.");
+            }
+        }
         
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
+        // Get and validate password
+        String password = "";
+        while (password.trim().isEmpty()) {
+            System.out.print("Enter password: ");
+            password = scanner.nextLine().trim();
+            if (password.isEmpty()) {
+                System.out.println("Şifre boş olamaz. Lütfen tekrar deneyin.");
+            }
+        }
         
-        System.out.print("Enter email: ");
-        String email = scanner.nextLine();
+        // Get and validate email
+        String email = "";
+        while (!isValidEmail(email)) {
+            System.out.print("Enter email: ");
+            email = scanner.nextLine().trim();
+            if (!isValidEmail(email)) {
+                System.out.println("Geçersiz e-posta formatı. Lütfen geçerli bir e-posta adresi girin.");
+            }
+        }
         
-        System.out.print("Enter your name: ");
-        String name = scanner.nextLine();
+        // Get and validate name
+        String name = "";
+        while (name.trim().isEmpty()) {
+            System.out.print("Enter your name: ");
+            name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+                System.out.println("İsim boş olamaz. Lütfen tekrar deneyin.");
+            }
+        }
         
         boolean success = dietApp.registerUser(username, password, email, name);
         
@@ -249,6 +301,34 @@ public class DietappApp {
         } else {
             System.out.println("Registration failed. Username already exists.");
         }
+    }
+    
+    /**
+     * Checks if an email address is valid.
+     * Simple validation that checks for @ symbol and a period after it.
+     *
+     * @param email The email address to validate
+     * @return true if email is valid, false otherwise
+     */
+    private boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        
+        email = email.trim();
+        
+        // Basic email validation: contains @ and at least one . after @
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 0) {
+            return false;
+        }
+        
+        int dotIndex = email.indexOf('.', atIndex);
+        if (dotIndex <= atIndex + 1 || dotIndex == email.length() - 1) {
+            return false;
+        }
+        
+        return true;
     }
     
     /**

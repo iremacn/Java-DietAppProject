@@ -20,6 +20,13 @@ public class FoodNutrient extends Food {
      */
     public FoodNutrient() {
         super();
+        // Initialize all nutrient values to zero
+        this.protein = 0.0;
+        this.carbs = 0.0;
+        this.fat = 0.0;
+        this.fiber = 0.0;
+        this.sugar = 0.0;
+        this.sodium = 0.0;
     }
     
     /**
@@ -31,6 +38,13 @@ public class FoodNutrient extends Food {
      */
     public FoodNutrient(String name, double grams, int calories) {
         super(name, grams, calories);
+        // Initialize all nutrient values to zero
+        this.protein = 0.0;
+        this.carbs = 0.0;
+        this.fat = 0.0;
+        this.fiber = 0.0;
+        this.sugar = 0.0;
+        this.sodium = 0.0;
     }
     
     /**
@@ -49,62 +63,177 @@ public class FoodNutrient extends Food {
     public FoodNutrient(String name, double grams, int calories, double protein, double carbs, 
                        double fat, double fiber, double sugar, double sodium) {
         super(name, grams, calories);
-        this.protein = protein;
-        this.carbs = carbs;
-        this.fat = fat;
-        this.fiber = fiber;
-        this.sugar = sugar;
-        this.sodium = sodium;
+        // Ensure all nutrient values are non-negative
+        this.protein = Math.max(0.0, protein);
+        this.carbs = Math.max(0.0, carbs);
+        this.fat = Math.max(0.0, fat);
+        this.fiber = Math.max(0.0, fiber);
+        this.sugar = Math.max(0.0, sugar);
+        this.sodium = Math.max(0.0, sodium);
     }
     
     // Getter and setter methods for nutrients
     
+    /**
+     * Gets the protein content in grams.
+     * 
+     * @return The protein content
+     */
     public double getProtein() {
         return protein;
     }
     
+    /**
+     * Sets the protein content in grams.
+     * Negative values will be converted to zero.
+     * 
+     * @param protein The protein content to set
+     */
     public void setProtein(double protein) {
-        this.protein = protein;
+        this.protein = Math.max(0.0, protein);
     }
     
+    /**
+     * Gets the carbohydrate content in grams.
+     * 
+     * @return The carbohydrate content
+     */
     public double getCarbs() {
         return carbs;
     }
     
+    /**
+     * Sets the carbohydrate content in grams.
+     * Negative values will be converted to zero.
+     * 
+     * @param carbs The carbohydrate content to set
+     */
     public void setCarbs(double carbs) {
-        this.carbs = carbs;
+        this.carbs = Math.max(0.0, carbs);
     }
     
+    /**
+     * Gets the fat content in grams.
+     * 
+     * @return The fat content
+     */
     public double getFat() {
         return fat;
     }
     
+    /**
+     * Sets the fat content in grams.
+     * Negative values will be converted to zero.
+     * 
+     * @param fat The fat content to set
+     */
     public void setFat(double fat) {
-        this.fat = fat;
+        this.fat = Math.max(0.0, fat);
     }
     
+    /**
+     * Gets the fiber content in grams.
+     * 
+     * @return The fiber content
+     */
     public double getFiber() {
         return fiber;
     }
     
+    /**
+     * Sets the fiber content in grams.
+     * Negative values will be converted to zero.
+     * 
+     * @param fiber The fiber content to set
+     */
     public void setFiber(double fiber) {
-        this.fiber = fiber;
+        this.fiber = Math.max(0.0, fiber);
     }
     
+    /**
+     * Gets the sugar content in grams.
+     * 
+     * @return The sugar content
+     */
     public double getSugar() {
         return sugar;
     }
     
+    /**
+     * Sets the sugar content in grams.
+     * Negative values will be converted to zero.
+     * 
+     * @param sugar The sugar content to set
+     */
     public void setSugar(double sugar) {
-        this.sugar = sugar;
+        this.sugar = Math.max(0.0, sugar);
     }
     
+    /**
+     * Gets the sodium content in milligrams.
+     * 
+     * @return The sodium content
+     */
     public double getSodium() {
         return sodium;
     }
     
+    /**
+     * Sets the sodium content in milligrams.
+     * Negative values will be converted to zero.
+     * 
+     * @param sodium The sodium content to set
+     */
     public void setSodium(double sodium) {
-        this.sodium = sodium;
+        this.sodium = Math.max(0.0, sodium);
+    }
+    
+    /**
+     * Validates if all nutrient values are within acceptable ranges.
+     * 
+     * @return true if all nutrient values are valid, false otherwise
+     */
+    public boolean isValid() {
+        // Check if base food properties are valid
+        if (!super.isValid()) {
+            return false;
+        }
+        
+        // Macronutrients should not exceed reasonable limits
+        double totalMacros = protein + carbs + fat;
+        
+        // Total macronutrients (in grams) should not exceed the food's weight
+        if (totalMacros > getGrams()) {
+            return false;
+        }
+        
+        // Check if individual nutrients are reasonable
+        // Protein should not exceed 100% of food weight
+        if (protein > getGrams()) {
+            return false;
+        }
+        
+        // Carbs should not exceed 100% of food weight
+        if (carbs > getGrams()) {
+            return false;
+        }
+        
+        // Fat should not exceed 100% of food weight
+        if (fat > getGrams()) {
+            return false;
+        }
+        
+        // Sugar is a type of carbohydrate, so it shouldn't exceed carbs
+        if (sugar > carbs) {
+            return false;
+        }
+        
+        // Fiber is a type of carbohydrate, so it shouldn't exceed carbs
+        if (fiber > carbs) {
+            return false;
+        }
+        
+        return true;
     }
     
     /**

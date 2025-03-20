@@ -38,6 +38,15 @@ public class CalorieNutrientTrackingService {
      */
     public boolean setNutritionGoals(String username, int calorieGoal, double proteinGoal, 
                                     double carbGoal, double fatGoal) {
+        // Validate input parameters
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+        
+        if (calorieGoal < 0 || proteinGoal < 0 || carbGoal < 0 || fatGoal < 0) {
+            return false;
+        }
+        
         NutritionGoal goal = new NutritionGoal(calorieGoal, proteinGoal, carbGoal, fatGoal);
         userNutritionGoals.put(username, goal);
         return true;
@@ -63,6 +72,16 @@ public class CalorieNutrientTrackingService {
      * @return A NutritionReport object containing the nutrition summary
      */
     public NutritionReport getNutritionReport(String username, String date) {
+        // Validate input parameters
+        if (username == null || username.trim().isEmpty() || date == null || date.trim().isEmpty()) {
+            // Return an empty report with default goals
+            return new NutritionReport(
+                date != null ? date : "",
+                0, 0, 0, 0, 0, 0, 0,
+                getNutritionGoals(username)
+            );
+        }
+        
         List<Food> foods = mealPlanningService.getFoodLog(username, date);
         
         int totalCalories = 0;
@@ -116,8 +135,15 @@ public class CalorieNutrientTrackingService {
     public List<NutritionReport> getWeeklyReport(String username, String[] dates) {
         List<NutritionReport> reports = new ArrayList<>();
         
+        // Validate input parameters
+        if (username == null || username.trim().isEmpty() || dates == null) {
+            return reports; // Return empty list
+        }
+        
         for (String date : dates) {
-            reports.add(getNutritionReport(username, date));
+            if (date != null && !date.trim().isEmpty()) {
+                reports.add(getNutritionReport(username, date));
+            }
         }
         
         return reports;
@@ -135,6 +161,16 @@ public class CalorieNutrientTrackingService {
      */
     public int calculateSuggestedCalories(char gender, int age, double heightCm, 
                                          double weightKg, int activityLevel) {
+        // Validate input parameters
+        if (age <= 0 || heightCm <= 0 || weightKg <= 0 || 
+            activityLevel < 1 || activityLevel > 5) {
+            return 0; // Invalid input
+        }
+        
+        if (gender != 'M' && gender != 'm' && gender != 'F' && gender != 'f') {
+            return 0; // Invalid gender
+        }
+        
         double bmr = 0;
         
         // Calculate BMR using Mifflin-St Jeor Equation
@@ -163,6 +199,9 @@ public class CalorieNutrientTrackingService {
             case 5: // Extra active
                 activityFactor = 1.9;
                 break;
+            default:
+                activityFactor = 1.2; // Default to sedentary
+                break;
         }
         
         return (int) Math.round(bmr * activityFactor);
@@ -179,10 +218,10 @@ public class CalorieNutrientTrackingService {
         
         public NutritionGoal(int calorieGoal, double proteinGoal, 
                             double carbGoal, double fatGoal) {
-            this.calorieGoal = calorieGoal;
-            this.proteinGoal = proteinGoal;
-            this.carbGoal = carbGoal;
-            this.fatGoal = fatGoal;
+            this.calorieGoal = Math.max(0, calorieGoal); // Ensure non-negative
+            this.proteinGoal = Math.max(0, proteinGoal); // Ensure non-negative
+            this.carbGoal = Math.max(0, carbGoal);       // Ensure non-negative
+            this.fatGoal = Math.max(0, fatGoal);         // Ensure non-negative
         }
         
         public int getCalorieGoal() {
@@ -219,15 +258,15 @@ public class CalorieNutrientTrackingService {
         public NutritionReport(String date, int totalCalories, double totalProtein,
                               double totalCarbs, double totalFat, double totalFiber,
                               double totalSugar, double totalSodium, NutritionGoal goals) {
-            this.date = date;
-            this.totalCalories = totalCalories;
-            this.totalProtein = totalProtein;
-            this.totalCarbs = totalCarbs;
-            this.totalFat = totalFat;
-            this.totalFiber = totalFiber;
-            this.totalSugar = totalSugar;
-            this.totalSodium = totalSodium;
-            this.goals = goals;
+            this.date = date != null ? date : "";
+            this.totalCalories = Math.max(0, totalCalories);       // Ensure non-negative
+            this.totalProtein = Math.max(0, totalProtein);         // Ensure non-negative
+            this.totalCarbs = Math.max(0, totalCarbs);             // Ensure non-negative
+            this.totalFat = Math.max(0, totalFat);                 // Ensure non-negative
+            this.totalFiber = Math.max(0, totalFiber);             // Ensure non-negative
+            this.totalSugar = Math.max(0, totalSugar);             // Ensure non-negative
+            this.totalSodium = Math.max(0, totalSodium);           // Ensure non-negative
+            this.goals = goals != null ? goals : new NutritionGoal(2000, 50, 250, 70);
         }
         
         public String getDate() {
