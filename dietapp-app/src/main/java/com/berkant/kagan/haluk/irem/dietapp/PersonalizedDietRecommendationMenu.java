@@ -160,9 +160,18 @@ public class PersonalizedDietRecommendationMenu {
                 break;
         }
         
-        // Get health conditions/allergies
-        System.out.println("\nDo you have any health conditions or allergies? (Y/N): ");
-        String hasConditions = scanner.nextLine().toUpperCase();
+        // Get health conditions/allergies with validation
+        String hasConditions;
+        while (true) {
+            System.out.println("\nDo you have any health conditions or allergies? (Y/N): ");
+            hasConditions = scanner.nextLine().toUpperCase();
+            
+            if (hasConditions.equals("Y") || hasConditions.equals("N")) {
+                break;
+            } else {
+                System.out.println("Invalid input. Please enter 'Y' for Yes or 'N' for No.");
+            }
+        }
         
         List<String> healthConditions = new ArrayList<>();
         if (hasConditions.equals("Y")) {
@@ -177,9 +186,18 @@ public class PersonalizedDietRecommendationMenu {
             }
         }
         
-        // Get excluded foods
-        System.out.println("\nDo you want to exclude any specific foods? (Y/N): ");
-        String hasExclusions = scanner.nextLine().toUpperCase();
+        // Get excluded foods with validation
+        String hasExclusions;
+        while (true) {
+            System.out.println("\nDo you want to exclude any specific foods? (Y/N): ");
+            hasExclusions = scanner.nextLine().toUpperCase();
+            
+            if (hasExclusions.equals("Y") || hasExclusions.equals("N")) {
+                break;
+            } else {
+                System.out.println("Invalid input. Please enter 'Y' for Yes or 'N' for No.");
+            }
+        }
         
         List<String> excludedFoods = new ArrayList<>();
         if (hasExclusions.equals("Y")) {
@@ -205,7 +223,6 @@ public class PersonalizedDietRecommendationMenu {
             System.out.println("Failed to update diet preferences.");
         }
     }
-    
     /**
      * Handles generating personalized diet recommendations.
      */
@@ -243,8 +260,9 @@ public class PersonalizedDietRecommendationMenu {
         double heightCm;
         while (true) {
             System.out.print("Enter height (cm): ");
+            String heightInput = scanner.nextLine();
             try {
-                heightCm = Double.parseDouble(scanner.nextLine());
+                heightCm = Double.parseDouble(heightInput);
                 if (heightCm > 0) {
                     break;
                 } else {
