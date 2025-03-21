@@ -107,11 +107,28 @@ public class PersonalizedDietRecommendationMenu {
         System.out.println("3. High Protein");
         System.out.println("4. Vegetarian");
         System.out.println("5. Vegan");
-        System.out.print("Enter your choice (1-5): ");
-        
-        int dietTypeChoice = getUserChoice();
         DietType dietType;
-        
+        int dietTypeChoice;
+                
+        // Geçerli bir seçim yapılana kadar döngüde kal
+        while (true) {
+            System.out.print("Enter your choice (1-5): ");
+            String input = scanner.nextLine();
+                    
+            try {
+                dietTypeChoice = Integer.parseInt(input);
+                if (dietTypeChoice >= 1 && dietTypeChoice <= 5) {
+                    // Geçerli giriş, döngüden çık
+                    break;
+                } else {
+                    System.out.println("Geçersiz seçim. Lütfen 1 ile 5 arasında bir sayı girin.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Geçersiz giriş. Lütfen 1 ile 5 arasında bir sayı girin.");
+            }
+        }
+                
+        // Artık geçerli bir giriş var, diyet tipini belirle
         switch (dietTypeChoice) {
             case 1:
                 dietType = DietType.BALANCED;
@@ -129,7 +146,7 @@ public class PersonalizedDietRecommendationMenu {
                 dietType = DietType.VEGAN;
                 break;
             default:
-                System.out.println("Invalid choice. Using Balanced diet type as default.");
+                // Yukarıdaki doğrulama nedeniyle bu asla gerçekleşmemeli
                 dietType = DietType.BALANCED;
                 break;
         }
