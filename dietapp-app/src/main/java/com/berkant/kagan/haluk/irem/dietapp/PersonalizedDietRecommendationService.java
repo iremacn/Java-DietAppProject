@@ -1,5 +1,6 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +10,9 @@ import java.util.Map;
  * This class handles personalized diet recommendation operations for the Diet Planner application.
  * @details The PersonalizedDietRecommendationService class provides methods for generating
  *          personalized diet recommendations based on user profile and preferences.
- * @author haluk
+ * @author halukz
  */
 public class PersonalizedDietRecommendationService {
-    // Maps to store user preferences and diet profiles
-    private Map<String, UserDietProfile> userDietProfiles;
-    
     // Service dependencies
     private CalorieNutrientTrackingService calorieNutrientService;
     private MealPlanningService mealPlanningService;
@@ -28,11 +26,10 @@ public class PersonalizedDietRecommendationService {
     public PersonalizedDietRecommendationService(
             CalorieNutrientTrackingService calorieNutrientService,
             MealPlanningService mealPlanningService) {
-        this.userDietProfiles = new HashMap<>();
         this.calorieNutrientService = calorieNutrientService;
         this.mealPlanningService = mealPlanningService;
     }
-    
+   
     /**
      * Creates or updates a user's diet profile.
      * 
@@ -47,11 +44,129 @@ public class PersonalizedDietRecommendationService {
                                     List<String> healthConditions,
                                     WeightGoal weightGoal,
                                     List<String> excludedFoods) {
-        UserDietProfile profile = new UserDietProfile(
-            dietType, healthConditions, weightGoal, excludedFoods);
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            // Önce kullanıcı ID'sini bul
+            int userId = getUserId(conn, username);
+            if (userId == -1) {
+                return false; // Kullanıcı bulunamadı
+            }
+            
+            // Mevcut profili kontrol et
+            boolean hasProfile = false;
+            int profileId = -1;
+            
+            try (PreparedStatement checkStmt = conn.prepareStatement(
+                    "SELECT id FROM diet_profiles WHERE user_id = ?")) {
+                
+                checkStmt.setInt(1, userId);
+                ResultSet rs = checkStmt.executeQuery();
+                
+                if (rs.next()) {
+                    hasProfile = true;
+                    profileId = rs.getInt("id");
+                }
+            }
+            
+            if (hasProfile) {
+                // Mevcut profili güncelle
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                        "UPDATE diet_profiles SET diet_type = ?, weight_goal = ? WHERE id = ?")) {
+                    
+                    updateStmt.setString(1, dietType.name());
+                    updateStmt.setString(2, weightGoal.name());
+                    updateStmt.setInt(3, profileId);
+                    
+                    updateStmt.executeUpdate();
+                }
+                
+                // Varolan sağlık durumlarını ve hariç tutulan yiyecekleri sil
+                try (PreparedStatement deleteStmt = conn.prepareStatement(
+                        "DELETE FROM health_conditions WHERE profile_id = ?")) {
+                    deleteStmt.setInt(1, profileId);
+                    deleteStmt.executeUpdate();
+                }
+                
+                try (PreparedStatement deleteStmt = conn.prepareStatement(
+                        "DELETE FROM excluded_foods WHERE profile_id = ?")) {
+                    deleteStmt.setInt(1, profileId);
+                    deleteStmt.executeUpdate();
+                }
+            } else {
+                // Yeni profil oluştur
+                try (PreparedStatement insertStmt = conn.prepareStatement(
+                        "INSERT INTO diet_profiles (user_id, diet_type, weight_goal) VALUES (?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    
+                    insertStmt.setInt(1, userId);
+                    insertStmt.setString(2, dietType.name());
+                    insertStmt.setString(3, weightGoal.name());
+                    
+                    insertStmt.executeUpdate();
+                    
+                    try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            profileId = generatedKeys.getInt(1);
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            // Sağlık durumlarını ekle
+            if (!healthConditions.isEmpty()) {
+                try (PreparedStatement insertStmt = conn.prepareStatement(
+                        "INSERT INTO health_conditions (profile_id, condition_name) VALUES (?, ?)")) {
+                    
+                    for (String condition : healthConditions) {
+                        insertStmt.setInt(1, profileId);
+                        insertStmt.setString(2, condition);
+                        insertStmt.executeUpdate();
+                    }
+                }
+            }
+            
+            // Hariç tutulan yiyecekleri ekle
+            if (!excludedFoods.isEmpty()) {
+                try (PreparedStatement insertStmt = conn.prepareStatement(
+                        "INSERT INTO excluded_foods (profile_id, food_name) VALUES (?, ?)")) {
+                    
+                    for (String food : excludedFoods) {
+                        insertStmt.setInt(1, profileId);
+                        insertStmt.setString(2, food);
+                        insertStmt.executeUpdate();
+                    }
+                }
+            }
+            
+            return true;
+            
+        } catch (SQLException e) {
+            System.out.println("Diyet profili güncellenirken hata oluştu: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Helper method to get user ID by username
+     * 
+     * @param conn Database connection
+     * @param username Username to look up
+     * @return User ID or -1 if not found
+     * @throws SQLException If database error occurs
+     */
+    private int getUserId(Connection conn, String username) throws SQLException {
+        String sql = "SELECT id FROM users WHERE username = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
         
-        userDietProfiles.put(username, profile);
-        return true;
+        return -1;
     }
     
     /**
@@ -61,10 +176,63 @@ public class PersonalizedDietRecommendationService {
      * @return The user's diet profile or a default profile if none exists
      */
     public UserDietProfile getUserDietProfile(String username) {
-        // Return user's profile or default profile if none exists
-        return userDietProfiles.getOrDefault(username, 
-                new UserDietProfile(DietType.BALANCED, new ArrayList<>(), 
-                                   WeightGoal.MAINTAIN, new ArrayList<>()));
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            int userId = getUserId(conn, username);
+            if (userId == -1) {
+                return new UserDietProfile(DietType.BALANCED, new ArrayList<>(), 
+                         WeightGoal.MAINTAIN, new ArrayList<>());
+            }
+            
+            DietType dietType = DietType.BALANCED;
+            WeightGoal weightGoal = WeightGoal.MAINTAIN;
+            List<String> healthConditions = new ArrayList<>();
+            List<String> excludedFoods = new ArrayList<>();
+            
+            // Diyet profilini al
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "SELECT id, diet_type, weight_goal FROM diet_profiles WHERE user_id = ?")) {
+                
+                pstmt.setInt(1, userId);
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next()) {
+                    int profileId = rs.getInt("id");
+                    dietType = DietType.valueOf(rs.getString("diet_type"));
+                    weightGoal = WeightGoal.valueOf(rs.getString("weight_goal"));
+                    
+                    // Sağlık durumlarını al
+                    try (PreparedStatement condStmt = conn.prepareStatement(
+                            "SELECT condition_name FROM health_conditions WHERE profile_id = ?")) {
+                        
+                        condStmt.setInt(1, profileId);
+                        ResultSet condRs = condStmt.executeQuery();
+                        
+                        while (condRs.next()) {
+                            healthConditions.add(condRs.getString("condition_name"));
+                        }
+                    }
+                    
+                    // Hariç tutulan yiyecekleri al
+                    try (PreparedStatement foodStmt = conn.prepareStatement(
+                            "SELECT food_name FROM excluded_foods WHERE profile_id = ?")) {
+                        
+                        foodStmt.setInt(1, profileId);
+                        ResultSet foodRs = foodStmt.executeQuery();
+                        
+                        while (foodRs.next()) {
+                            excludedFoods.add(foodRs.getString("food_name"));
+                        }
+                    }
+                }
+            }
+            
+            return new UserDietProfile(dietType, healthConditions, weightGoal, excludedFoods);
+            
+        } catch (SQLException e) {
+            System.out.println("Diyet profili alınırken hata oluştu: " + e.getMessage());
+            return new UserDietProfile(DietType.BALANCED, new ArrayList<>(), 
+                     WeightGoal.MAINTAIN, new ArrayList<>());
+        }
     }
     
     /**
@@ -99,10 +267,28 @@ public class PersonalizedDietRecommendationService {
         List<RecommendedMeal> recommendedMeals = generateMealPlan(
             adjustedCalories, macros, profile);
         
+        // Generate dietary guidelines based on profile
+        List<String> guidelines = generateDietaryGuidelines(profile);
+        
         // Create and return diet recommendation
-        return new DietRecommendation(
-            adjustedCalories, macros, recommendedMeals, 
-            generateDietaryGuidelines(profile));
+        DietRecommendation recommendation = new DietRecommendation(
+            adjustedCalories, macros, recommendedMeals, guidelines);
+        
+        // Önerileri veritabanına kaydedebilirsiniz (opsiyonel)
+        saveRecommendation(username, recommendation);
+        
+        return recommendation;
+    }
+    
+    /**
+     * Saves a diet recommendation to the database (optional).
+     * 
+     * @param username The username of the user
+     * @param recommendation The diet recommendation to save
+     */
+    private void saveRecommendation(String username, DietRecommendation recommendation) {
+        // Bu metodu gerekirse ileride implemente edebilirsiniz
+        // Önerileri veritabanında saklamak isterseniz burada kod ekleyebilirsiniz
     }
     
     /**
@@ -170,6 +356,8 @@ public class PersonalizedDietRecommendationService {
             (int) Math.round(fatGrams)
         );
     }
+    
+   
     
     /**
      * Generates a meal plan based on nutritional requirements and preferences.
@@ -587,6 +775,34 @@ public class PersonalizedDietRecommendationService {
      * @return Array of example diet recommendations
      */
     public String[] getExampleDietPlans() {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "SELECT diet_type, description FROM example_diet_plans")) {
+            
+            List<String> plans = new ArrayList<>();
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String dietType = rs.getString("diet_type");
+                String description = rs.getString("description");
+                plans.add(dietType + " Diet Plan:\n" + description);
+            }
+            
+            // Eğer veritabanından veri gelemediyse, varsayılan planları döndür
+            if (plans.isEmpty()) {
+                return getDefaultExampleDietPlans();
+            }
+            
+            return plans.toArray(new String[0]);
+        } catch (SQLException e) {
+            System.out.println("Örnek diyet planları alınamadı: " + e.getMessage());
+            // Hata durumunda varsayılan planları döndür
+            return getDefaultExampleDietPlans();
+        }
+    }
+
+    // Veritabanından plan alınamazsa varsayılan planları döndüren yardımcı metod
+    private String[] getDefaultExampleDietPlans() {
         return new String[] {
             "Balanced Diet Plan:\n" +
             "A balanced approach focusing on whole foods, lean proteins, healthy fats, and complex carbohydrates. " +

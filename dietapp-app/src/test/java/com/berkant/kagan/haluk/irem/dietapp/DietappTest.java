@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.berkant.kagan.haluk.irem.dietapp.dietapp;
+import com.berkant.kagan.haluk.irem.dietapp.Dietapp;
 
 /**
 

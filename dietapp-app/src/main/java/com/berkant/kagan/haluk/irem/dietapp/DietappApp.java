@@ -61,11 +61,19 @@ public class DietappApp {
      * @param args The command-line arguments passed to the application.
      */
     public static void main(String[] args) {
-        // Create an instance of the application
-        DietappApp app = new DietappApp();
+    	// Veritabanı bağlantısını başlat
+        DatabaseHelper.initializeDatabase();
         
-        // Run the application
-        app.run();
+        try {
+            // Create an instance of the application
+            DietappApp app = new DietappApp();
+            
+            // Run the application
+            app.run();
+        } finally {
+            // Uygulama kapanırken veritabanı bağlantısını kapat
+            DatabaseHelper.closeConnection();
+        }
     }
     
     /**

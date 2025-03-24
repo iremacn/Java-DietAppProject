@@ -1,9 +1,8 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class handles calorie and nutrient tracking operations for the Diet Planner application.
@@ -12,8 +11,7 @@ import java.util.Map;
  * @author irem
  */
 public class CalorieNutrientTrackingService {
-    // Maps to store user nutrition goals
-    private Map<String, NutritionGoal> userNutritionGoals;
+    // Service dependencies
     private MealPlanningService mealPlanningService;
     
     /**
@@ -22,7 +20,6 @@ public class CalorieNutrientTrackingService {
      * @param mealPlanningService The meal planning service for accessing food logs
      */
     public CalorieNutrientTrackingService(MealPlanningService mealPlanningService) {
-        this.userNutritionGoals = new HashMap<>();
         this.mealPlanningService = mealPlanningService;
     }
     
@@ -47,9 +44,87 @@ public class CalorieNutrientTrackingService {
             return false;
         }
         
-        NutritionGoal goal = new NutritionGoal(calorieGoal, proteinGoal, carbGoal, fatGoal);
-        userNutritionGoals.put(username, goal);
-        return true;
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            // Get user id
+            int userId = getUserId(conn, username);
+            if (userId == -1) {
+                return false; // User not found
+            }
+            
+            // Check if user already has nutrition goals
+            boolean hasGoals = false;
+            int goalId = -1;
+            
+            try (PreparedStatement checkStmt = conn.prepareStatement(
+                    "SELECT id FROM nutrition_goals WHERE user_id = ?")) {
+                
+                checkStmt.setInt(1, userId);
+                ResultSet rs = checkStmt.executeQuery();
+                
+                if (rs.next()) {
+                    hasGoals = true;
+                    goalId = rs.getInt("id");
+                }
+            }
+            
+            // Insert or update goals
+            if (hasGoals) {
+                // Update existing goals
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                        "UPDATE nutrition_goals SET calorie_goal = ?, protein_goal = ?, carb_goal = ?, fat_goal = ? " +
+                        "WHERE id = ?")) {
+                    
+                    updateStmt.setInt(1, calorieGoal);
+                    updateStmt.setDouble(2, proteinGoal);
+                    updateStmt.setDouble(3, carbGoal);
+                    updateStmt.setDouble(4, fatGoal);
+                    updateStmt.setInt(5, goalId);
+                    
+                    int affectedRows = updateStmt.executeUpdate();
+                    return affectedRows > 0;
+                }
+            } else {
+                // Insert new goals
+                try (PreparedStatement insertStmt = conn.prepareStatement(
+                        "INSERT INTO nutrition_goals (user_id, calorie_goal, protein_goal, carb_goal, fat_goal) " +
+                        "VALUES (?, ?, ?, ?, ?)")) {
+                    
+                    insertStmt.setInt(1, userId);
+                    insertStmt.setInt(2, calorieGoal);
+                    insertStmt.setDouble(3, proteinGoal);
+                    insertStmt.setDouble(4, carbGoal);
+                    insertStmt.setDouble(5, fatGoal);
+                    
+                    int affectedRows = insertStmt.executeUpdate();
+                    return affectedRows > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Beslenme hedefleri kaydedilemedi: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Helper method to get user ID by username
+     * 
+     * @param conn Database connection
+     * @param username Username to look up
+     * @return User ID or -1 if not found
+     * @throws SQLException If database error occurs
+     */
+    private int getUserId(Connection conn, String username) throws SQLException {
+        String sql = "SELECT id FROM users WHERE username = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        }
+        
+        return -1;
     }
     
     /**
@@ -59,9 +134,37 @@ public class CalorieNutrientTrackingService {
      * @return The user's nutrition goals or default goals if none are set
      */
     public NutritionGoal getNutritionGoals(String username) {
-        // Return user's goals or default goals if none are set
-        return userNutritionGoals.getOrDefault(username, 
-                new NutritionGoal(2000, 50, 250, 70)); // Default values
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            // Get user id
+            int userId = getUserId(conn, username);
+            if (userId == -1) {
+                return new NutritionGoal(2000, 50, 250, 70); // Default values for invalid user
+            }
+            
+            // Get nutrition goals
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "SELECT * FROM nutrition_goals WHERE user_id = ?")) {
+                
+                pstmt.setInt(1, userId);
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next()) {
+                    return new NutritionGoal(
+                        rs.getInt("calorie_goal"),
+                        rs.getDouble("protein_goal"),
+                        rs.getDouble("carb_goal"),
+                        rs.getDouble("fat_goal")
+                    );
+                }
+            }
+            
+            // Return default goals if none are set
+            return new NutritionGoal(2000, 50, 250, 70);
+            
+        } catch (SQLException e) {
+            System.out.println("Beslenme hedefleri alınamadı: " + e.getMessage());
+            return new NutritionGoal(2000, 50, 250, 70); // Default values on error
+        }
     }
     
     /**
@@ -208,6 +311,80 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
+     * Gets predefined common food items with detailed nutrient information.
+     * 
+     * @return Array of common foods with nutrient details
+     */
+    public FoodNutrient[] getCommonFoodsWithNutrients() {
+        // Try to get from database first
+        List<FoodNutrient> commonFoods = new ArrayList<>();
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "SELECT f.id, f.name, f.grams, f.calories, fn.protein, fn.carbs, fn.fat, " +
+                 "fn.fiber, fn.sugar, fn.sodium FROM foods f " +
+                 "JOIN food_nutrients fn ON f.id = fn.food_id " +
+                 "LIMIT 15")) {
+            
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                commonFoods.add(new FoodNutrient(
+                    rs.getString("name"),
+                    rs.getDouble("grams"),
+                    rs.getInt("calories"),
+                    rs.getDouble("protein"),
+                    rs.getDouble("carbs"),
+                    rs.getDouble("fat"),
+                    rs.getDouble("fiber"),
+                    rs.getDouble("sugar"),
+                    rs.getDouble("sodium")
+                ));
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Yaygın besinler alınamadı: " + e.getMessage());
+        }
+        
+        // If we found foods in the database, return those
+        if (!commonFoods.isEmpty()) {
+            return commonFoods.toArray(new FoodNutrient[0]);
+        }
+        
+        // Otherwise, return the default hard-coded array
+        // and add these to the database for future use
+        FoodNutrient[] defaultFoods = {
+            // Name, grams, calories, protein, carbs, fat, fiber, sugar, sodium
+            new FoodNutrient("Apple", 100, 52, 0.3, 14.0, 0.2, 2.4, 10.3, 1.0),
+            new FoodNutrient("Banana", 100, 89, 1.1, 22.8, 0.3, 2.6, 12.2, 1.0),
+            new FoodNutrient("Chicken Breast", 100, 165, 31.0, 0.0, 3.6, 0.0, 0.0, 74.0),
+            new FoodNutrient("Salmon", 100, 206, 22.0, 0.0, 13.0, 0.0, 0.0, 59.0),
+            new FoodNutrient("Brown Rice", 100, 112, 2.6, 23.5, 0.9, 1.8, 0.4, 5.0),
+            new FoodNutrient("Egg", 50, 78, 6.3, 0.6, 5.3, 0.0, 0.6, 62.0),
+            new FoodNutrient("Broccoli", 100, 34, 2.8, 6.6, 0.4, 2.6, 1.7, 33.0),
+            new FoodNutrient("Greek Yogurt", 100, 59, 10.0, 3.6, 0.4, 0.0, 3.6, 36.0),
+            new FoodNutrient("Almonds", 30, 173, 6.0, 6.1, 14.9, 3.5, 1.2, 0.3),
+            new FoodNutrient("Sweet Potato", 100, 86, 1.6, 20.1, 0.1, 3.0, 4.2, 55.0),
+            new FoodNutrient("Avocado", 100, 160, 2.0, 8.5, 14.7, 6.7, 0.7, 7.0),
+            new FoodNutrient("Oatmeal", 100, 68, 2.5, 12.0, 1.4, 2.0, 0.0, 2.0),
+            new FoodNutrient("Whole Wheat Bread", 30, 76, 3.6, 14.0, 1.1, 2.0, 1.5, 152.0),
+            new FoodNutrient("Milk", 100, 42, 3.4, 5.0, 1.0, 0.0, 5.0, 44.0),
+            new FoodNutrient("Ground Beef (Lean)", 100, 250, 26.0, 0.0, 15.0, 0.0, 0.0, 70.0)
+        };
+        
+        // Save these to the database for future use
+        try (Connection conn = DatabaseHelper.getConnection()) {
+            for (FoodNutrient food : defaultFoods) {
+                DatabaseHelper.saveFoodAndGetId(food);
+            }
+        } catch (SQLException e) {
+            System.out.println("Yaygın besinler veritabanına kaydedilemedi: " + e.getMessage());
+        }
+        
+        return defaultFoods;
+    }
+    
+    /**
      * Inner class to represent a user's nutrition goals.
      */
     public class NutritionGoal {
@@ -320,31 +497,5 @@ public class CalorieNutrientTrackingService {
         public double getFatPercentage() {
             return goals.getFatGoal() > 0 ? (totalFat * 100.0 / goals.getFatGoal()) : 0;
         }
-    }
-    
-    /**
-     * Gets predefined common food items with detailed nutrient information.
-     * 
-     * @return Array of common foods with nutrient details
-     */
-    public FoodNutrient[] getCommonFoodsWithNutrients() {
-        return new FoodNutrient[] {
-            // Name, grams, calories, protein, carbs, fat, fiber, sugar, sodium
-            new FoodNutrient("Apple", 100, 52, 0.3, 14.0, 0.2, 2.4, 10.3, 1.0),
-            new FoodNutrient("Banana", 100, 89, 1.1, 22.8, 0.3, 2.6, 12.2, 1.0),
-            new FoodNutrient("Chicken Breast", 100, 165, 31.0, 0.0, 3.6, 0.0, 0.0, 74.0),
-            new FoodNutrient("Salmon", 100, 206, 22.0, 0.0, 13.0, 0.0, 0.0, 59.0),
-            new FoodNutrient("Brown Rice", 100, 112, 2.6, 23.5, 0.9, 1.8, 0.4, 5.0),
-            new FoodNutrient("Egg", 50, 78, 6.3, 0.6, 5.3, 0.0, 0.6, 62.0),
-            new FoodNutrient("Broccoli", 100, 34, 2.8, 6.6, 0.4, 2.6, 1.7, 33.0),
-            new FoodNutrient("Greek Yogurt", 100, 59, 10.0, 3.6, 0.4, 0.0, 3.6, 36.0),
-            new FoodNutrient("Almonds", 30, 173, 6.0, 6.1, 14.9, 3.5, 1.2, 0.3),
-            new FoodNutrient("Sweet Potato", 100, 86, 1.6, 20.1, 0.1, 3.0, 4.2, 55.0),
-            new FoodNutrient("Avocado", 100, 160, 2.0, 8.5, 14.7, 6.7, 0.7, 7.0),
-            new FoodNutrient("Oatmeal", 100, 68, 2.5, 12.0, 1.4, 2.0, 0.0, 2.0),
-            new FoodNutrient("Whole Wheat Bread", 30, 76, 3.6, 14.0, 1.1, 2.0, 1.5, 152.0),
-            new FoodNutrient("Milk", 100, 42, 3.4, 5.0, 1.0, 0.0, 5.0, 44.0),
-            new FoodNutrient("Ground Beef (Lean)", 100, 250, 26.0, 0.0, 15.0, 0.0, 0.0, 70.0)
-        };
     }
 }

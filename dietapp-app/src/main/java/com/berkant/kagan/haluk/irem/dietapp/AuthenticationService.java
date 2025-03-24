@@ -1,5 +1,5 @@
 package com.berkant.kagan.haluk.irem.dietapp;
-
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,17 +10,13 @@ import java.util.List;
  * @author ugur.coruh
  */
 public class AuthenticationService {
-    // List to store registered users
-    private List<User> users;
-    // Reference to the currently logged in user
+	 // Reference to the currently logged in user
     private User currentUser;
     
     /**
      * Constructor for AuthenticationService class.
-     * Initializes the users list.
      */
     public AuthenticationService() {
-        this.users = new ArrayList<>();
         this.currentUser = null;
     }
     
@@ -34,17 +30,42 @@ public class AuthenticationService {
      * @return true if registration successful, false if username already exists
      */
     public boolean register(String username, String password, String email, String name) {
-        // Check if username already exists
-        for (User user : users) {
-            if (user.getUsername().equals(username)) {
-                return false; // Username already exists
-            }
+        // Validate input parameters
+        if (username == null || username.trim().isEmpty() ||
+            password == null || password.trim().isEmpty() ||
+            email == null || email.trim().isEmpty() ||
+            name == null || name.trim().isEmpty()) {
+            return false;
         }
         
-        // Create new user and add to the list
-        User newUser = new User(username, password, email, name);
-        users.add(newUser);
-        return true;
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement("SELECT username FROM users WHERE username = ?")) {
+            
+            // Check if username already exists
+            checkStmt.setString(1, username);
+            ResultSet rs = checkStmt.executeQuery();
+            
+            if (rs.next()) {
+                return false; // Username already exists
+            }
+            
+            // Username is available, create new user
+            try (PreparedStatement insertStmt = conn.prepareStatement(
+                "INSERT INTO users (username, password, email, name, is_logged_in) VALUES (?, ?, ?, ?, 0)")) {
+                
+                insertStmt.setString(1, username);
+                insertStmt.setString(2, password); // In a real app, you should hash passwords
+                insertStmt.setString(3, email);
+                insertStmt.setString(4, name);
+                
+                int affectedRows = insertStmt.executeUpdate();
+                return affectedRows > 0;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Kullanıcı kaydedilemedi: " + e.getMessage());
+            return false;
+        }
     }
     
     /**
@@ -55,14 +76,43 @@ public class AuthenticationService {
      * @return true if login successful, false otherwise
      */
     public boolean login(String username, String password) {
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "SELECT * FROM users WHERE username = ? AND password = ?")) {
+            
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                // Create user object from database
+                User user = new User(
+                    rs.getString("username"),
+                    rs.getString("password"),
+                    rs.getString("email"),
+                    rs.getString("name")
+                );
                 user.setLoggedIn(true);
                 this.currentUser = user;
+                
+                // Update login status in database
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                    "UPDATE users SET is_logged_in = 1 WHERE username = ?")) {
+                    
+                    updateStmt.setString(1, username);
+                    updateStmt.executeUpdate();
+                }
+                
                 return true;
             }
+            
+            return false;
+            
+        } catch (SQLException e) {
+            System.out.println("Giriş yapılamadı: " + e.getMessage());
+            return false;
         }
-        return false; // Login failed
     }
     
     /**
@@ -70,6 +120,17 @@ public class AuthenticationService {
      */
     public void logout() {
         if (currentUser != null) {
+            try (Connection conn = DatabaseHelper.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(
+                     "UPDATE users SET is_logged_in = 0 WHERE username = ?")) {
+                
+                pstmt.setString(1, currentUser.getUsername());
+                pstmt.executeUpdate();
+                
+            } catch (SQLException e) {
+                System.out.println("Çıkış yapılırken hata oluştu: " + e.getMessage());
+            }
+            
             currentUser.setLoggedIn(false);
             currentUser = null;
         }
@@ -79,7 +140,7 @@ public class AuthenticationService {
      * Enables guest mode which allows limited access without registration.
      */
     public void enableGuestMode() {
-        // Create a temporary guest user
+        // Create a temporary guest user (not stored in database)
         this.currentUser = new User("guest", "", "", "Guest User");
         this.currentUser.setLoggedIn(true);
     }
@@ -108,6 +169,28 @@ public class AuthenticationService {
      * @return List of all registered users
      */
     public List<User> getAllUsers() {
-        return new ArrayList<>(users); // Return a copy to preserve encapsulation
+        List<User> users = new ArrayList<>();
+        
+        try (Connection conn = DatabaseHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM users")) {
+            
+            while (rs.next()) {
+                User user = new User(
+                    rs.getString("username"),
+                    rs.getString("password"),
+                    rs.getString("email"),
+                    rs.getString("name")
+                );
+                
+                user.setLoggedIn(rs.getInt("is_logged_in") == 1);
+                users.add(user);
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Kullanıcılar alınamadı: " + e.getMessage());
+        }
+        
+        return users;
     }
 }

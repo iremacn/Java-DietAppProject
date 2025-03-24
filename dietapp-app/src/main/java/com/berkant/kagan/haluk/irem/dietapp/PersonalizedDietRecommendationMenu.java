@@ -273,7 +273,7 @@ public class PersonalizedDietRecommendationMenu {
                 System.out.println("Invalid input. Please enter a number.");
             }
         }
-        
+       
         double heightCm;
         while (true) {
             System.out.print("Enter height (cm): ");
@@ -406,7 +406,7 @@ public class PersonalizedDietRecommendationMenu {
         for (int i = 0; i < examplePlans.length; i++) {
             System.out.println("\n" + examplePlans[i]);
         }
-        
+       
         // Pause before returning to menu
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();

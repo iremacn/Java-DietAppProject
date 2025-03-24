@@ -44,6 +44,8 @@ public class CalorieNutrientTrackingMenu {
             System.out.println("\n===== Calorie and Nutrient Tracking =====");
             System.out.println("1. Set Goals");
             System.out.println("2. View Nutrition Report");
+            System.out.println("3. Calculate Suggested Calories"); // Yeni eklenen seçenek
+            System.out.println("4. Log Food with Nutrients"); // Mevcut fakat çağrılmayan metod için seçenek
             System.out.println("0. Return to Main Menu");
             System.out.print("Enter your choice: ");
             
@@ -55,6 +57,12 @@ public class CalorieNutrientTrackingMenu {
                     break;
                 case 2:
                     handleViewNutritionReport();
+                    break;
+                case 3:
+                    handleCalculateSuggestedCalories(); // Yeni seçenek için case
+                    break;
+                case 4:
+                    handleLogFoodWithNutrients(); // Mevcut fakat çağrılmayan metod için case
                     break;
                 case 0:
                     running = false;
