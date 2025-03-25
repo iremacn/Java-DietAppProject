@@ -29,6 +29,31 @@ public class PersonalizedDietRecommendationService {
         this.calorieNutrientService = calorieNutrientService;
         this.mealPlanningService = mealPlanningService;
     }
+    
+    // Helper method to return default plans if they can't be retrieved from the database
+    private String[] getDefaultExampleDietPlans() {
+        return new String[] {
+            "Balanced Diet Plan:\n" +
+            "A balanced approach focusing on whole foods, lean proteins, healthy fats, and complex carbohydrates. " +
+            "This plan provides all essential nutrients in appropriate proportions.",
+            
+            "Low-Carb Diet Plan:\n" +
+            "Reduces carbohydrate intake while increasing protein and fat. " +
+            "Good for blood sugar control and may help with weight loss for some individuals.",
+            
+            "High-Protein Diet Plan:\n" +
+            "Emphasizes increased protein intake to support muscle maintenance, growth, and satiety. " +
+            "Popular for athletes and those looking to preserve muscle while losing fat.",
+            
+            "Vegetarian Diet Plan:\n" +
+            "Excludes meat but may include dairy and eggs. " +
+            "Focuses on plant proteins, whole grains, fruits, vegetables, nuts, and seeds.",
+            
+            "Vegan Diet Plan:\n" +
+            "Excludes all animal products. " +
+            "Requires careful planning to ensure adequate protein, vitamin B12, iron, zinc, and omega-3 fatty acids."
+        };
+    }
    
     /**
      * Creates or updates a user's diet profile.
@@ -45,13 +70,13 @@ public class PersonalizedDietRecommendationService {
                                     WeightGoal weightGoal,
                                     List<String> excludedFoods) {
         try (Connection conn = DatabaseHelper.getConnection()) {
-            // Önce kullanıcı ID'sini bul
+            // First find the user ID
             int userId = getUserId(conn, username);
             if (userId == -1) {
-                return false; // Kullanıcı bulunamadı
+                return false; // User not found
             }
             
-            // Mevcut profili kontrol et
+            // Check for existing profile
             boolean hasProfile = false;
             int profileId = -1;
             
@@ -68,7 +93,7 @@ public class PersonalizedDietRecommendationService {
             }
             
             if (hasProfile) {
-                // Mevcut profili güncelle
+                // Update existing profile
                 try (PreparedStatement updateStmt = conn.prepareStatement(
                         "UPDATE diet_profiles SET diet_type = ?, weight_goal = ? WHERE id = ?")) {
                     
@@ -79,7 +104,7 @@ public class PersonalizedDietRecommendationService {
                     updateStmt.executeUpdate();
                 }
                 
-                // Varolan sağlık durumlarını ve hariç tutulan yiyecekleri sil
+                // Delete existing health conditions and excluded foods
                 try (PreparedStatement deleteStmt = conn.prepareStatement(
                         "DELETE FROM health_conditions WHERE profile_id = ?")) {
                     deleteStmt.setInt(1, profileId);
@@ -92,7 +117,7 @@ public class PersonalizedDietRecommendationService {
                     deleteStmt.executeUpdate();
                 }
             } else {
-                // Yeni profil oluştur
+                // Create new profile
                 try (PreparedStatement insertStmt = conn.prepareStatement(
                         "INSERT INTO diet_profiles (user_id, diet_type, weight_goal) VALUES (?, ?, ?)",
                         Statement.RETURN_GENERATED_KEYS)) {
@@ -113,7 +138,7 @@ public class PersonalizedDietRecommendationService {
                 }
             }
             
-            // Sağlık durumlarını ekle
+            // Add health conditions
             if (!healthConditions.isEmpty()) {
                 try (PreparedStatement insertStmt = conn.prepareStatement(
                         "INSERT INTO health_conditions (profile_id, condition_name) VALUES (?, ?)")) {
@@ -126,7 +151,7 @@ public class PersonalizedDietRecommendationService {
                 }
             }
             
-            // Hariç tutulan yiyecekleri ekle
+            // Add excluded foods
             if (!excludedFoods.isEmpty()) {
                 try (PreparedStatement insertStmt = conn.prepareStatement(
                         "INSERT INTO excluded_foods (profile_id, food_name) VALUES (?, ?)")) {
@@ -142,7 +167,7 @@ public class PersonalizedDietRecommendationService {
             return true;
             
         } catch (SQLException e) {
-            System.out.println("Diyet profili güncellenirken hata oluştu: " + e.getMessage());
+            System.out.println("Error occurred while updating diet profile: " + e.getMessage());
             return false;
         }
     }
@@ -188,7 +213,7 @@ public class PersonalizedDietRecommendationService {
             List<String> healthConditions = new ArrayList<>();
             List<String> excludedFoods = new ArrayList<>();
             
-            // Diyet profilini al
+            // Get diet profile
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "SELECT id, diet_type, weight_goal FROM diet_profiles WHERE user_id = ?")) {
                 
@@ -200,7 +225,7 @@ public class PersonalizedDietRecommendationService {
                     dietType = DietType.valueOf(rs.getString("diet_type"));
                     weightGoal = WeightGoal.valueOf(rs.getString("weight_goal"));
                     
-                    // Sağlık durumlarını al
+                    // Get health conditions
                     try (PreparedStatement condStmt = conn.prepareStatement(
                             "SELECT condition_name FROM health_conditions WHERE profile_id = ?")) {
                         
@@ -212,7 +237,7 @@ public class PersonalizedDietRecommendationService {
                         }
                     }
                     
-                    // Hariç tutulan yiyecekleri al
+                    // Get excluded foods
                     try (PreparedStatement foodStmt = conn.prepareStatement(
                             "SELECT food_name FROM excluded_foods WHERE profile_id = ?")) {
                         
@@ -229,7 +254,7 @@ public class PersonalizedDietRecommendationService {
             return new UserDietProfile(dietType, healthConditions, weightGoal, excludedFoods);
             
         } catch (SQLException e) {
-            System.out.println("Diyet profili alınırken hata oluştu: " + e.getMessage());
+            System.out.println("Error occurred while retrieving diet profile: " + e.getMessage());
             return new UserDietProfile(DietType.BALANCED, new ArrayList<>(), 
                      WeightGoal.MAINTAIN, new ArrayList<>());
         }
@@ -274,7 +299,7 @@ public class PersonalizedDietRecommendationService {
         DietRecommendation recommendation = new DietRecommendation(
             adjustedCalories, macros, recommendedMeals, guidelines);
         
-        // Önerileri veritabanına kaydedebilirsiniz (opsiyonel)
+        // You can save recommendations to the database (optional)
         saveRecommendation(username, recommendation);
         
         return recommendation;
@@ -287,8 +312,8 @@ public class PersonalizedDietRecommendationService {
      * @param recommendation The diet recommendation to save
      */
     private void saveRecommendation(String username, DietRecommendation recommendation) {
-        // Bu metodu gerekirse ileride implemente edebilirsiniz
-        // Önerileri veritabanında saklamak isterseniz burada kod ekleyebilirsiniz
+        // You can implement this method in the future if needed
+        // You can add code here to store recommendations in the database
     }
     
     /**
@@ -788,41 +813,16 @@ public class PersonalizedDietRecommendationService {
                 plans.add(dietType + " Diet Plan:\n" + description);
             }
             
-            // Eğer veritabanından veri gelemediyse, varsayılan planları döndür
+            // If no data was retrieved from the database, return default plans
             if (plans.isEmpty()) {
                 return getDefaultExampleDietPlans();
             }
             
             return plans.toArray(new String[0]);
         } catch (SQLException e) {
-            System.out.println("Örnek diyet planları alınamadı: " + e.getMessage());
-            // Hata durumunda varsayılan planları döndür
+            System.out.println("Could not retrieve example diet plans: " + e.getMessage());
+            // Return default plans in case of error
             return getDefaultExampleDietPlans();
         }
     }
-
-    // Veritabanından plan alınamazsa varsayılan planları döndüren yardımcı metod
-    private String[] getDefaultExampleDietPlans() {
-        return new String[] {
-            "Balanced Diet Plan:\n" +
-            "A balanced approach focusing on whole foods, lean proteins, healthy fats, and complex carbohydrates. " +
-            "This plan provides all essential nutrients in appropriate proportions.",
-            
-            "Low-Carb Diet Plan:\n" +
-            "Reduces carbohydrate intake while increasing protein and fat. " +
-            "Good for blood sugar control and may help with weight loss for some individuals.",
-            
-            "High-Protein Diet Plan:\n" +
-            "Emphasizes increased protein intake to support muscle maintenance, growth, and satiety. " +
-            "Popular for athletes and those looking to preserve muscle while losing fat.",
-            
-            "Vegetarian Diet Plan:\n" +
-            "Excludes meat but may include dairy and eggs. " +
-            "Focuses on plant proteins, whole grains, fruits, vegetables, nuts, and seeds.",
-            
-            "Vegan Diet Plan:\n" +
-            "Excludes all animal products. " +
-            "Requires careful planning to ensure adequate protein, vitamin B12, iron, zinc, and omega-3 fatty acids."
-        };
     }
-}

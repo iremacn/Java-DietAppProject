@@ -24,11 +24,11 @@ public class ShoppingListService {
     public ShoppingListService(MealPlanningService mealPlanningService) {
         this.mealPlanningService = mealPlanningService;
         
-        // Veritabanında tablolar ve örnek veriler varsa oluştur
+        // Create tables and sample data in the database if they exist
         try {
             initializeIngredientsAndRecipes();
         } catch (SQLException e) {
-            System.out.println("Malzeme ve tarif veritabanı başlatılamadı: " + e.getMessage());
+            System.out.println("Could not initialize ingredients and recipes database: " + e.getMessage());
         }
     }
     
@@ -51,7 +51,7 @@ public class ShoppingListService {
             }
         } catch (SQLException e) {
             // Table might not exist yet, this is handled in DatabaseHelper
-            System.out.println("Malzeme veritabanı kontrolü sırasında hata: " + e.getMessage());
+            System.out.println("Error during ingredient database check: " + e.getMessage());
         }
     }
     
@@ -173,7 +173,7 @@ public class ShoppingListService {
                     pstmt.executeUpdate();
                 }
                 
-                System.out.println("Malzeme fiyatları veritabanına kaydedildi.");
+                System.out.println("Ingredient prices saved to database.");
             }
         }
     }
@@ -187,7 +187,7 @@ public class ShoppingListService {
         initializeSnackRecipes();
         initializeDinnerRecipes();
         
-        System.out.println("Tarifler veritabanına kaydedildi.");
+        System.out.println("Recipes saved to database.");
     }
     
     /**
@@ -310,7 +310,7 @@ public class ShoppingListService {
             insertRecipeIngredient(recipeId, "Lemon", 0.5, "unit");
         }
         
-        // Diğer öğle yemeği tariflerini benzer şekilde ekleyin...
+        // Add other lunch recipes in a similar way...
     }
     
     /**
@@ -335,7 +335,7 @@ public class ShoppingListService {
             insertRecipeIngredient(recipeId, "Honey", 10, "ml");
         }
         
-        // Diğer atıştırmalık tariflerini benzer şekilde ekleyin...
+        // Add other snack recipes in a similar way...
     }
     
     /**
@@ -357,7 +357,7 @@ public class ShoppingListService {
             insertRecipeIngredient(recipeId, "Pepper", 1, "g");
         }
         
-        // Diğer akşam yemeği tariflerini benzer şekilde ekleyin...
+        // Add other dinner recipes in a similar way...
     }
     
     /**
@@ -476,7 +476,7 @@ public class ShoppingListService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Malzeme listesi alınamadı: " + e.getMessage());
+            System.out.println("Could not get ingredient list: " + e.getMessage());
         }
         
         return ingredients;

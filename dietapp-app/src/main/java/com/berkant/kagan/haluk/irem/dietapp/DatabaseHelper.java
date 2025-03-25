@@ -16,20 +16,20 @@ public class DatabaseHelper {
      */
     public static void initializeDatabase() {
         try {
-            // SQLite JDBC sürücüsünü yükle
+            // Load the SQLite JDBC driver
             Class.forName("org.sqlite.JDBC");
             
-            // Veritabanı bağlantısını oluştur
+            // Create database connection
             connection = DriverManager.getConnection(DB_URL);
             
-            // Tabloları oluştur
+            // Create tables
             createTables();
             
-            System.out.println("Veritabanı bağlantısı başarılı");
+            System.out.println("Database connection successful");
         } catch (ClassNotFoundException e) {
-            System.out.println("SQLite JDBC sürücüsü bulunamadı: " + e.getMessage());
+            System.out.println("SQLite JDBC driver not found: " + e.getMessage());
         } catch (SQLException e) {
-            System.out.println("Veritabanı bağlantısı başarısız: " + e.getMessage());
+            System.out.println("Database connection failed: " + e.getMessage());
         }
     }
     
@@ -40,10 +40,10 @@ public class DatabaseHelper {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("Veritabanı bağlantısı kapatıldı");
+                System.out.println("Database connection closed");
             }
         } catch (SQLException e) {
-            System.out.println("Veritabanı bağlantısı kapatılamadı: " + e.getMessage());
+            System.out.println("Could not close database connection: " + e.getMessage());
         }
     }
     
@@ -59,7 +59,7 @@ public class DatabaseHelper {
             }
             return connection;
         } catch (SQLException e) {
-            System.out.println("Veritabanı bağlantısı alınamadı: " + e.getMessage());
+            System.out.println("Could not get database connection: " + e.getMessage());
             return null;
         }
     }
@@ -69,7 +69,7 @@ public class DatabaseHelper {
      */
     private static void createTables() {
         try (Statement statement = connection.createStatement()) {
-            // Users tablosu
+            // Users table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -81,7 +81,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // Foods tablosu
+            // Foods table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS foods (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -91,7 +91,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // FoodNutrient tablosu
+            // FoodNutrient table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS food_nutrients (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -106,7 +106,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // NutritionGoals tablosu
+            // NutritionGoals table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS nutrition_goals (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -119,7 +119,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // MealPlans tablosu
+            // MealPlans table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS meal_plans (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -132,7 +132,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // FoodLogs tablosu
+            // FoodLogs table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS food_logs (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -144,7 +144,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // DietProfiles tablosu
+            // DietProfiles table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS diet_profiles (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -155,7 +155,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // HealthConditions tablosu
+            // HealthConditions table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS health_conditions (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -165,7 +165,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // ExcludedFoods tablosu
+            // ExcludedFoods table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS excluded_foods (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -175,7 +175,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-         // Ingredients tablosu
+         // Ingredients table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS ingredients (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -184,7 +184,7 @@ public class DatabaseHelper {
                 ");"
             );
 
-            // Recipes tablosu
+            // Recipes table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS recipes (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -195,7 +195,7 @@ public class DatabaseHelper {
                 ");"
             );
 
-            // Recipe Ingredients tablosu
+            // Recipe Ingredients table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS recipe_ingredients (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -208,12 +208,12 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // Örnek verileri ekle (opsiyonel)
+            // Insert sample data (optional)
             insertSampleData(statement);
             
-            System.out.println("Veritabanı tabloları başarıyla oluşturuldu");
+            System.out.println("Database tables created successfully");
         } catch (SQLException e) {
-            System.out.println("Veritabanı tabloları oluşturulamadı: " + e.getMessage());
+            System.out.println("Could not create database tables: " + e.getMessage());
         }
     }
     
@@ -224,7 +224,7 @@ public class DatabaseHelper {
      * @throws SQLException If there is an error executing SQL
      */
     private static void insertSampleData(Statement statement) throws SQLException {
-        // Örnek kullanıcı ekle (sadece test amaçlı, boş veritabanında)
+        // Add sample user (for testing purposes only, in empty database)
         try {
             statement.execute(
                 "INSERT INTO users (username, password, email, name) " +
@@ -232,7 +232,7 @@ public class DatabaseHelper {
                 "WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');"
             );
         } catch (SQLException e) {
-            // Veri zaten mevcut olabilir, bu hatayı görmezden gelebiliriz
+            // Data may already exist, we can ignore this error
         }
     }
     
@@ -253,7 +253,7 @@ public class DatabaseHelper {
                 return rs.getInt("id");
             }
         } catch (SQLException e) {
-            System.out.println("Kullanıcı ID'si alınamadı: " + e.getMessage());
+            System.out.println("Could not get user ID: " + e.getMessage());
         }
         
         return -1;
@@ -353,7 +353,7 @@ public class DatabaseHelper {
                 return saveFoodNutrients(foodId, foodNutrient);
             }
         } catch (SQLException e) {
-            System.out.println("Besin değerleri güncellenemedi: " + e.getMessage());
+            System.out.println("Could not update nutrient values: " + e.getMessage());
             return false;
         }
     }
@@ -382,19 +382,8 @@ public class DatabaseHelper {
             return pstmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
-            System.out.println("Besin değerleri kaydedilemedi: " + e.getMessage());
+            System.out.println("Could not save nutrient values: " + e.getMessage());
             return false;
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-   
 }

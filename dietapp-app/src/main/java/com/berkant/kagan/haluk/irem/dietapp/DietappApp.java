@@ -14,13 +14,13 @@ public class DietappApp {
     private Scanner scanner;
     private MealPlanningService mealPlanningService;
     private MealPlanningMenu mealPlanningMenu;
-    // Yeni eklenen değişkenler
+    // Newly added variables
     private CalorieNutrientTrackingService calorieNutrientService;
     private CalorieNutrientTrackingMenu calorieNutrientMenu;
-    // Alışveriş listesi için eklenen değişkenler
+    // Variables added for shopping list
     private ShoppingListService shoppingListService;
     private ShoppingListMenu shoppingListMenu;
-    // PersonalizedDietRecommendations için eklenen değişkenler
+    // Variables added for PersonalizedDietRecommendations
     private PersonalizedDietRecommendationService personalizedDietService;
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
     
@@ -34,17 +34,16 @@ public class DietappApp {
         this.mealPlanningService = new MealPlanningService();
         this.mealPlanningMenu = new MealPlanningMenu(mealPlanningService, dietApp.getAuthService(), scanner);
         
-        // Yeni servisleri ekle
+        // Add new services
         this.calorieNutrientService = new CalorieNutrientTrackingService(mealPlanningService);
-        this.calorieNutrientMenu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, dietApp.getAuthService(), scanner);
+        this.calorieNutrientMenu = new CalorieNutrientTrackingMenu(calorieNutrientService, mealPlanningService, dietApp.getAuthService(), scanner);
         
-        // Alışveriş listesi servislerini ekle
+        // Add shopping list services
         this.shoppingListService = new ShoppingListService(mealPlanningService);
         this.shoppingListMenu = new ShoppingListMenu(
             shoppingListService, mealPlanningService, dietApp.getAuthService(), scanner);
         
-        // Personalized Diet Recommendations servislerini ekle
+        // Add Personalized Diet Recommendations services
         this.personalizedDietService = new PersonalizedDietRecommendationService(
             calorieNutrientService, mealPlanningService);
         this.personalizedDietMenu = new PersonalizedDietRecommendationMenu(
@@ -61,7 +60,7 @@ public class DietappApp {
      * @param args The command-line arguments passed to the application.
      */
     public static void main(String[] args) {
-    	// Veritabanı bağlantısını başlat
+    	// Initialize database connection
         DatabaseHelper.initializeDatabase();
         
         try {
@@ -71,7 +70,7 @@ public class DietappApp {
             // Run the application
             app.run();
         } finally {
-            // Uygulama kapanırken veritabanı bağlantısını kapat
+            // Close database connection when application shuts down
             DatabaseHelper.closeConnection();
         }
     }
@@ -142,20 +141,20 @@ public class DietappApp {
         
         // Check if input is empty
         if (input.isEmpty()) {
-            System.out.println("Boş giriş. Lütfen bir sayı girin.");
+            System.out.println("Empty input. Please enter a number.");
             return -1;
         }
         
         // Check if input contains only digits
         if (!input.matches("^\\d+$")) {
-            System.out.println("Geçersiz seçim. Lütfen sadece sayı girin.");
+            System.out.println("Invalid selection. Please enter only numbers.");
             return -1;
         }
         
         try {
             return Integer.parseInt(input);
         } catch (NumberFormatException e) {
-            System.out.println("Geçersiz seçim. Lütfen geçerli bir sayı girin.");
+            System.out.println("Invalid selection. Please enter a valid number.");
             return -1;
         }
     }
@@ -181,7 +180,7 @@ public class DietappApp {
                 System.exit(0);
                 break;
             default:
-                System.out.println("Geçersiz seçim. Lütfen tekrar deneyin.");
+                System.out.println("Invalid selection. Please try again.");
         }
     }
     
@@ -218,7 +217,7 @@ public class DietappApp {
                 System.out.println("Thank you for using Diet Planner. Goodbye!");
                 return false;
             default:
-                System.out.println("Geçersiz seçim. Lütfen tekrar deneyin.");
+                System.out.println("Invalid selection. Please try again.");
                 return true;
         }
     }
@@ -234,7 +233,7 @@ public class DietappApp {
             System.out.print("Enter username: ");
             username = scanner.nextLine().trim();
             if (username.isEmpty()) {
-                System.out.println("Kullanıcı adı boş olamaz. Lütfen tekrar deneyin.");
+                System.out.println("Username cannot be empty. Please try again.");
             }
         }
         
@@ -243,7 +242,7 @@ public class DietappApp {
             System.out.print("Enter password: ");
             password = scanner.nextLine().trim();
             if (password.isEmpty()) {
-                System.out.println("Şifre boş olamaz. Lütfen tekrar deneyin.");
+                System.out.println("Password cannot be empty. Please try again.");
             }
         }
         
@@ -268,7 +267,7 @@ public class DietappApp {
             System.out.print("Enter username: ");
             username = scanner.nextLine().trim();
             if (username.isEmpty()) {
-                System.out.println("Kullanıcı adı boş olamaz. Lütfen tekrar deneyin.");
+                System.out.println("Username cannot be empty. Please try again.");
             }
         }
         
@@ -278,7 +277,7 @@ public class DietappApp {
             System.out.print("Enter password: ");
             password = scanner.nextLine().trim();
             if (password.isEmpty()) {
-                System.out.println("Şifre boş olamaz. Lütfen tekrar deneyin.");
+                System.out.println("Password cannot be empty. Please try again.");
             }
         }
         
@@ -288,7 +287,7 @@ public class DietappApp {
             System.out.print("Enter email: ");
             email = scanner.nextLine().trim();
             if (!isValidEmail(email)) {
-                System.out.println("Geçersiz e-posta formatı. Lütfen geçerli bir e-posta adresi girin.");
+                System.out.println("Invalid email format. Please enter a valid email address.");
             }
         }
         
@@ -298,7 +297,7 @@ public class DietappApp {
             System.out.print("Enter your name: ");
             name = scanner.nextLine().trim();
             if (name.isEmpty()) {
-                System.out.println("İsim boş olamaz. Lütfen tekrar deneyin.");
+                System.out.println("Name cannot be empty. Please try again.");
             }
         }
         

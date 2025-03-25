@@ -40,22 +40,22 @@ public class Dietapp {
     public boolean registerUser(String username, String password, String email, String name) {
         // Validate input parameters
         if (username == null || username.trim().isEmpty()) {
-            System.out.println("Geçersiz kullanıcı adı. Kullanıcı adı boş olamaz.");
+            System.out.println("Invalid username. Username cannot be empty.");
             return false;
         }
         
         if (password == null || password.trim().isEmpty()) {
-            System.out.println("Geçersiz şifre. Şifre boş olamaz.");
+            System.out.println("Invalid password. Password cannot be empty.");
             return false;
         }
         
         if (email == null || email.trim().isEmpty() || !isValidEmail(email)) {
-            System.out.println("Geçersiz e-posta adresi.");
+            System.out.println("Invalid email address.");
             return false;
         }
         
         if (name == null || name.trim().isEmpty()) {
-            System.out.println("Geçersiz isim. İsim boş olamaz.");
+            System.out.println("Invalid name. Name cannot be empty.");
             return false;
         }
         
@@ -101,12 +101,12 @@ public class Dietapp {
     public boolean loginUser(String username, String password) {
         // Validate input parameters
         if (username == null || username.trim().isEmpty()) {
-            System.out.println("Geçersiz kullanıcı adı. Kullanıcı adı boş olamaz.");
+            System.out.println("Invalid username. Username cannot be empty.");
             return false;
         }
         
         if (password == null || password.trim().isEmpty()) {
-            System.out.println("Geçersiz şifre. Şifre boş olamaz.");
+            System.out.println("Invalid password. Password cannot be empty.");
             return false;
         }
         
@@ -119,12 +119,12 @@ public class Dietapp {
      */
     public void logoutUser() {
         if (!isUserLoggedIn()) {
-            System.out.println("Çıkış yapılamıyor. Herhangi bir kullanıcı giriş yapmamış.");
+            System.out.println("Cannot log out. No user is logged in.");
             return;
         }
         
         authService.logout();
-        System.out.println("Başarıyla çıkış yapıldı.");
+        System.out.println("Successfully logged out.");
     }
 
     /**
@@ -133,12 +133,12 @@ public class Dietapp {
      */
     public void enableGuestMode() {
         if (isUserLoggedIn()) {
-            System.out.println("Misafir modu etkinleştirilemiyor. Önce mevcut kullanıcı oturumunu kapatın.");
+            System.out.println("Cannot enable guest mode. Please log out the current user first.");
             return;
         }
         
         authService.enableGuestMode();
-        System.out.println("Misafir modu etkinleştirildi.");
+        System.out.println("Guest mode enabled.");
     }
 
     /**

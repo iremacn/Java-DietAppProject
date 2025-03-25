@@ -61,8 +61,8 @@ public class MealPlanningService {
             return rowsAffected > 0;
             
         } catch (SQLException e) {
-            System.out.println("Öğün planı eklenemedi: " + e.getMessage());
-            e.printStackTrace(); // Hata detayları için
+            System.out.println("Could not add meal plan: " + e.getMessage());
+            e.printStackTrace(); // For error details
             return false;
         }
     }
@@ -99,7 +99,7 @@ public class MealPlanningService {
         try {
             return DatabaseHelper.saveFoodAndGetId(food);
         } catch (SQLException e) {
-            System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+            System.out.println("Could not save food: " + e.getMessage());
             return -1;
         }
     }
@@ -117,7 +117,7 @@ public class MealPlanningService {
         try {
             conn = DatabaseHelper.getConnection();
             
-            // Food tablosuna ekle
+            // Add to foods table
             PreparedStatement foodStmt = conn.prepareStatement(
                     "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)");
             
@@ -128,7 +128,7 @@ public class MealPlanningService {
             foodStmt.executeUpdate();
             foodStmt.close();
             
-            // Son eklenen ID'yi al
+            // Get the last inserted ID
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()");
             
@@ -144,13 +144,13 @@ public class MealPlanningService {
             rs.close();
             stmt.close();
             
-            // Kullanıcı ID'sini al
+            // Get user ID
             int userId = DatabaseHelper.getUserId(username);
             if (userId == -1) {
                 return false;
             }
             
-            // Food log tablosuna ekle
+            // Add to food log table
             PreparedStatement logStmt = conn.prepareStatement(
                     "INSERT INTO food_logs (user_id, date, food_id) VALUES (?, ?, ?)");
             
@@ -164,10 +164,10 @@ public class MealPlanningService {
             return result;
             
         } catch (SQLException e) {
-            System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+            System.out.println("Could not save food: " + e.getMessage());
             return false;
         }
-        // Bağlantıyı kapatma - veritabanı bağlantısı uygulama genelinde kullanılıyor
+        // Don't close connection - database connection is used application-wide
     }
     
     /**
@@ -226,7 +226,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Öğün planı alınamadı: " + e.getMessage());
+            System.out.println("Could not get meal plan: " + e.getMessage());
         }
         
         return mealPlan;
@@ -286,7 +286,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Yemek kayıtları alınamadı: " + e.getMessage());
+            System.out.println("Could not get food records: " + e.getMessage());
         }
         
         return foodLog;
@@ -323,7 +323,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Toplam kalori hesaplanamadı: " + e.getMessage());
+            System.out.println("Could not calculate total calories: " + e.getMessage());
         }
         
         return 0;
@@ -409,7 +409,7 @@ public class MealPlanningService {
                 try {
                     saveFoodWithMealType(food, "breakfast");
                 } catch (SQLException e) {
-                    System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+                    System.out.println("Could not save food: " + e.getMessage());
                 }
             }
             
@@ -446,7 +446,7 @@ public class MealPlanningService {
                 try {
                     saveFoodWithMealType(food, "lunch");
                 } catch (SQLException e) {
-                    System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+                    System.out.println("Could not save food: " + e.getMessage());
                 }
             }
             
@@ -483,7 +483,7 @@ public class MealPlanningService {
                 try {
                     saveFoodWithMealType(food, "snack");
                 } catch (SQLException e) {
-                    System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+                    System.out.println("Could not save food: " + e.getMessage());
                 }
             }
             
@@ -520,7 +520,7 @@ public class MealPlanningService {
                 try {
                     saveFoodWithMealType(food, "dinner");
                 } catch (SQLException e) {
-                    System.out.println("Yemek kaydedilemedi: " + e.getMessage());
+                    System.out.println("Could not save food: " + e.getMessage());
                 }
             }
             
@@ -574,7 +574,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Yemek seçenekleri alınamadı: " + e.getMessage());
+            System.out.println("Could not get food options: " + e.getMessage());
         }
         
         return options;

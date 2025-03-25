@@ -100,7 +100,7 @@ public class CalorieNutrientTrackingService {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Beslenme hedefleri kaydedilemedi: " + e.getMessage());
+            System.out.println("Nutrition goals could not be saved: " + e.getMessage());
             return false;
         }
     }
@@ -162,7 +162,7 @@ public class CalorieNutrientTrackingService {
             return new NutritionGoal(2000, 50, 250, 70);
             
         } catch (SQLException e) {
-            System.out.println("Beslenme hedefleri alınamadı: " + e.getMessage());
+            System.out.println("Nutrition goals could not be retrieved: " + e.getMessage());
             return new NutritionGoal(2000, 50, 250, 70); // Default values on error
         }
     }
@@ -343,7 +343,7 @@ public class CalorieNutrientTrackingService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Yaygın besinler alınamadı: " + e.getMessage());
+            System.out.println("Common foods could not be retrieved: " + e.getMessage());
         }
         
         // If we found foods in the database, return those
@@ -378,7 +378,7 @@ public class CalorieNutrientTrackingService {
                 DatabaseHelper.saveFoodAndGetId(food);
             }
         } catch (SQLException e) {
-            System.out.println("Yaygın besinler veritabanına kaydedilemedi: " + e.getMessage());
+            System.out.println("Common foods could not be saved to database: " + e.getMessage());
         }
         
         return defaultFoods;
