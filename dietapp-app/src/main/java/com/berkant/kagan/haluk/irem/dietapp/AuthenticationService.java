@@ -114,7 +114,7 @@ public class AuthenticationService {
             return false;
         }
     }
-    
+   
     /**
      * Logs out the currently logged in user.
      */

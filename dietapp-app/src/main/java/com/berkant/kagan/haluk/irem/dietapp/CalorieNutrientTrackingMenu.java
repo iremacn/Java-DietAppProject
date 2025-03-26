@@ -386,7 +386,7 @@ public class CalorieNutrientTrackingMenu {
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();
     }
-    
+   
     /**
      * Handles browsing common foods with nutrients.
      */

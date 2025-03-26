@@ -235,7 +235,7 @@ public class DatabaseHelper {
             // Data may already exist, we can ignore this error
         }
     }
-    
+   
     /**
      * Helper method to get a user's ID by username.
      * 

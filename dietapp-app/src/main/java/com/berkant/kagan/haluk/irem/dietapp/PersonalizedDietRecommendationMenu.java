@@ -9,7 +9,6 @@ import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationServic
 import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.MacronutrientDistribution;
 import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.RecommendedMeal;
 import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.WeightGoal;
-
 /**
  * This class handles the personalized diet recommendation menu operations for the Diet Planner application.
  * @details The PersonalizedDietRecommendationMenu class provides menu interfaces for setting diet preferences,
@@ -41,7 +40,7 @@ public class PersonalizedDietRecommendationMenu {
         this.scanner = scanner;
         this.lastRecommendation = null;
     }
-    
+   
     /**
      * Displays the main personalized diet recommendation menu and handles user selections.
      */
@@ -80,7 +79,7 @@ public class PersonalizedDietRecommendationMenu {
             }
         }
     }
-    
+   
     /**
      * Gets the user's menu choice from the console.
      * 
@@ -110,7 +109,7 @@ public class PersonalizedDietRecommendationMenu {
         DietType dietType;
         int dietTypeChoice;
                 
-        // Geçerli bir seçim yapılana kadar döngüde kal
+        // Keep looping until a valid selection is made
         while (true) {
             System.out.print("Enter your choice (1-5): ");
             String input = scanner.nextLine();
@@ -118,17 +117,17 @@ public class PersonalizedDietRecommendationMenu {
             try {
                 dietTypeChoice = Integer.parseInt(input);
                 if (dietTypeChoice >= 1 && dietTypeChoice <= 5) {
-                    // Geçerli giriş, döngüden çık
+                    // Valid input, exit the loop
                     break;
                 } else {
-                    System.out.println("Geçersiz seçim. Lütfen 1 ile 5 arasında bir sayı girin.");
+                    System.out.println("Invalid selection. Please enter a number between 1 and 5.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Geçersiz giriş. Lütfen 1 ile 5 arasında bir sayı girin.");
+                System.out.println("Invalid input. Please enter a number between 1 and 5.");
             }
         }
                 
-        // Artık geçerli bir giriş var, diyet tipini belirle
+        // Now we have a valid input, determine the diet type
         switch (dietTypeChoice) {
             case 1:
                 dietType = DietType.BALANCED;
@@ -146,7 +145,7 @@ public class PersonalizedDietRecommendationMenu {
                 dietType = DietType.VEGAN;
                 break;
             default:
-                // Yukarıdaki doğrulama nedeniyle bu asla gerçekleşmemeli
+                // This should never happen due to the validation above
                 dietType = DietType.BALANCED;
                 break;
         }
@@ -399,16 +398,16 @@ public class PersonalizedDietRecommendationMenu {
      * Handles viewing example diet plans.
      */
     private void handleViewExampleDietPlans() {
-        System.out.println("\n===== Example Diet Plans =====");
-        
-        String[] examplePlans = personalizedDietService.getExampleDietPlans();
-        
-        for (int i = 0; i < examplePlans.length; i++) {
-            System.out.println("\n" + examplePlans[i]);
-        }
-       
-        // Pause before returning to menu
-        System.out.println("\nPress Enter to continue...");
-        scanner.nextLine();
-    }
+    	  System.out.println("\n===== Example Diet Plans =====");
+          
+          String[] examplePlans = personalizedDietService.getExampleDietPlans();
+          
+          for (int i = 0; i < examplePlans.length; i++) {
+              System.out.println("\n" + examplePlans[i]);
+          }
+         
+          // Pause before returning to menu
+          System.out.println("\nPress Enter to continue...");
+          scanner.nextLine();
+      }
 }

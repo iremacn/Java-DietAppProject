@@ -16,7 +16,7 @@ public class PersonalizedDietRecommendationService {
     // Service dependencies
     private CalorieNutrientTrackingService calorieNutrientService;
     private MealPlanningService mealPlanningService;
-    
+   
     /**
      * Constructor for PersonalizedDietRecommendationService class.
      * 
@@ -29,9 +29,9 @@ public class PersonalizedDietRecommendationService {
         this.calorieNutrientService = calorieNutrientService;
         this.mealPlanningService = mealPlanningService;
     }
-    
+   
     // Helper method to return default plans if they can't be retrieved from the database
-    private String[] getDefaultExampleDietPlans() {
+    protected String[] getDefaultExampleDietPlans() {
         return new String[] {
             "Balanced Diet Plan:\n" +
             "A balanced approach focusing on whole foods, lean proteins, healthy fats, and complex carbohydrates. " +
@@ -75,7 +75,7 @@ public class PersonalizedDietRecommendationService {
             if (userId == -1) {
                 return false; // User not found
             }
-            
+           
             // Check for existing profile
             boolean hasProfile = false;
             int profileId = -1;
@@ -812,7 +812,7 @@ public class PersonalizedDietRecommendationService {
                 String description = rs.getString("description");
                 plans.add(dietType + " Diet Plan:\n" + description);
             }
-            
+           
             // If no data was retrieved from the database, return default plans
             if (plans.isEmpty()) {
                 return getDefaultExampleDietPlans();

@@ -87,7 +87,7 @@ public class MealPlanningMenu {
         if (date == null) {
             return; // Invalid date entered
         }
-        
+       
         // Get meal type
         System.out.println("\nSelect Meal Type:");
         System.out.println("1. Breakfast");

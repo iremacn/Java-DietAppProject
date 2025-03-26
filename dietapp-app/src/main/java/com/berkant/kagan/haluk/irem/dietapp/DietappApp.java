@@ -23,7 +23,7 @@ public class DietappApp {
     // Variables added for PersonalizedDietRecommendations
     private PersonalizedDietRecommendationService personalizedDietService;
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
-    
+  
     /**
      * Constructor for DietAppApp class.
      * Initializes the DietApp and Scanner objects.

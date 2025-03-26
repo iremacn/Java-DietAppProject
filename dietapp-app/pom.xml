@@ -150,8 +150,10 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<includes>
-						<include>**/dietappAppTest.java</include>
-						<include>**/dietappTest.java</include>
+						<include>**/DietappAppTest.java</include>
+						<include>**/DietappTest.java</include>
+						<include>**/PersonalizedDietRecommendationServiceMock.java</include>
+						<include>**/PersonalizedDietRecommendationServiceTest.java</include>
 					</includes>
 				</configuration>
 			</plugin>
@@ -159,7 +161,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
