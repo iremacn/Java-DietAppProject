@@ -264,7 +264,7 @@ public class MealPlanningMenu {
                 continue;
             }
             
-            // Get month and validate range
+            // get month and validate range
             System.out.print("Month (1-12): ");
             try {
                 month = Integer.parseInt(scanner.nextLine());
@@ -277,7 +277,7 @@ public class MealPlanningMenu {
                 continue;
             }
             
-            // Get day and validate range
+            // get day and validate range
             System.out.print("Day (1-31): ");
             try {
                 day = Integer.parseInt(scanner.nextLine());
