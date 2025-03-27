@@ -95,12 +95,41 @@ public class DietappApp {
             if (dietApp.isUserLoggedIn()) {
                 running = handleUserMainMenu(choice);
             } else {
-                handleAuthMenu(choice);
+                running = handleAuthMenu(choice);
             }
         }
         
         // Close the scanner
         scanner.close();
+        
+        // Close database connection
+        DatabaseHelper.closeAllConnections();
+    }
+
+    /**
+     * Handles the authentication menu choices.
+     * 
+     * @param choice The user's menu choice
+     * @return true to continue running, false to exit
+     */
+    private boolean handleAuthMenu(int choice) {
+        switch (choice) {
+            case 1:
+                handleLogin();
+                return true;
+            case 2:
+                handleRegistration();
+                return true;
+            case 3:
+                handleGuestMode();
+                return true;
+            case 0:
+                System.out.println("Thank you for using Diet Planner. Goodbye!");
+                return false;
+            default:
+                System.out.println("Invalid selection. Please try again.");
+                return true;
+        }
     }
     
     /**
@@ -156,31 +185,6 @@ public class DietappApp {
         } catch (NumberFormatException e) {
             System.out.println("Invalid selection. Please enter a valid number.");
             return -1;
-        }
-    }
-    
-    /**
-     * Handles the authentication menu choices.
-     * 
-     * @param choice The user's menu choice
-     */
-    private void handleAuthMenu(int choice) {
-        switch (choice) {
-            case 1:
-                handleLogin();
-                break;
-            case 2:
-                handleRegistration();
-                break;
-            case 3:
-                handleGuestMode();
-                break;
-            case 0:
-                System.out.println("Thank you for using Diet Planner. Goodbye!");
-                System.exit(0);
-                break;
-            default:
-                System.out.println("Invalid selection. Please try again.");
         }
     }
     

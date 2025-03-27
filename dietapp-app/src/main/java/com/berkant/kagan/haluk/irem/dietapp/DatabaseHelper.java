@@ -1,6 +1,9 @@
+
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class handles database operations for the Diet Planner application.
@@ -9,55 +12,51 @@ import java.sql.*;
  */
 public class DatabaseHelper {
     private static final String DB_URL = "jdbc:sqlite:dietplanner.db";
-    private static Connection connection;
+    private static final int MAX_CONNECTIONS = 10;
+    private static List<Connection> connectionPool = new ArrayList<>();
+    
+    static {
+        try {
+            // Load the SQLite JDBC driver
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            System.out.println("SQLite JDBC driver not found: " + e.getMessage());
+        }
+    }
     
     /**
      * Initializes the database connection and creates tables if they don't exist.
      */
     public static void initializeDatabase() {
         try {
-            // Load the SQLite JDBC driver
-            Class.forName("org.sqlite.JDBC");
-            
-            // Create database connection
-            connection = DriverManager.getConnection(DB_URL);
-            
-            // Create tables
-            createTables();
-            
-            System.out.println("Database connection successful");
-        } catch (ClassNotFoundException e) {
-            System.out.println("SQLite JDBC driver not found: " + e.getMessage());
+            // Create database connection and initialize tables
+            Connection conn = getConnection();
+            if (conn != null) {
+                createTables(conn);
+                releaseConnection(conn);
+                System.out.println("Database connection successful");
+            }
         } catch (SQLException e) {
             System.out.println("Database connection failed: " + e.getMessage());
         }
     }
     
     /**
-     * Closes the database connection.
-     */
-    public static void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                System.out.println("Database connection closed");
-            }
-        } catch (SQLException e) {
-            System.out.println("Could not close database connection: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Gets the database connection.
+     * Gets a database connection from the pool or creates a new one.
      * 
      * @return The Connection object
      */
-    public static Connection getConnection() {
+    public static synchronized Connection getConnection() {
         try {
-            if (connection == null || connection.isClosed()) {
-                initializeDatabase();
+            if (connectionPool.isEmpty()) {
+                return createConnection();
+            } else {
+                Connection conn = connectionPool.remove(connectionPool.size() - 1);
+                if (conn.isClosed()) {
+                    return createConnection();
+                }
+                return conn;
             }
-            return connection;
         } catch (SQLException e) {
             System.out.println("Could not get database connection: " + e.getMessage());
             return null;
@@ -65,10 +64,71 @@ public class DatabaseHelper {
     }
     
     /**
-     * Creates all necessary tables in the database.
+     * Creates a new database connection with optimized settings.
+     * 
+     * @return A new Connection object
+     * @throws SQLException If connection creation fails
      */
-    private static void createTables() {
-        try (Statement statement = connection.createStatement()) {
+    private static Connection createConnection() throws SQLException {
+        Connection connection = DriverManager.getConnection(
+            DB_URL + "?journal_mode=WAL&synchronous=NORMAL&cache_size=1000");
+        return connection;
+    }
+    
+    /**
+     * Releases a connection back to the connection pool.
+     * 
+     * @param conn The Connection to release
+     */
+    public static synchronized void releaseConnection(Connection conn) {
+        if (conn != null) {
+            try {
+                if (!conn.isClosed() && connectionPool.size() < MAX_CONNECTIONS) {
+                    connectionPool.add(conn);
+                } else {
+                    try {
+                        conn.close();
+                    } catch (SQLException e) {
+                        System.out.println("Could not close connection: " + e.getMessage());
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("Error checking connection status: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Closes all connections in the pool.
+     */
+    public static void closeAllConnections() {
+        for (Connection conn : connectionPool) {
+            try {
+                if (!conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("Could not close connection: " + e.getMessage());
+            }
+        }
+        connectionPool.clear();
+    }
+    
+    /**
+     * Closes the database connection.
+     */
+    public static void closeConnection() {
+        closeAllConnections();
+        System.out.println("Database connections closed");
+    }
+    
+    /**
+     * Creates all necessary tables in the database.
+     * 
+     * @param conn The database connection
+     */
+    private static void createTables(Connection conn) throws SQLException {
+        try (Statement statement = conn.createStatement()) {
             // Users table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS users (" +
@@ -87,7 +147,8 @@ public class DatabaseHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT NOT NULL," +
                 "grams REAL NOT NULL," +
-                "calories INTEGER NOT NULL" +
+                "calories INTEGER NOT NULL," +
+                "meal_type TEXT" +
                 ");"
             );
             
@@ -175,7 +236,7 @@ public class DatabaseHelper {
                 ");"
             );
             
-         // Ingredients table
+            // Ingredients table
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS ingredients (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -212,8 +273,6 @@ public class DatabaseHelper {
             insertSampleData(statement);
             
             System.out.println("Database tables created successfully");
-        } catch (SQLException e) {
-            System.out.println("Could not create database tables: " + e.getMessage());
         }
     }
     
@@ -243,20 +302,27 @@ public class DatabaseHelper {
      * @return The user ID or -1 if not found
      */
     public static int getUserId(String username) {
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("SELECT id FROM users WHERE username = ?")) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            int userId = -1;
             
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt("id");
+            try (PreparedStatement pstmt = conn.prepareStatement("SELECT id FROM users WHERE username = ?")) {
+                pstmt.setString(1, username);
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next()) {
+                    userId = rs.getInt("id");
+                }
             }
+            
+            return userId;
         } catch (SQLException e) {
             System.out.println("Could not get user ID: " + e.getMessage());
+            return -1;
+        } finally {
+            releaseConnection(conn);
         }
-        
-        return -1;
     }
    
     /**
@@ -266,7 +332,13 @@ public class DatabaseHelper {
      * @return The food ID in the database or -1 if there was an error
      */
     public static int saveFoodAndGetId(Food food) throws SQLException {
-        try (Connection conn = getConnection()) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                return -1;
+            }
+            
             // Check if this food already exists
             String checkSql = "SELECT id FROM foods WHERE name = ? AND grams = ? AND calories = ?";
             try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
@@ -282,7 +354,7 @@ public class DatabaseHelper {
                     // If this is a FoodNutrient, update the nutrients
                     if (food instanceof FoodNutrient) {
                         FoodNutrient fn = (FoodNutrient) food;
-                        updateFoodNutrients(foodId, fn);
+                        updateFoodNutrients(conn, foodId, fn);
                     }
                     
                     return foodId;
@@ -306,51 +378,54 @@ public class DatabaseHelper {
                         // If this is a FoodNutrient, save the nutrients
                         if (food instanceof FoodNutrient) {
                             FoodNutrient fn = (FoodNutrient) food;
-                            saveFoodNutrients(foodId, fn);
+                            saveFoodNutrients(conn, foodId, fn);
                         }
                         
                         return foodId;
                     }
                 }
             }
+            
+            return -1; // Error
+        } finally {
+            releaseConnection(conn);
         }
-        
-        return -1; // Error
     }
 
     /**
      * Helper method to update food nutrients in the database.
      * 
+     * @param conn The database connection
      * @param foodId The ID of the food in the database
      * @param foodNutrient The FoodNutrient object containing the nutrients
      * @return true if successful, false otherwise
      */
-    private static boolean updateFoodNutrients(int foodId, FoodNutrient foodNutrient) {
-        try (Connection conn = getConnection();
-             PreparedStatement checkStmt = conn.prepareStatement("SELECT id FROM food_nutrients WHERE food_id = ?")) {
-            
-            checkStmt.setInt(1, foodId);
-            ResultSet rs = checkStmt.executeQuery();
-            
-            if (rs.next()) {
-                // Update existing record
-                try (PreparedStatement updateStmt = conn.prepareStatement(
-                        "UPDATE food_nutrients SET protein = ?, carbs = ?, fat = ?, " +
-                        "fiber = ?, sugar = ?, sodium = ? WHERE food_id = ?")) {
-                    
-                    updateStmt.setDouble(1, foodNutrient.getProtein());
-                    updateStmt.setDouble(2, foodNutrient.getCarbs());
-                    updateStmt.setDouble(3, foodNutrient.getFat());
-                    updateStmt.setDouble(4, foodNutrient.getFiber());
-                    updateStmt.setDouble(5, foodNutrient.getSugar());
-                    updateStmt.setDouble(6, foodNutrient.getSodium());
-                    updateStmt.setInt(7, foodId);
-                    
-                    return updateStmt.executeUpdate() > 0;
+    private static boolean updateFoodNutrients(Connection conn, int foodId, FoodNutrient foodNutrient) {
+        try {
+            try (PreparedStatement checkStmt = conn.prepareStatement("SELECT id FROM food_nutrients WHERE food_id = ?")) {
+                checkStmt.setInt(1, foodId);
+                ResultSet rs = checkStmt.executeQuery();
+                
+                if (rs.next()) {
+                    // Update existing record
+                    try (PreparedStatement updateStmt = conn.prepareStatement(
+                            "UPDATE food_nutrients SET protein = ?, carbs = ?, fat = ?, " +
+                            "fiber = ?, sugar = ?, sodium = ? WHERE food_id = ?")) {
+                        
+                        updateStmt.setDouble(1, foodNutrient.getProtein());
+                        updateStmt.setDouble(2, foodNutrient.getCarbs());
+                        updateStmt.setDouble(3, foodNutrient.getFat());
+                        updateStmt.setDouble(4, foodNutrient.getFiber());
+                        updateStmt.setDouble(5, foodNutrient.getSugar());
+                        updateStmt.setDouble(6, foodNutrient.getSodium());
+                        updateStmt.setInt(7, foodId);
+                        
+                        return updateStmt.executeUpdate() > 0;
+                    }
+                } else {
+                    // Insert new record
+                    return saveFoodNutrients(conn, foodId, foodNutrient);
                 }
-            } else {
-                // Insert new record
-                return saveFoodNutrients(foodId, foodNutrient);
             }
         } catch (SQLException e) {
             System.out.println("Could not update nutrient values: " + e.getMessage());
@@ -361,26 +436,27 @@ public class DatabaseHelper {
     /**
      * Helper method to save food nutrients to the database.
      * 
+     * @param conn The database connection
      * @param foodId The ID of the food in the database
      * @param foodNutrient The FoodNutrient object containing the nutrients
      * @return true if successful, false otherwise
      */
-    private static boolean saveFoodNutrients(int foodId, FoodNutrient foodNutrient) {
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
-                 "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            
-            pstmt.setInt(1, foodId);
-            pstmt.setDouble(2, foodNutrient.getProtein());
-            pstmt.setDouble(3, foodNutrient.getCarbs());
-            pstmt.setDouble(4, foodNutrient.getFat());
-            pstmt.setDouble(5, foodNutrient.getFiber());
-            pstmt.setDouble(6, foodNutrient.getSugar());
-            pstmt.setDouble(7, foodNutrient.getSodium());
-            
-            return pstmt.executeUpdate() > 0;
-            
+    private static boolean saveFoodNutrients(Connection conn, int foodId, FoodNutrient foodNutrient) {
+        try {
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                
+                pstmt.setInt(1, foodId);
+                pstmt.setDouble(2, foodNutrient.getProtein());
+                pstmt.setDouble(3, foodNutrient.getCarbs());
+                pstmt.setDouble(4, foodNutrient.getFat());
+                pstmt.setDouble(5, foodNutrient.getFiber());
+                pstmt.setDouble(6, foodNutrient.getSugar());
+                pstmt.setDouble(7, foodNutrient.getSodium());
+                
+                return pstmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.out.println("Could not save nutrient values: " + e.getMessage());
             return false;

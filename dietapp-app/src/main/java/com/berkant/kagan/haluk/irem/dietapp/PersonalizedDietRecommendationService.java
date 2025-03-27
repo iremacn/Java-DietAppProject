@@ -10,7 +10,7 @@ import java.util.Map;
  * This class handles personalized diet recommendation operations for the Diet Planner application.
  * @details The PersonalizedDietRecommendationService class provides methods for generating
  *          personalized diet recommendations based on user profile and preferences.
- * @author halukz
+ * @author haluk
  */
 public class PersonalizedDietRecommendationService {
     // Service dependencies

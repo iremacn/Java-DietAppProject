@@ -30,40 +30,76 @@ public class MealPlanningService {
      * @return true if added successfully
      */
     public boolean addMealPlan(String username, String date, String mealType, Food food) {
+        if (username == null || date == null || mealType == null || food == null) {
+            System.out.println("Cannot add meal plan with null parameters");
+            return false;
+        }
+        
         Connection conn = null;
         try {
             conn = DatabaseHelper.getConnection();
+            if (conn == null) {
+                System.out.println("Failed to obtain database connection");
+                return false;
+            }
+            
+            conn.setAutoCommit(false); // Start transaction
             
             // Get user ID
             int userId = getUserId(conn, username);
             if (userId == -1) {
+                System.out.println("User not found: " + username);
                 return false; // User not found
             }
             
             // Save food and get its ID
-            int foodId = saveFoodAndGetId(food);
+            int foodId = saveFoodAndGetId(conn, food);
             if (foodId == -1) {
+                System.out.println("Failed to save food: " + food.getName());
                 return false; // Food couldn't be saved
             }
             
             // Add to meal plan
-            PreparedStatement pstmt = conn.prepareStatement(
-                "INSERT INTO meal_plans (user_id, date, meal_type, food_id) VALUES (?, ?, ?, ?)");
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                "INSERT INTO meal_plans (user_id, date, meal_type, food_id) VALUES (?, ?, ?, ?)")) {
+                    
+                pstmt.setInt(1, userId);
+                pstmt.setString(2, date);
+                pstmt.setString(3, mealType);
+                pstmt.setInt(4, foodId);
                 
-            pstmt.setInt(1, userId);
-            pstmt.setString(2, date);
-            pstmt.setString(3, mealType);
-            pstmt.setInt(4, foodId);
-            
-            int rowsAffected = pstmt.executeUpdate();
-            pstmt.close();
-            
-            return rowsAffected > 0;
+                int rowsAffected = pstmt.executeUpdate();
+                
+                // Commit transaction if successful
+                if (rowsAffected > 0) {
+                    conn.commit();
+                    return true;
+                } else {
+                    conn.rollback();
+                    return false;
+                }
+            }
             
         } catch (SQLException e) {
+            try {
+                if (conn != null) {
+                    conn.rollback(); // Rollback transaction on error
+                }
+            } catch (SQLException ex) {
+                System.out.println("Failed to rollback transaction: " + ex.getMessage());
+            }
             System.out.println("Could not add meal plan: " + e.getMessage());
             e.printStackTrace(); // For error details
             return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Reset auto-commit
+                } catch (SQLException e) {
+                    System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                }
+                DatabaseHelper.releaseConnection(conn);
+            }
         }
     }
     
@@ -76,6 +112,10 @@ public class MealPlanningService {
      * @throws SQLException If database error occurs
      */
     private int getUserId(Connection conn, String username) throws SQLException {
+        if (username == null || username.trim().isEmpty()) {
+            return -1;
+        }
+        
         String sql = "SELECT id FROM users WHERE username = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -91,16 +131,128 @@ public class MealPlanningService {
     
     /**
      * Helper method to save food and get its ID
+     * Uses a transaction to ensure data consistency
      * 
+     * @param conn Database connection
      * @param food Food to save
      * @return Food ID or -1 if error occurs
+     * @throws SQLException If database error occurs
      */
-    private int saveFoodAndGetId(Food food) {
-        try {
-            return DatabaseHelper.saveFoodAndGetId(food);
-        } catch (SQLException e) {
-            System.out.println("Could not save food: " + e.getMessage());
+    private int saveFoodAndGetId(Connection conn, Food food) throws SQLException {
+        if (food == null) {
             return -1;
+        }
+
+        // Check if this food already exists
+        String checkSql = "SELECT id FROM foods WHERE name = ? AND grams = ? AND calories = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, food.getName());
+            checkStmt.setDouble(2, food.getGrams());
+            checkStmt.setInt(3, food.getCalories());
+
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                int foodId = rs.getInt("id");
+
+                // Eğer bu bir FoodNutrient nesnesiyse, besin değerlerini güncelle
+                if (food instanceof FoodNutrient) {
+                    FoodNutrient fn = (FoodNutrient) food;
+                    updateFoodNutrients(conn, foodId, fn);
+                }
+
+                return foodId;
+            }
+        }
+
+        // Yeni yiyeceği ekleme
+        String insertSql = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
+        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+            insertStmt.setString(1, food.getName());
+            insertStmt.setDouble(2, food.getGrams());
+            insertStmt.setInt(3, food.getCalories());
+
+            int rowsAffected = insertStmt.executeUpdate();
+            if (rowsAffected > 0) {
+                // **HATA BURADAYDI!** `getGeneratedKeys()` yerine `last_insert_rowid()` kullanıyoruz.
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        int foodId = rs.getInt(1);
+
+                        // Eğer bu bir FoodNutrient nesnesiyse, besin bilgilerini kaydet
+                        if (food instanceof FoodNutrient) {
+                            FoodNutrient fn = (FoodNutrient) food;
+                            saveFoodNutrients(conn, foodId, fn);
+                        }
+
+                        return foodId;
+                    }
+                }
+            }
+        }
+
+        return -1; // Hata durumu
+    }
+
+    
+    /**
+     * Helper method to update food nutrients
+     * 
+     * @param conn Database connection
+     * @param foodId Food ID
+     * @param fn FoodNutrient object
+     * @throws SQLException If database error occurs
+     */
+    private void updateFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws SQLException {
+        try (PreparedStatement checkStmt = conn.prepareStatement("SELECT id FROM food_nutrients WHERE food_id = ?")) {
+            checkStmt.setInt(1, foodId);
+            ResultSet rs = checkStmt.executeQuery();
+            
+            if (rs.next()) {
+                // Update existing nutrients
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                    "UPDATE food_nutrients SET protein = ?, carbs = ?, fat = ?, " +
+                    "fiber = ?, sugar = ?, sodium = ? WHERE food_id = ?")) {
+                    
+                    updateStmt.setDouble(1, fn.getProtein());
+                    updateStmt.setDouble(2, fn.getCarbs());
+                    updateStmt.setDouble(3, fn.getFat());
+                    updateStmt.setDouble(4, fn.getFiber());
+                    updateStmt.setDouble(5, fn.getSugar());
+                    updateStmt.setDouble(6, fn.getSodium());
+                    updateStmt.setInt(7, foodId);
+                    
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                // Insert new nutrients
+                saveFoodNutrients(conn, foodId, fn);
+            }
+        }
+    }
+    
+    /**
+     * Helper method to save food nutrients
+     * 
+     * @param conn Database connection
+     * @param foodId Food ID
+     * @param fn FoodNutrient object
+     * @throws SQLException If database error occurs
+     */
+    private void saveFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws SQLException {
+        try (PreparedStatement pstmt = conn.prepareStatement(
+            "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            
+            pstmt.setInt(1, foodId);
+            pstmt.setDouble(2, fn.getProtein());
+            pstmt.setDouble(3, fn.getCarbs());
+            pstmt.setDouble(4, fn.getFat());
+            pstmt.setDouble(5, fn.getFiber());
+            pstmt.setDouble(6, fn.getSugar());
+            pstmt.setDouble(7, fn.getSodium());
+            
+            pstmt.executeUpdate();
         }
     }
     
@@ -113,61 +265,77 @@ public class MealPlanningService {
      * @return true if logged successfully
      */
     public boolean logFood(String username, String date, Food food) {
+        if (username == null || date == null || food == null) {
+            System.out.println("Cannot log food with null parameters");
+            return false;
+        }
+        
         Connection conn = null;
         try {
             conn = DatabaseHelper.getConnection();
-            
-            // Add to foods table
-            PreparedStatement foodStmt = conn.prepareStatement(
-                    "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)");
-            
-            foodStmt.setString(1, food.getName());
-            foodStmt.setDouble(2, food.getGrams());
-            foodStmt.setInt(3, food.getCalories());
-            
-            foodStmt.executeUpdate();
-            foodStmt.close();
-            
-            // Get the last inserted ID
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()");
-            
-            int foodId;
-            if (rs.next()) {
-                foodId = rs.getInt(1);
-            } else {
-                rs.close();
-                stmt.close();
+            if (conn == null) {
+                System.out.println("Failed to obtain database connection");
                 return false;
             }
             
-            rs.close();
-            stmt.close();
+            conn.setAutoCommit(false); // Start transaction
             
             // Get user ID
-            int userId = DatabaseHelper.getUserId(username);
+            int userId = getUserId(conn, username);
             if (userId == -1) {
+                System.out.println("User not found: " + username);
+                conn.rollback();
                 return false;
             }
             
-            // Add to food log table
-            PreparedStatement logStmt = conn.prepareStatement(
-                    "INSERT INTO food_logs (user_id, date, food_id) VALUES (?, ?, ?)");
+            // Save food and get its ID
+            int foodId = saveFoodAndGetId(conn, food);
+            if (foodId == -1) {
+                System.out.println("Failed to save food: " + food.getName());
+                conn.rollback();
+                return false;
+            }
             
-            logStmt.setInt(1, userId);
-            logStmt.setString(2, date);
-            logStmt.setInt(3, foodId);
-            
-            boolean result = logStmt.executeUpdate() > 0;
-            logStmt.close();
-            
-            return result;
+            // Add to food log
+            try (PreparedStatement logStmt = conn.prepareStatement(
+                "INSERT INTO food_logs (user_id, date, food_id) VALUES (?, ?, ?)")) {
+                
+                logStmt.setInt(1, userId);
+                logStmt.setString(2, date);
+                logStmt.setInt(3, foodId);
+                
+                int affectedRows = logStmt.executeUpdate();
+                
+                if (affectedRows > 0) {
+                    conn.commit();
+                    return true;
+                } else {
+                    conn.rollback();
+                    return false;
+                }
+            }
             
         } catch (SQLException e) {
-            System.out.println("Could not save food: " + e.getMessage());
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                System.out.println("Failed to rollback transaction: " + ex.getMessage());
+            }
+            System.out.println("Could not log food: " + e.getMessage());
+            e.printStackTrace();
             return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                }
+                DatabaseHelper.releaseConnection(conn);
+            }
         }
-        // Don't close connection - database connection is used application-wide
     }
     
     /**
@@ -181,7 +349,17 @@ public class MealPlanningService {
     public List<Food> getMealPlan(String username, String date, String mealType) {
         List<Food> mealPlan = new ArrayList<>();
         
-        try (Connection conn = DatabaseHelper.getConnection()) {
+        if (username == null || date == null || mealType == null) {
+            return mealPlan; // Return empty list for null parameters
+        }
+        
+        Connection conn = null;
+        try {
+            conn = DatabaseHelper.getConnection();
+            if (conn == null) {
+                return mealPlan; // Return empty list if connection fails
+            }
+            
             // Get user ID
             int userId = getUserId(conn, username);
             if (userId == -1) {
@@ -227,6 +405,8 @@ public class MealPlanningService {
             
         } catch (SQLException e) {
             System.out.println("Could not get meal plan: " + e.getMessage());
+        } finally {
+            DatabaseHelper.releaseConnection(conn);
         }
         
         return mealPlan;
@@ -242,7 +422,17 @@ public class MealPlanningService {
     public List<Food> getFoodLog(String username, String date) {
         List<Food> foodLog = new ArrayList<>();
         
-        try (Connection conn = DatabaseHelper.getConnection()) {
+        if (username == null || date == null) {
+            return foodLog; // Return empty list for null parameters
+        }
+        
+        Connection conn = null;
+        try {
+            conn = DatabaseHelper.getConnection();
+            if (conn == null) {
+                return foodLog; // Return empty list if connection fails
+            }
+            
             // Get user ID
             int userId = getUserId(conn, username);
             if (userId == -1) {
@@ -287,6 +477,8 @@ public class MealPlanningService {
             
         } catch (SQLException e) {
             System.out.println("Could not get food records: " + e.getMessage());
+        } finally {
+            DatabaseHelper.releaseConnection(conn);
         }
         
         return foodLog;
@@ -300,7 +492,17 @@ public class MealPlanningService {
      * @return The total calories consumed
      */
     public int getTotalCalories(String username, String date) {
-        try (Connection conn = DatabaseHelper.getConnection()) {
+        if (username == null || date == null) {
+            return 0; // Return 0 for null parameters
+        }
+        
+        Connection conn = null;
+        try {
+            conn = DatabaseHelper.getConnection();
+            if (conn == null) {
+                return 0; // Return 0 if connection fails
+            }
+            
             // Get user ID
             int userId = getUserId(conn, username);
             if (userId == -1) {
@@ -324,6 +526,8 @@ public class MealPlanningService {
             
         } catch (SQLException e) {
             System.out.println("Could not calculate total calories: " + e.getMessage());
+        } finally {
+            DatabaseHelper.releaseConnection(conn);
         }
         
         return 0;
@@ -405,11 +609,35 @@ public class MealPlanningService {
             };
             
             // Save default options to database for future use
-            for (Food food : defaultOptions) {
-                try {
-                    saveFoodWithMealType(food, "breakfast");
-                } catch (SQLException e) {
-                    System.out.println("Could not save food: " + e.getMessage());
+            Connection conn = null;
+            try {
+                conn = DatabaseHelper.getConnection();
+                if (conn != null) {
+                    conn.setAutoCommit(false);
+                    
+                    for (Food food : defaultOptions) {
+                        saveFoodWithMealType(conn, food, "breakfast");
+                    }
+                    
+                    conn.commit();
+                }
+            } catch (SQLException e) {
+                System.out.println("Could not save default breakfast options: " + e.getMessage());
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ex) {
+                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+                    }
+                }
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                    }
+                    DatabaseHelper.releaseConnection(conn);
                 }
             }
             
@@ -418,7 +646,6 @@ public class MealPlanningService {
         
         return options.toArray(new Food[0]);
     }
-    
     /**
      * Gets predefined lunch food options.
      * 
@@ -442,11 +669,35 @@ public class MealPlanningService {
             };
             
             // Save default options to database for future use
-            for (Food food : defaultOptions) {
-                try {
-                    saveFoodWithMealType(food, "lunch");
-                } catch (SQLException e) {
-                    System.out.println("Could not save food: " + e.getMessage());
+            Connection conn = null;
+            try {
+                conn = DatabaseHelper.getConnection();
+                if (conn != null) {
+                    conn.setAutoCommit(false);
+                    
+                    for (Food food : defaultOptions) {
+                        saveFoodWithMealType(conn, food, "lunch");
+                    }
+                    
+                    conn.commit();
+                }
+            } catch (SQLException e) {
+                System.out.println("Could not save default lunch options: " + e.getMessage());
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ex) {
+                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+                    }
+                }
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                    }
+                    DatabaseHelper.releaseConnection(conn);
                 }
             }
             
@@ -479,11 +730,35 @@ public class MealPlanningService {
             };
             
             // Save default options to database for future use
-            for (Food food : defaultOptions) {
-                try {
-                    saveFoodWithMealType(food, "snack");
-                } catch (SQLException e) {
-                    System.out.println("Could not save food: " + e.getMessage());
+            Connection conn = null;
+            try {
+                conn = DatabaseHelper.getConnection();
+                if (conn != null) {
+                    conn.setAutoCommit(false);
+                    
+                    for (Food food : defaultOptions) {
+                        saveFoodWithMealType(conn, food, "snack");
+                    }
+                    
+                    conn.commit();
+                }
+            } catch (SQLException e) {
+                System.out.println("Could not save default snack options: " + e.getMessage());
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ex) {
+                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+                    }
+                }
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                    }
+                    DatabaseHelper.releaseConnection(conn);
                 }
             }
             
@@ -516,11 +791,35 @@ public class MealPlanningService {
             };
             
             // Save default options to database for future use
-            for (Food food : defaultOptions) {
-                try {
-                    saveFoodWithMealType(food, "dinner");
-                } catch (SQLException e) {
-                    System.out.println("Could not save food: " + e.getMessage());
+            Connection conn = null;
+            try {
+                conn = DatabaseHelper.getConnection();
+                if (conn != null) {
+                    conn.setAutoCommit(false);
+                    
+                    for (Food food : defaultOptions) {
+                        saveFoodWithMealType(conn, food, "dinner");
+                    }
+                    
+                    conn.commit();
+                }
+            } catch (SQLException e) {
+                System.out.println("Could not save default dinner options: " + e.getMessage());
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ex) {
+                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+                    }
+                }
+            } finally {
+                if (conn != null) {
+                	try {
+                        conn.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+                    }
+                    DatabaseHelper.releaseConnection(conn);
                 }
             }
             
@@ -539,42 +838,55 @@ public class MealPlanningService {
     private List<Food> getFoodOptionsByType(String mealType) {
         List<Food> options = new ArrayList<>();
         
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
+        if (mealType == null) {
+            return options;
+        }
+        
+        Connection conn = null;
+        try {
+            conn = DatabaseHelper.getConnection();
+            if (conn == null) {
+                return options;
+            }
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(
                  "SELECT f.*, fn.* FROM foods f " +
                  "LEFT JOIN food_nutrients fn ON f.id = fn.food_id " +
                  "WHERE f.meal_type = ? " +
                  "LIMIT 8")) {
-            
-            pstmt.setString(1, mealType);
-            ResultSet rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                if (rs.getObject("protein") != null) {
-                    // This food has nutrition data
-                    options.add(new FoodNutrient(
-                        rs.getString("name"),
-                        rs.getDouble("grams"),
-                        rs.getInt("calories"),
-                        rs.getDouble("protein"),
-                        rs.getDouble("carbs"),
-                        rs.getDouble("fat"),
-                        rs.getDouble("fiber"),
-                        rs.getDouble("sugar"),
-                        rs.getDouble("sodium")
-                    ));
-                } else {
-                    // Basic food without nutrition data
-                    options.add(new Food(
-                        rs.getString("name"),
-                        rs.getDouble("grams"),
-                        rs.getInt("calories")
-                    ));
+                
+                pstmt.setString(1, mealType);
+                ResultSet rs = pstmt.executeQuery();
+                
+                while (rs.next()) {
+                    if (rs.getObject("protein") != null) {
+                        // This food has nutrition data
+                        options.add(new FoodNutrient(
+                            rs.getString("name"),
+                            rs.getDouble("grams"),
+                            rs.getInt("calories"),
+                            rs.getDouble("protein"),
+                            rs.getDouble("carbs"),
+                            rs.getDouble("fat"),
+                            rs.getDouble("fiber"),
+                            rs.getDouble("sugar"),
+                            rs.getDouble("sodium")
+                        ));
+                    } else {
+                        // Basic food without nutrition data
+                        options.add(new Food(
+                            rs.getString("name"),
+                            rs.getDouble("grams"),
+                            rs.getInt("calories")
+                        ));
+                    }
                 }
             }
             
         } catch (SQLException e) {
             System.out.println("Could not get food options: " + e.getMessage());
+        } finally {
+            DatabaseHelper.releaseConnection(conn);
         }
         
         return options;
@@ -583,16 +895,20 @@ public class MealPlanningService {
     /**
      * Saves a food with a meal type to the database.
      * 
+     * @param conn The database connection
      * @param food The food to save
      * @param mealType The type of meal
      * @return The ID of the saved food
      * @throws SQLException If an error occurs
      */
-    private int saveFoodWithMealType(Food food, String mealType) throws SQLException {
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO foods (name, grams, calories, meal_type) VALUES (?, ?, ?, ?)",
-                 Statement.RETURN_GENERATED_KEYS)) {
+    private int saveFoodWithMealType(Connection conn, Food food, String mealType) throws SQLException {
+        if (food == null || mealType == null) {
+            return -1;
+        }
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(
+             "INSERT INTO foods (name, grams, calories, meal_type) VALUES (?, ?, ?, ?)",
+             Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setString(1, food.getName());
             pstmt.setDouble(2, food.getGrams());
@@ -616,30 +932,5 @@ public class MealPlanningService {
         }
         
         return -1;
-    }
-    
-    /**
-     * Saves food nutrient information to the database.
-     * 
-     * @param conn Database connection
-     * @param foodId The ID of the food
-     * @param fn The FoodNutrient object
-     * @throws SQLException If an error occurs
-     */
-    private void saveFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws SQLException {
-        try (PreparedStatement pstmt = conn.prepareStatement(
-            "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            
-            pstmt.setInt(1, foodId);
-            pstmt.setDouble(2, fn.getProtein());
-            pstmt.setDouble(3, fn.getCarbs());
-            pstmt.setDouble(4, fn.getFat());
-            pstmt.setDouble(5, fn.getFiber());
-            pstmt.setDouble(6, fn.getSugar());
-            pstmt.setDouble(7, fn.getSodium());
-            
-            pstmt.executeUpdate();
-        }
     }
 }
