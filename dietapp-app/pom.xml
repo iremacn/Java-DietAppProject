@@ -154,6 +154,9 @@
 						<include>**/DietappTest.java</include>
 						<include>**/PersonalizedDietRecommendationMenuTest.java</include>
 						<include>**/PersonalizedDietRecommendationServiceTest.java</include>
+						<include>**/FoodTest.java</include>
+						<include>**/MealPlanningServiceTest.java</include>
+						<include>**/MealPlanningMenuTest.java</include>
 					</includes>
 				</configuration>
 			</plugin>
