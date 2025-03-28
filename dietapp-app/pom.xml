@@ -152,7 +152,7 @@
 					<includes>
 						<include>**/DietappAppTest.java</include>
 						<include>**/DietappTest.java</include>
-						<include>**/PersonalizedDietRecommendationServiceMock.java</include>
+						<include>**/PersonalizedDietRecommendationMenuTest.java</include>
 						<include>**/PersonalizedDietRecommendationServiceTest.java</include>
 					</includes>
 				</configuration>
