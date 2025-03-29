@@ -157,6 +157,14 @@
 						<include>**/FoodTest.java</include>
 						<include>**/MealPlanningServiceTest.java</include>
 						<include>**/MealPlanningMenuTest.java</include>
+						<include>**/CalorieNutrientTrackingMenuTest</include>
+						<include>**/CalorieNutrientTrackingServiceTest</include>
+						<include>**/FoodNutrientTest</include>
+						
+						
+						
+						
+						
 					</includes>
 				</configuration>
 			</plugin>

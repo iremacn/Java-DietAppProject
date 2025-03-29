@@ -14,7 +14,7 @@ public class CalorieNutrientTrackingService {
     // Service dependencies
     private MealPlanningService mealPlanningService;
     
-    /**
+    /** 
      * Constructor for CalorieNutrientTrackingService class.
      * 
      * @param mealPlanningService The meal planning service for accessing food logs
