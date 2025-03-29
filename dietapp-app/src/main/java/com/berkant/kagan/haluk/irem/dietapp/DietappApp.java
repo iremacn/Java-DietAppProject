@@ -49,7 +49,7 @@ public class DietappApp {
         this.personalizedDietMenu = new PersonalizedDietRecommendationMenu(
             personalizedDietService, dietApp.getAuthService(), scanner);
     }
-    
+   
     /**
      * The main entry point of the DietApp App.
      * 

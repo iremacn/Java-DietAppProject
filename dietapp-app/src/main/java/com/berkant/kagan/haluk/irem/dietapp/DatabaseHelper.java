@@ -14,7 +14,7 @@ public class DatabaseHelper {
     private static final String DB_URL = "jdbc:sqlite:dietplanner.db";
     private static final int MAX_CONNECTIONS = 10;
     private static List<Connection> connectionPool = new ArrayList<>();
-    
+   
     static {
         try {
             // Load the SQLite JDBC driver
@@ -454,7 +454,7 @@ public class DatabaseHelper {
                 pstmt.setDouble(5, foodNutrient.getFiber());
                 pstmt.setDouble(6, foodNutrient.getSugar());
                 pstmt.setDouble(7, foodNutrient.getSodium());
-                
+               
                 return pstmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
