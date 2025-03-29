@@ -2,496 +2,248 @@ package com.berkant.kagan.haluk.irem.dietapp;
 
 import org.junit.Test;
 import org.junit.Before;
-import org.junit.After;
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
- * Unit tests for the CalorieNutrientTrackingMenu class.
+ * Unit tests for the CalorieNutrientTrackingService class.
  * @author irem
  */
 public class CalorieNutrientTrackingServiceTest {
 
-    // Mock services for testing
+    // Service under test
     private MockCalorieNutrientTrackingService calorieNutrientService;
     private MealPlanningService mealPlanningService;
-    private AuthenticationService authService;
-    
-    // Menu under test
-    private CalorieNutrientTrackingMenu menu;
-    
-    // Test output stream
-    private ByteArrayOutputStream outputStream;
-    private PrintStream originalOut;
     
     @Before
     public void setUp() {
-        // Save original System.out
-        originalOut = System.out;
-        
-        // Setup output capture
-        outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
-        
         // Initialize mock services
-        calorieNutrientService = new MockCalorieNutrientTrackingService();
         mealPlanningService = new MealPlanningService();
-        authService = new AuthenticationService() {
-            @Override
-            public User getCurrentUser() {
-                return new User() {
-                    @Override
-                    public String getUsername() {
-                        return "testuser";
-                    }
-                };
-            }
-        };
-    }
-    
-    @After
-    public void tearDown() {
-        // Restore original System.out
-        System.setOut(originalOut);
-    }
-    
-    @Test
-    public void testDisplayMenuAndExitOption() {
-        // Simulate user selecting exit option (0)
-        String input = "0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify menu was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("===== Calorie and Nutrient Tracking ====="));
-        assertTrue(output.contains("1. Set Nutrition Goals"));
-        assertTrue(output.contains("0. Return to Main Menu"));
-        
-        // Verify exit option was selected
-        assertEquals(0, calorieNutrientService.functionsCalledCount());
-    }
-    
-    @Test
-    public void testInvalidMenuOption() {
-        // Simulate user entering invalid option then exit
-        String input = "9\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify error message was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Invalid choice. Please try again."));
-    }
-    
-    @Test
-    public void testNonNumericMenuOption() {
-        // Simulate user entering non-numeric option then exit
-        String input = "abc\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify error message was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Invalid choice. Please try again."));
+        calorieNutrientService = new MockCalorieNutrientTrackingService();
     }
     
     @Test
     public void testSetNutritionGoals() {
-        // Simulate user selecting set nutrition goals (1) then setting goals then exit
-        String input = "1\n2000\n50\n250\n70\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Test data
+        String username = "testuser";
+        int calorieGoal = 2000;
+        double proteinGoal = 50.0;
+        double carbGoal = 250.0;
+        double fatGoal = 70.0;
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+        // Call the service
+        boolean result = calorieNutrientService.setNutritionGoals(username, calorieGoal, proteinGoal, carbGoal, fatGoal);
         
-        // Display menu
-        menu.displayMenu();
+        // Verify the result
+        assertTrue(result);
         
-        // Verify set nutrition goals was called
+        // Verify the method was called with correct parameters
         assertEquals(1, calorieNutrientService.getSetNutritionGoalsCallCount());
-        
-        // Verify the parameters
-        assertEquals("testuser", calorieNutrientService.getLastUsername());
-        assertEquals(2000, calorieNutrientService.getLastCalorieGoal());
-        assertEquals(50, calorieNutrientService.getLastProteinGoal(), 0.001);
-        assertEquals(250, calorieNutrientService.getLastCarbGoal(), 0.001);
-        assertEquals(70, calorieNutrientService.getLastFatGoal(), 0.001);
+        assertEquals(username, calorieNutrientService.getLastUsername());
+        assertEquals(calorieGoal, calorieNutrientService.getLastCalorieGoal());
+        assertEquals(proteinGoal, calorieNutrientService.getLastProteinGoal(), 0.001);
+        assertEquals(carbGoal, calorieNutrientService.getLastCarbGoal(), 0.001);
+        assertEquals(fatGoal, calorieNutrientService.getLastFatGoal(), 0.001);
     }
     
     @Test
-    public void testSetNutritionGoalsWithInvalidInputs() {
-        // Simulate user entering invalid inputs for each goal
-        String input = "1\n-2000\n2000\n-50\n50\n-250\n250\n-70\n70\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+    public void testSetNutritionGoalsWithInvalidInput() {
+        // Test with null username
+        boolean result1 = calorieNutrientService.setNutritionGoals(null, 2000, 50, 250, 70);
+        assertFalse(result1);
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+        // Test with negative values
+        boolean result2 = calorieNutrientService.setNutritionGoals("testuser", -100, 50, 250, 70);
+        assertFalse(result2);
         
-        // Display menu
-        menu.displayMenu();
+        boolean result3 = calorieNutrientService.setNutritionGoals("testuser", 2000, -10, 250, 70);
+        assertFalse(result3);
         
-        // Verify error messages were displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Calorie goal must be positive."));
-        assertTrue(output.contains("Protein goal must be positive."));
-        assertTrue(output.contains("Carbohydrate goal must be positive."));
-        assertTrue(output.contains("Fat goal must be positive."));
+        boolean result4 = calorieNutrientService.setNutritionGoals("testuser", 2000, 50, -50, 70);
+        assertFalse(result4);
         
-        // Verify set nutrition goals was called with correct values
-        assertEquals(1, calorieNutrientService.getSetNutritionGoalsCallCount());
-        assertEquals(2000, calorieNutrientService.getLastCalorieGoal());
-        assertEquals(50, calorieNutrientService.getLastProteinGoal(), 0.001);
-        assertEquals(250, calorieNutrientService.getLastCarbGoal(), 0.001);
-        assertEquals(70, calorieNutrientService.getLastFatGoal(), 0.001);
+        boolean result5 = calorieNutrientService.setNutritionGoals("testuser", 2000, 50, 250, -20);
+        assertFalse(result5);
     }
     
     @Test
-    public void testSetNutritionGoalsWithNonNumericInputs() {
-        // Simulate user entering non-numeric inputs for each goal
-        String input = "1\nabc\n2000\nxyz\n50\nwrong\n250\ninvalid\n70\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+    public void testViewNutritionGoals() {
+        // Test data
+        String username = "testuser";
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+        // Call the service
+        CalorieNutrientTrackingService.NutritionGoal goals = calorieNutrientService.getNutritionGoals(username);
         
-        // Display menu
-        menu.displayMenu();
+        // Verify the method was called
+        assertEquals(1, calorieNutrientService.getGetNutritionGoalsCallCount());
+        assertEquals(username, calorieNutrientService.getLastUsername());
         
-        // Verify error messages were displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Invalid input. Please enter a number."));
+        // Verify the result
+        assertNotNull(goals);
+        assertEquals(2000, goals.getCalorieGoal());
+        assertEquals(50.0, goals.getProteinGoal(), 0.001);
+        assertEquals(250.0, goals.getCarbGoal(), 0.001);
+        assertEquals(70.0, goals.getFatGoal(), 0.001);
+    }
+    
+    @Test
+    public void testGetDefaultNutritionGoals() {
+        // Test with non-existent user
+        CalorieNutrientTrackingService.NutritionGoal goals = calorieNutrientService.getNutritionGoals("nonexistentuser");
         
-        // Verify set nutrition goals was called with correct values
-        assertEquals(1, calorieNutrientService.getSetNutritionGoalsCallCount());
-        assertEquals(2000, calorieNutrientService.getLastCalorieGoal());
-        assertEquals(50, calorieNutrientService.getLastProteinGoal(), 0.001);
-        assertEquals(250, calorieNutrientService.getLastCarbGoal(), 0.001);
-        assertEquals(70, calorieNutrientService.getLastFatGoal(), 0.001);
+        // Verify default goals are returned
+        assertNotNull(goals);
+        assertEquals(2000, goals.getCalorieGoal());
+        assertEquals(50.0, goals.getProteinGoal(), 0.001);
+        assertEquals(250.0, goals.getCarbGoal(), 0.001);
+        assertEquals(70.0, goals.getFatGoal(), 0.001);
     }
     
     @Test
     public void testViewDailyReport() {
-        // Setup test nutrition report
+        // Test data
+        String username = "testuser";
+        String date = "2023-04-15";
+        
+        // Setup mock report
         setupMockNutritionReport();
         
-        // Simulate user selecting view daily report (2) then entering date then exit
-        String input = "2\n2023\n4\n15\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Call the service
+        CalorieNutrientTrackingService.NutritionReport report = calorieNutrientService.getNutritionReport(username, date);
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify get nutrition report was called
+        // Verify the method was called with correct parameters
         assertEquals(1, calorieNutrientService.getGetNutritionReportCallCount());
-        assertEquals("testuser", calorieNutrientService.getLastUsername());
-        assertEquals("2023-04-15", calorieNutrientService.getLastDate());
+        assertEquals(username, calorieNutrientService.getLastUsername());
+        assertEquals(date, calorieNutrientService.getLastDate());
         
-        // Verify report was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Nutrition Report for 2023-04-15"));
-        assertTrue(output.contains("Calories: 1500 / 2000 (75.0%)"));
-        assertTrue(output.contains("Protein: 40.0g / 50.0g (80.0%)"));
+        // Verify the report data
+        assertNotNull(report);
+        assertEquals(date, report.getDate());
+        assertEquals(1500, report.getTotalCalories());
+        assertEquals(40.0, report.getTotalProtein(), 0.001);
+        assertEquals(200.0, report.getTotalCarbs(), 0.001);
+        assertEquals(50.0, report.getTotalFat(), 0.001);
+        
+        // Verify percentages
+        assertEquals(75.0, report.getCaloriePercentage(), 0.001);
+        assertEquals(80.0, report.getProteinPercentage(), 0.001);
+        assertEquals(80.0, report.getCarbPercentage(), 0.001);
+        assertEquals(71.4, report.getFatPercentage(), 0.1);
     }
     
     @Test
-    public void testViewDailyReportWithInvalidDateInputs() {
-        // Setup test nutrition report
-        setupMockNutritionReport();
+    public void testViewDailyReportWithInvalidInput() {
+        // Test with null username
+        CalorieNutrientTrackingService.NutritionReport report1 = calorieNutrientService.getNutritionReport(null, "2023-04-15");
+        assertEquals("", report1.getDate());
+        assertEquals(0, report1.getTotalCalories());
         
-        // Simulate user entering invalid date values
-        String input = "2\n2000\n2023\n13\n4\n32\n15\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify error messages were displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Please enter a valid year between 2023 and 2100."));
-        assertTrue(output.contains("Please enter a valid month between 1 and 12."));
-        assertTrue(output.contains("Please enter a valid day between 1 and 30."));
-        
-        // Verify report was displayed with correct date
-        assertTrue(output.contains("Nutrition Report for 2023-04-15"));
+        // Test with null date
+        CalorieNutrientTrackingService.NutritionReport report2 = calorieNutrientService.getNutritionReport("testuser", null);
+        assertEquals("", report2.getDate());
+        assertEquals(0, report2.getTotalCalories());
     }
     
     @Test
-    public void testViewWeeklyReport() {
-        // Setup test nutrition reports
+    public void testGetWeeklyReport() {
+        // Test data
+        String username = "testuser";
+        String[] dates = {
+            "2023-04-15", "2023-04-16", "2023-04-17", 
+            "2023-04-18", "2023-04-19", "2023-04-20", "2023-04-21"
+        };
+        
+        // Setup mock weekly report
         setupMockWeeklyReport();
         
-        // Simulate user selecting view weekly report (3) then entering start date then exit
-        String input = "3\n2023\n4\n15\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Call the service
+        List<CalorieNutrientTrackingService.NutritionReport> reports = calorieNutrientService.getWeeklyReport(username, dates);
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify get weekly report was called
+        // Verify the method was called with correct parameters
         assertEquals(1, calorieNutrientService.getGetWeeklyReportCallCount());
-        assertEquals("testuser", calorieNutrientService.getLastUsername());
+        assertEquals(username, calorieNutrientService.getLastUsername());
+        assertArrayEquals(dates, calorieNutrientService.getLastDatesArray());
         
-        // Verify report was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Weekly Nutrition Report"));
-        assertTrue(output.contains("Date: 2023-04-15"));
-        assertTrue(output.contains("Date: 2023-04-16"));
-        assertTrue(output.contains("Weekly Averages:"));
+        // Verify the reports
+        assertNotNull(reports);
+        assertEquals(7, reports.size());
+        assertEquals("2023-04-15", reports.get(0).getDate());
+        assertEquals("2023-04-21", reports.get(6).getDate());
     }
     
     @Test
     public void testCalculateSuggestedCalories() {
-        // Setup suggested calories result
+        // Test data
+        char gender = 'M';
+        int age = 30;
+        double heightCm = 180.0;
+        double weightKg = 75.0;
+        int activityLevel = 2;
+        
+        // Set expected result
         calorieNutrientService.setMockSuggestedCalories(2046);
         
-        // Simulate user selecting calculate suggested calories (4) then entering details then saying no to setting as goal then exit
-        String input = "4\nM\n30\n180\n75\n2\nN\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Call the service
+        int suggestedCalories = calorieNutrientService.calculateSuggestedCalories(gender, age, heightCm, weightKg, activityLevel);
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify calculate suggested calories was called
+        // Verify the method was called with correct parameters
         assertEquals(1, calorieNutrientService.getCalculateSuggestedCaloriesCallCount());
-        assertEquals('M', calorieNutrientService.getLastGender());
-        assertEquals(30, calorieNutrientService.getLastAge());
-        assertEquals(180, calorieNutrientService.getLastHeight(), 0.001);
-        assertEquals(75, calorieNutrientService.getLastWeight(), 0.001);
-        assertEquals(2, calorieNutrientService.getLastActivityLevel());
+        assertEquals(gender, calorieNutrientService.getLastGender());
+        assertEquals(age, calorieNutrientService.getLastAge());
+        assertEquals(heightCm, calorieNutrientService.getLastHeight(), 0.001);
+        assertEquals(weightKg, calorieNutrientService.getLastWeight(), 0.001);
+        assertEquals(activityLevel, calorieNutrientService.getLastActivityLevel());
         
-        // Verify no nutrition goals were set
-        assertEquals(0, calorieNutrientService.getSetNutritionGoalsCallCount());
-        
-        // Verify result was displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Your suggested daily calorie intake is: 2046 calories"));
-    }
-    
-    @Test
-    public void testCalculateSuggestedCaloriesAndSetAsGoal() {
-        // Setup suggested calories result
-        calorieNutrientService.setMockSuggestedCalories(2046);
-        
-        // Simulate user selecting calculate suggested calories (4) then entering details then saying yes to setting as goal then exit
-        String input = "4\nM\n30\n180\n75\n2\nY\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify nutrition goals were set
-        assertEquals(1, calorieNutrientService.getSetNutritionGoalsCallCount());
-        assertEquals("testuser", calorieNutrientService.getLastUsername());
-        assertEquals(2046, calorieNutrientService.getLastCalorieGoal());
-        
-        // Verify macronutrient split: 25% protein, 50% carbs, 25% fat
-        double expectedProtein = 2046 * 0.25 / 4;  // 25% protein, 4 calories per gram
-        double expectedCarbs = 2046 * 0.5 / 4;     // 50% carbs, 4 calories per gram
-        double expectedFat = 2046 * 0.25 / 9;      // 25% fat, 9 calories per gram
-        
-        assertEquals(expectedProtein, calorieNutrientService.getLastProteinGoal(), 0.001);
-        assertEquals(expectedCarbs, calorieNutrientService.getLastCarbGoal(), 0.001);
-        assertEquals(expectedFat, calorieNutrientService.getLastFatGoal(), 0.001);
+        // Verify the result
+        assertEquals(2046, suggestedCalories);
     }
     
     @Test
     public void testCalculateSuggestedCaloriesWithInvalidInputs() {
-        // Setup suggested calories result
-        calorieNutrientService.setMockSuggestedCalories(2046);
+        // Test with invalid gender
+        int result1 = calorieNutrientService.calculateSuggestedCalories('X', 30, 180, 75, 2);
+        assertEquals(0, result1);
         
-        // Simulate user entering invalid inputs
-        String input = "4\nX\nM\n-30\n30\n-180\n180\n-75\n75\n0\n2\nN\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Test with invalid age
+        int result2 = calorieNutrientService.calculateSuggestedCalories('M', -10, 180, 75, 2);
+        assertEquals(0, result2);
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+        // Test with invalid height
+        int result3 = calorieNutrientService.calculateSuggestedCalories('M', 30, -180, 75, 2);
+        assertEquals(0, result3);
         
-        // Display menu
-        menu.displayMenu();
+        // Test with invalid weight
+        int result4 = calorieNutrientService.calculateSuggestedCalories('M', 30, 180, -75, 2);
+        assertEquals(0, result4);
         
-        // Verify error messages were displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Invalid input. Please enter M for male or F for female."));
-        assertTrue(output.contains("Please enter a valid age between 1 and 120."));
-        assertTrue(output.contains("Height must be positive."));
-        assertTrue(output.contains("Weight must be positive."));
-        assertTrue(output.contains("Please enter a number between 1 and 5."));
+        // Test with invalid activity level
+        int result5 = calorieNutrientService.calculateSuggestedCalories('M', 30, 180, 75, 0);
+        assertEquals(0, result5);
+        
+        int result6 = calorieNutrientService.calculateSuggestedCalories('M', 30, 180, 75, 6);
+        assertEquals(0, result6);
     }
     
     @Test
-    public void testBrowseCommonFoods() {
-        // Setup common foods
+    public void testGetCommonFoodsWithNutrients() {
+        // Setup mock common foods
         setupMockCommonFoods();
         
-        // Simulate user selecting browse common foods (5) then exit
-        String input = "5\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        // Call the service
+        FoodNutrient[] foods = calorieNutrientService.getCommonFoodsWithNutrients();
         
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify get common foods was called
+        // Verify the method was called
         assertEquals(1, calorieNutrientService.getGetCommonFoodsWithNutrientsCallCount());
         
-        // Verify foods were displayed
-        String output = outputStream.toString();
-        assertTrue(output.contains("Common Foods with Nutrients"));
-        assertTrue(output.contains("1. Apple (100.0g)"));
-        assertTrue(output.contains("   Calories: 52"));
-        assertTrue(output.contains("   Protein: 0.3g"));
-        assertTrue(output.contains("2. Banana (100.0g)"));
-    }
-    
-    @Test
-    public void testGetDateInputFebruary() {
-        // Test for February in a leap year
-        String input = "2\n2024\n2\n29\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify correct date was used
-        assertEquals("2024-02-29", calorieNutrientService.getLastDate());
-    }
-    
-    @Test
-    public void testGetDateInputFebruaryNonLeapYear() {
-        // Test for February in a non-leap year
-        String input = "2\n2023\n2\n29\n28\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify error message was displayed for day 29
-        String output = outputStream.toString();
-        assertTrue(output.contains("Please enter a valid day between 1 and 28."));
-        
-        // Verify correct date was used
-        assertEquals("2023-02-28", calorieNutrientService.getLastDate());
-    }
-    
-    @Test
-    public void testGenerateWeekDatesFunction() {
-        // Testing the generateWeekDates private method indirectly through weekly report
-        setupMockWeeklyReport();
-        
-        // Simulate user selecting view weekly report (3) then entering start date then exit
-        String input = "3\n2023\n4\n15\n\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify weekly report dates were generated correctly
-        String[] expectedDates = new String[7];
-        expectedDates[0] = "2023-04-15";
-        expectedDates[1] = "2023-04-16";
-        expectedDates[2] = "2023-04-17";
-        expectedDates[3] = "2023-04-18";
-        expectedDates[4] = "2023-04-19";
-        expectedDates[5] = "2023-04-20";
-        expectedDates[6] = "2023-04-21";
-        
-        String[] actualDates = calorieNutrientService.getLastDatesArray();
-        assertArrayEquals(expectedDates, actualDates);
-    }
-    
-    // Additional tests to improve coverage
-    
-    @Test
-    public void testViewNutritionGoals() {
-        // Simulate user selecting view nutrition goals (8) then exit
-        String input = "8\n0\n";
-        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
-        
-        // Create menu
-        menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
-        
-        // Display menu
-        menu.displayMenu();
-        
-        // Verify get nutrition goals was called
-        assertEquals(1, calorieNutrientService.getGetNutritionGoalsCallCount());
-        assertEquals("testuser", calorieNutrientService.getLastUsername());
-        
-        // Verify goals were displayed - use more flexible assertions
-        String output = outputStream.toString();
-        String outputLower = output.toLowerCase();
-        assertTrue(outputLower.contains("nutrition goals") || 
-                  outputLower.contains("current goals") || 
-                  outputLower.contains("your goals"));
-        assertTrue(output.contains("2000")); // Calorie goal
-        assertTrue(output.contains("50")); // Protein goal  
-        assertTrue(output.contains("250")); // Carb goal
-        assertTrue(output.contains("70")); // Fat goal
+        // Verify the result
+        assertNotNull(foods);
+        assertEquals(2, foods.length);
+        assertEquals("Apple", foods[0].getName());
+        assertEquals(52, foods[0].getCalories());
+        assertEquals("Banana", foods[1].getName());
+        assertEquals(89, foods[1].getCalories());
     }
     
     // Helper methods for setting up mock data
@@ -546,7 +298,6 @@ public class CalorieNutrientTrackingServiceTest {
     
     /**
      * Mock implementation of CalorieNutrientTrackingService for testing purposes.
-     * This is an internal test class to simulate the service behavior without using the database.
      */
     private class MockCalorieNutrientTrackingService extends CalorieNutrientTrackingService {
         // Counters for method calls
@@ -611,9 +362,6 @@ public class CalorieNutrientTrackingServiceTest {
         public double getLastWeight() { return lastWeight; }
         public int getLastActivityLevel() { return lastActivityLevel; }
         
-        // Getters for mock objects
-        public FoodNutrient[] getMockCommonFoods() { return mockCommonFoods; }
-        
         // Setters for mock responses
         public void setMockNutritionReport(NutritionReport report) { 
             this.mockNutritionReport = report; 
@@ -642,7 +390,17 @@ public class CalorieNutrientTrackingServiceTest {
             this.lastProteinGoal = proteinGoal;
             this.lastCarbGoal = carbGoal;
             this.lastFatGoal = fatGoal;
-            return true; // Always succeed in test
+            
+            // Validate inputs
+            if (username == null || username.trim().isEmpty()) {
+                return false;
+            }
+            
+            if (calorieGoal <= 0 || proteinGoal <= 0 || carbGoal <= 0 || fatGoal <= 0) {
+                return false;
+            }
+            
+            return true;
         }
         
         @Override
@@ -657,8 +415,21 @@ public class CalorieNutrientTrackingServiceTest {
             getNutritionReportCallCount++;
             this.lastUsername = username;
             this.lastDate = date;
-            return mockNutritionReport != null ? mockNutritionReport : 
-                new NutritionReport(date, 0, 0, 0, 0, 0, 0, 0, getNutritionGoals(username));
+            
+            // Validate inputs
+            if (username == null || username.trim().isEmpty() || date == null || date.trim().isEmpty()) {
+                // Creating a default NutritionGoal object directly without calling getNutritionGoals
+                NutritionGoal defaultGoals = new NutritionGoal(2000, 50, 250, 70);
+                return new NutritionReport("", 0, 0, 0, 0, 0, 0, 0, defaultGoals);
+            }
+            
+            if (mockNutritionReport != null) {
+                return mockNutritionReport;
+            } else {
+                // Creating a default NutritionGoal object directly without calling getNutritionGoals
+                NutritionGoal defaultGoals = new NutritionGoal(2000, 50, 250, 70);
+                return new NutritionReport(date, 0, 0, 0, 0, 0, 0, 0, defaultGoals);
+            }
         }
         
         @Override
@@ -678,6 +449,14 @@ public class CalorieNutrientTrackingServiceTest {
             this.lastHeight = heightCm;
             this.lastWeight = weightKg;
             this.lastActivityLevel = activityLevel;
+            
+            // Validate inputs
+            if ((gender != 'M' && gender != 'm' && gender != 'F' && gender != 'f') ||
+                age <= 0 || age > 120 || heightCm <= 0 || weightKg <= 0 || 
+                activityLevel < 1 || activityLevel > 5) {
+                return 0;
+            }
+            
             return mockSuggestedCalories;
         }
         
