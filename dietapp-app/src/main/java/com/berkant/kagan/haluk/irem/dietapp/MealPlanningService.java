@@ -164,7 +164,7 @@ public class MealPlanningService {
             }
         }
 
-        // Yeni yiyeceği ekleme
+        // Added new food
         String insertSql = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
         try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
             insertStmt.setString(1, food.getName());
@@ -173,13 +173,13 @@ public class MealPlanningService {
 
             int rowsAffected = insertStmt.executeUpdate();
             if (rowsAffected > 0) {
-                // **HATA BURADAYDI!** `getGeneratedKeys()` yerine `last_insert_rowid()` kullanıyoruz.
+                
                 try (Statement stmt = conn.createStatement();
                      ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
                     if (rs.next()) {
                         int foodId = rs.getInt(1);
 
-                        // Eğer bu bir FoodNutrient nesnesiyse, besin bilgilerini kaydet
+                        
                         if (food instanceof FoodNutrient) {
                             FoodNutrient fn = (FoodNutrient) food;
                             saveFoodNutrients(conn, foodId, fn);
@@ -191,7 +191,7 @@ public class MealPlanningService {
             }
         }
 
-        return -1; // Hata durumu
+        return -1; 
     }
 
     
