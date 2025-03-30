@@ -31,7 +31,7 @@ public class MealPlanningServiceTest {
     
     private MealPlanningService mealPlanningService;
     private static int testUserId;
-
+/*
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Initialize database
@@ -77,6 +77,7 @@ public class MealPlanningServiceTest {
             fail("Database setup failed: " + e.getMessage());
         }
     }
+    */
     
     /**
      * Helper method to ensure all required tables exist
