@@ -160,8 +160,8 @@
 						<include>**/CalorieNutrientTrackingMenuTest</include>
 						<include>**/CalorieNutrientTrackingServiceTest</include>
 						<include>**/FoodNutrientTest</include>
-						<include>**/ShoppingListMenuTest </include>
-						
+						<include>**/ShoppingListMenuTest</include>
+						<include>**/ShoppingListServiceTest</include>
 						
 						
 						

@@ -33,12 +33,22 @@ public class ShoppingListService {
     }
     
     /**
+     * Servis tarafından kullanılan veritabanı bağlantısını alır.
+     * Alt sınıflarla test edilebilir olması için protected olarak tanımlanmıştır.
+     * 
+     * @return Veritabanı bağlantısı
+     */
+    protected Connection getConnection() {
+        return DatabaseHelper.getConnection();
+    }
+    
+    /**
      * Initializes ingredients and recipes in the database if they don't exist.
      */
     private void initializeIngredientsAndRecipes() throws SQLException {
         Connection conn = null;
         try {
-            conn = DatabaseHelper.getConnection();
+            conn = getConnection(); // Protected metodu kullan
             if (conn == null) {
                 System.out.println("Failed to obtain database connection for ingredients initialization");
                 return;
@@ -62,7 +72,7 @@ public class ShoppingListService {
         } catch (SQLException e) {
             // Table might not exist yet, this is handled in DatabaseHelper
             System.out.println("Error during ingredient database check: " + e.getMessage());
-            if (conn != null) {
+            if (conn != null) { 
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
@@ -98,7 +108,7 @@ public class ShoppingListService {
             // Vegetables
             ingredientPrices.put("Tomato", 1.20);
             ingredientPrices.put("Cucumber", 0.90);
-            // ...diğer yiyecekler...
+            // ...other foods...
             
             // Insert each ingredient into the database
             for (Map.Entry<String, Double> entry : ingredientPrices.entrySet()) {
@@ -161,7 +171,7 @@ public class ShoppingListService {
             insertRecipeIngredient(conn, recipeId, "Blueberry", 30, "g");
         }
         
-        // Diğer tarifler için benzer şekilde...
+        // Similar pattern for other recipes...
     }
     
     /**
@@ -185,7 +195,7 @@ public class ShoppingListService {
             insertRecipeIngredient(conn, recipeId, "Pepper", 1, "g");
         }
         
-        // Diğer tarifler için benzer şekilde...
+        // Similar pattern for other recipes...
     }
     
     /**
@@ -203,7 +213,7 @@ public class ShoppingListService {
             insertRecipeIngredient(conn, recipeId, "Peanut Butter", 30, "g");
         }
         
-        // Diğer tarifler için benzer şekilde...
+        // Similar pattern for other recipes...
     }
     
     /**
@@ -227,7 +237,7 @@ public class ShoppingListService {
             insertRecipeIngredient(conn, recipeId, "Pepper", 1, "g");
         }
         
-        // Diğer tarifler için benzer şekilde...
+        // Similar pattern for other recipes...
     }
     
     /**
@@ -329,7 +339,7 @@ public class ShoppingListService {
         
         Connection conn = null;
         try {
-            conn = DatabaseHelper.getConnection();
+            conn = getConnection(); // Protected metodu kullan
             if (conn == null) {
                 return ingredients;
             }
@@ -372,32 +382,33 @@ public class ShoppingListService {
      * @return Total cost of all ingredients
      */
     public double calculateTotalCost(List<Ingredient> ingredients) {
-        if (ingredients == null) {
+        if (ingredients == null || ingredients.isEmpty()) {
             return 0.0;
         }
         
         double totalCost = 0.0;
         
         for (Ingredient ingredient : ingredients) {
+            String unit = ingredient.getUnit();
+            double amount = ingredient.getAmount();
             double price = ingredient.getPrice();
             
-            // Scale price based on amount (simplified approach)
-            if (ingredient.getUnit().equals("g")) {
-                totalCost += (price * ingredient.getAmount() / 100);
-            } else if (ingredient.getUnit().equals("ml")) {
-                totalCost += (price * ingredient.getAmount() / 100);
-            } else {
-                // For units, multiply directly
-                totalCost += (price * ingredient.getAmount());
+            if ("unit".equals(unit)) {
+                // Direct price per unit (pieces)
+                totalCost += amount * price;
+            } 
+            else if ("g".equals(unit) || "ml".equals(unit)) {
+                // Price per 100 grams or milliliters
+                totalCost += (amount / 100.0) * price;
+            }
+            else {
+                // Default calculation for other units
+                totalCost += amount * price;
             }
         }
         
         return totalCost;
     }
-    
-    /**
-     * Inner class to represent an ingredient with amount, unit, and price.
-     */
     public class Ingredient {
         private String name;
         private double amount;
