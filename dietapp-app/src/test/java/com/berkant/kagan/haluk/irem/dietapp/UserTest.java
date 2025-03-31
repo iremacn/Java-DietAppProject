@@ -185,4 +185,33 @@ public class UserTest {
         assertNull("setEmail should accept null", user.getEmail());
         assertNull("setName should accept null", user.getName());
     }
+    
+    @Test
+    public void testSetUsername() {
+        // Test için bir User nesnesi oluştur
+        User user = new User("testuser", "password123", "test@example.com", "Test User");
+        
+        // setUsername metodunu test et
+        user.setUsername("newusername");
+        
+        // Değerin değiştiğini kontrol et
+        assertEquals("newusername", user.getUsername());
+    }
+
+    @Test
+    public void testGetPassword() {
+        // Test için bir User nesnesi oluştur
+        User user = new User("testuser", "password123", "test@example.com", "Test User");
+        
+        // getPassword metodunu test et
+        String password = user.getPassword();
+        
+        // Şifrenin doğru döndüğünü kontrol et
+        assertEquals("password123", password);
+    }
+    
+    
+    
+    
+    
 }

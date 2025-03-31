@@ -162,6 +162,8 @@
 						<include>**/FoodNutrientTest</include>
 						<include>**/ShoppingListMenuTest</include>
 						<include>**/ShoppingListServiceTest</include>
+					 <include>**/UserTest</include>
+					 	<include>**/AuthenticationServiceTest</include>
 						
 						
 						
