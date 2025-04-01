@@ -6,6 +6,7 @@ import org.junit.After;
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
@@ -27,9 +28,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 
@@ -2991,6 +2994,254 @@ public class ShoppingListServiceTest {
             assertEquals("Cost should be zero for empty ingredient list", 0.0, totalCost, 0.001);
         }
     }
+    @Test
+    public void testGetIngredientsForFoodWithEmptyDatabase() {
+        MealPlanningService mockMealPlanningService = null;
+		// Boş veritabanı senaryosu
+        ShoppingListService emptyDbService = new ShoppingListService(mockMealPlanningService) {
+            @Override
+            protected Connection getConnection() {
+                try {
+                    Connection conn = DriverManager.getConnection("jdbc:sqlite::memory:");
+                    // Hiçbir tablo oluşturulmayacak
+                    return conn;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        };
+        
+        // Farklı yemek türleri için test
+        String[][] recipeTests = {
+            {"breakfast", "Scrambled Eggs"},
+            {"lunch", "Chicken Salad"},
+            {"snack", "Apple with Peanut Butter"},
+            {"dinner", "Grilled Salmon"}
+        };
+        
+        for (String[] recipeInfo : recipeTests) {
+            List<ShoppingListService.Ingredient> ingredients = 
+                emptyDbService.getIngredientsForFood(recipeInfo[0], recipeInfo[1]);
+            
+            assertNotNull("Malzeme listesi null olmamalı", ingredients);
+            assertTrue("Boş veritabanında liste boş olmalı", ingredients.isEmpty());
+        }
+    }
+
+    @Test
+    public void testCalculateTotalCostWithSparseIngredients() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        List<ShoppingListService.Ingredient> sparseIngredients = new ArrayList<>();
+        
+        // Seyrek ve nadir görülen malzeme senaryoları
+        sparseIngredients.add(service.new Ingredient("Saffron", 0.1, "g", 5000.0));  // Çok pahalı
+        sparseIngredients.add(service.new Ingredient("Truffle", 5.0, "g", 2000.0));  // Nadir
+        sparseIngredients.add(service.new Ingredient("Caviar", 20.0, "g", 1000.0));  // Lüks
+        
+        double totalCost = service.calculateTotalCost(sparseIngredients);
+        
+        assertTrue("Nadir malzemelerde maliyet hesaplanabilmeli", totalCost > 0);
+        assertFalse("Maliyet sonsuz olmamalı", Double.isInfinite(totalCost));
+    }
+
+    @Test
+    public void testIngredientConstructorWithExtendedCharacterSet() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        // Genişletilmiş karakter seti içeren malzeme adları
+        String[] extendedCharacterNames = {
+            "Açaí Berry",  // Portekizce
+            "Pörkölt",     // Macarca
+            "Żurek",       // Lehçe
+            "こんにゃく",   // Japonca
+            "糯米",         // Çince
+            "🥦 Broccoli"  // Emoji ile
+        };
+        
+        for (String name : extendedCharacterNames) {
+            ShoppingListService.Ingredient ingredient = service.new Ingredient(
+                name, 
+                10.0, 
+                "unit", 
+                5.0
+            );
+            
+            assertEquals("Malzeme adı korunmalı", name, ingredient.getName());
+        }
+    }
+
+    @Test
+    public void testGetIngredientsForFoodWithMalformedMealTypes() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        // Hatalı yazılmış/format dışı öğün türleri
+        String[][] malformedMealTypes = {
+            {"BREAKFAST ", " breakfast"},  // Fazladan boşluklu
+            {"breakFAST", "bReAkFaSt"},    // Karışık harf
+            {"  ", "\t\n"},                // Beyaz boşluk karakterleri
+            {"unknown_meal", "random_food"} // Geçersiz tür
+        };
+        
+        for (String[] mealTypeInfo : malformedMealTypes) {
+            List<ShoppingListService.Ingredient> ingredients = 
+                service.getIngredientsForFood(mealTypeInfo[0], mealTypeInfo[1]);
+            
+            assertNotNull("Malzeme listesi null olmamalı", ingredients);
+            assertTrue("Geçersiz öğün türü için boş liste dönmeli", ingredients.isEmpty());
+        }
+    }
+
+    @Test
+    public void testCalculateTotalCostWithPrecisionLossScenarios() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        List<ShoppingListService.Ingredient> precisionIngredients = new ArrayList<>();
+        
+        // Hassasiyet kaybı senaryoları
+        precisionIngredients.add(service.new Ingredient("Floating Point Test 1", 0.1 + 0.2, "g", 10.0));
+        precisionIngredients.add(service.new Ingredient("Floating Point Test 2", 1.0 / 3.0, "ml", 5.0));
+        precisionIngredients.add(service.new Ingredient("Very Small Value", 1e-10, "unit", 1e10));
+        
+        double totalCost = service.calculateTotalCost(precisionIngredients);
+        
+        assertTrue("Hassasiyet kaybı senaryolarında maliyet hesaplanabilmeli", totalCost > 0);
+        assertFalse("Maliyet sonsuz olmamalı", Double.isInfinite(totalCost));
+        assertFalse("Maliyet tanımsız olmamalı", Double.isNaN(totalCost));
+    }
+
+    @Test
+    public void testIngredientToStringUnderDifferentLocales() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        // Farklı yerel ayarlardaki toString testi
+        Locale defaultLocale = Locale.getDefault();
+        Locale[] testLocales = {
+            Locale.GERMANY,
+            Locale.JAPAN,
+            new Locale("tr", "TR"),  // Türkçe
+            Locale.FRANCE
+        };
+        
+        try {
+            for (Locale locale : testLocales) {
+                Locale.setDefault(locale);
+                
+                ShoppingListService.Ingredient ingredient = service.new Ingredient(
+                    "Test Malzeme", 10.5, "birim", 5.75
+                );
+                
+                String toString = ingredient.toString();
+                
+                assertNotNull("toString null olmamalı", toString);
+                assertTrue("toString malzeme adını içermeli", toString.contains("Test Malzeme"));
+                assertTrue("toString miktarı içermeli", toString.contains("10.5"));
+                assertTrue("toString birimini içermeli", toString.contains("birim"));
+            }
+        } finally {
+            // Varsayılan locale'i geri yükle
+            Locale.setDefault(defaultLocale);
+        }
+    }
+
+    @Test
+    public void testPrivateMethodInsertRecipeIngredientErrorHandling() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        try {
+            // Reflection ile private metodu test etme
+            Method insertRecipeIngredientMethod = ShoppingListService.class.getDeclaredMethod(
+                "insertRecipeIngredient", Connection.class, int.class, String.class, double.class, String.class);
+            insertRecipeIngredientMethod.setAccessible(true);
+            
+            // Hata senaryoları için özel bir bağlantı
+            Connection conn = service.getConnection();
+            
+            // Geçersiz tarif ID'si ile test
+            boolean result = (boolean) insertRecipeIngredientMethod.invoke(
+                service, conn, -1, "Invalid Ingredient", 10.0, "g"
+            );
+            
+            assertFalse("Geçersiz tarif ID'si için ekleme başarısız olmalı", result);
+        } catch (Exception e) {
+            fail("Malzeme ekleme hata yönetimi test edilemedi: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testCalculateTotalCostWithRandomIngredientGeneration() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        Random random = new Random();
+        List<ShoppingListService.Ingredient> randomIngredients = new ArrayList<>();
+        
+        // 100 adet rastgele malzeme oluşturma
+        for (int i = 0; i < 100; i++) {
+            String ingredientName = "Ingredient_" + random.nextInt(1000);
+            double amount = random.nextDouble() * 1000;
+            String[] units = {"g", "ml", "unit", "kg", "l"};
+            String unit = units[random.nextInt(units.length)];
+            double price = random.nextDouble() * 100;
+            
+            randomIngredients.add(service.new Ingredient(
+                ingredientName, 
+                amount, 
+                unit, 
+                price
+            ));
+        }
+        
+        double totalCost = service.calculateTotalCost(randomIngredients);
+        
+        assertTrue("Rastgele malzemelerde maliyet hesaplanabilmeli", totalCost > 0);
+        assertFalse("Maliyet sonsuz olmamalı", Double.isInfinite(totalCost));
+    }
+
+    @Test
+    public void testGetIngredientsForFoodWithUnicodeRecipeNames() {
+        MealPlanningService mockMealPlanningService = null;
+		ShoppingListService service = new ShoppingListService(mockMealPlanningService);
+        
+        // Unicode karakterler içeren tarif adları
+        String[][] unicodeRecipes = {
+            {"breakfast", "Süper Kahvaltı Tarifi"},  // Türkçe
+            {"lunch", "漢方ランチレシピ"},  // Japonca
+            {"dinner", "Пикантный ужин рецепт"},  // Rusça
+            {"snack", "مكون وصفة خفيفة"}  // Arapça
+        };
+        
+        for (String[] recipeInfo : unicodeRecipes) {
+            List<ShoppingListService.Ingredient> ingredients = 
+                service.getIngredientsForFood(recipeInfo[0], recipeInfo[1]);
+            
+            assertNotNull("Malzeme listesi null olmamalı", ingredients);
+        }
+    }
+    
+
+    
+   
+
     
     
+
+     
+     
+    
+
+  
+    
+
+    
+    
+    
+
 }
