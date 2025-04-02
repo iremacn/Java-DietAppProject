@@ -3229,4 +3229,5 @@ public class ShoppingListServiceTest {
                 	            assertNotNull("Ingredient list should not be null", ingredients);
                 	        }
                 	    }
-                	}
+                	 
+                	    }

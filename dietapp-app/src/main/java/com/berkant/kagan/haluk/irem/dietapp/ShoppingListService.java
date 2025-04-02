@@ -65,7 +65,6 @@ public class ShoppingListService {
                 if (count == 0) {
                     conn.setAutoCommit(false);
                     initializeIngredientPrices(conn);
-                    initializeRecipeIngredients(conn);
                     conn.commit();
                 }
             }
@@ -121,124 +120,8 @@ public class ShoppingListService {
         }
     }
     
-    /**
-     * Initializes recipe ingredients for all food items in the meal planning service.
-     * 
-     * @param conn The database connection
-     */
-    private void initializeRecipeIngredients(Connection conn) throws SQLException {
-        initializeBreakfastRecipes(conn);
-        initializeLunchRecipes(conn);
-        initializeSnackRecipes(conn);
-        initializeDinnerRecipes(conn);
-        
-        System.out.println("Recipes saved to database.");
-    }
-    
-    /**
-     * Initializes breakfast recipe ingredients.
-     * 
-     * @param conn The database connection
-     */
-    private void initializeBreakfastRecipes(Connection conn) throws SQLException {
-        String mealType = "breakfast";
-        
-        // Scrambled Eggs
-        int recipeId = insertRecipe(conn, mealType, "Scrambled Eggs");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Eggs", 3, "unit");
-            insertRecipeIngredient(conn, recipeId, "Milk", 30, "ml");
-            insertRecipeIngredient(conn, recipeId, "Salt", 2, "g");
-            insertRecipeIngredient(conn, recipeId, "Pepper", 1, "g");
-            insertRecipeIngredient(conn, recipeId, "Butter", 10, "g");
-        }
-        
-        // Oatmeal with Fruits
-        recipeId = insertRecipe(conn, mealType, "Oatmeal with Fruits");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Oats", 80, "g");
-            insertRecipeIngredient(conn, recipeId, "Milk", 200, "ml");
-            insertRecipeIngredient(conn, recipeId, "Banana", 1, "unit");
-            insertRecipeIngredient(conn, recipeId, "Strawberry", 50, "g");
-            insertRecipeIngredient(conn, recipeId, "Honey", 15, "ml");
-        }
-        
-        // Greek Yogurt with Honey
-        recipeId = insertRecipe(conn, mealType, "Greek Yogurt with Honey");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Greek Yogurt", 200, "g");
-            insertRecipeIngredient(conn, recipeId, "Honey", 20, "ml");
-            insertRecipeIngredient(conn, recipeId, "Blueberry", 30, "g");
-        }
-        
-        // Similar pattern for other recipes...
-    }
-    
-    /**
-     * Initializes lunch recipe ingredients.
-     * 
-     * @param conn The database connection
-     */
-    private void initializeLunchRecipes(Connection conn) throws SQLException {
-        String mealType = "lunch";
-        
-        // Grilled Chicken Salad
-        int recipeId = insertRecipe(conn, mealType, "Grilled Chicken Salad");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Chicken Breast", 150, "g");
-            insertRecipeIngredient(conn, recipeId, "Lettuce", 100, "g");
-            insertRecipeIngredient(conn, recipeId, "Tomato", 1, "unit");
-            insertRecipeIngredient(conn, recipeId, "Cucumber", 0.5, "unit");
-            insertRecipeIngredient(conn, recipeId, "Olive Oil", 15, "ml");
-            insertRecipeIngredient(conn, recipeId, "Lemon", 0.5, "unit");
-            insertRecipeIngredient(conn, recipeId, "Salt", 2, "g");
-            insertRecipeIngredient(conn, recipeId, "Pepper", 1, "g");
-        }
-        
-        // Similar pattern for other recipes...
-    }
-    
-    /**
-     * Initializes snack recipe ingredients.
-     * 
-     * @param conn The database connection
-     */
-    private void initializeSnackRecipes(Connection conn) throws SQLException {
-        String mealType = "snack";
-        
-        // Apple with Peanut Butter
-        int recipeId = insertRecipe(conn, mealType, "Apple with Peanut Butter");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Apple", 1, "unit");
-            insertRecipeIngredient(conn, recipeId, "Peanut Butter", 30, "g");
-        }
-        
-        // Similar pattern for other recipes...
-    }
-    
-    /**
-     * Initializes dinner recipe ingredients.
-     * 
-     * @param conn The database connection
-     */
-    private void initializeDinnerRecipes(Connection conn) throws SQLException {
-        String mealType = "dinner";
-        
-        // Grilled Salmon with Vegetables
-        int recipeId = insertRecipe(conn, mealType, "Grilled Salmon with Vegetables");
-        if (recipeId != -1) {
-            insertRecipeIngredient(conn, recipeId, "Salmon", 200, "g");
-            insertRecipeIngredient(conn, recipeId, "Broccoli", 100, "g");
-            insertRecipeIngredient(conn, recipeId, "Carrot", 1, "unit");
-            insertRecipeIngredient(conn, recipeId, "Olive Oil", 15, "ml");
-            insertRecipeIngredient(conn, recipeId, "Lemon", 1, "unit");
-            insertRecipeIngredient(conn, recipeId, "Garlic", 2, "clove");
-            insertRecipeIngredient(conn, recipeId, "Salt", 2, "g");
-            insertRecipeIngredient(conn, recipeId, "Pepper", 1, "g");
-        }
-        
-        // Similar pattern for other recipes...
-    }
+
+
     
     /**
      * Inserts a recipe into the database.
