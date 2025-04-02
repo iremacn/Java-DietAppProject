@@ -205,4 +205,96 @@ public class FoodNutrientTest {
         assertEquals(expected, food.toDetailedString());
     }
     */
+// ADDITIONAL SIMPLE TESTS TO INCREASE COVERAGE
+    
+    @Test
+    public void testSetNameNull() {
+        FoodNutrient food = new FoodNutrient();
+        food.setName(null);
+        assertEquals("", food.getName());
+    }
+    
+    @Test
+    public void testSetNameEmpty() {
+        FoodNutrient food = new FoodNutrient();
+        food.setName("");
+        assertEquals("", food.getName());
+    }
+    
+    @Test
+    public void testSetGramsZero() {
+        FoodNutrient food = new FoodNutrient();
+        food.setGrams(0.0);
+        assertEquals(0.0, food.getGrams(), 0.001);
+    }
+    
+    @Test
+    public void testSetGramsNegative() {
+        FoodNutrient food = new FoodNutrient();
+        food.setGrams(-10.0);
+        // Assuming negative values are converted to 0
+        assertEquals(0.0, food.getGrams(), 0.001);
+    }
+    
+    @Test
+    public void testSetCaloriesZero() {
+        FoodNutrient food = new FoodNutrient();
+        food.setCalories(0);
+        assertEquals(0, food.getCalories());
+    }
+    
+    @Test
+    public void testSetCaloriesNegative() {
+        FoodNutrient food = new FoodNutrient();
+        food.setCalories(-100);
+        // Assuming negative values are converted to 0
+        assertEquals(0, food.getCalories());
+    }
+    
+    @Test
+    public void testIsValidEmptyName() {
+        FoodNutrient food = new FoodNutrient();
+        food.setName("");
+        food.setGrams(100.0);
+        food.setCalories(100);
+        // Assuming empty name makes the food invalid
+        assertFalse(food.isValid());
+    }
+    
+    @Test
+    public void testIsValidZeroGrams() {
+        FoodNutrient food = new FoodNutrient();
+        food.setName("Test Food");
+        food.setGrams(0.0);
+        food.setCalories(100);
+        // Assuming zero grams makes the food invalid
+        assertFalse(food.isValid());
+    }
+    
+    @Test
+    public void testToStringBasic() {
+        FoodNutrient food = new FoodNutrient("Apple", 100.0, 52);
+        String result = food.toString();
+        // Just check that it contains the essential information
+        assertTrue(result.contains("Apple"));
+        assertTrue(result.contains("100.0"));
+        assertTrue(result.contains("52"));
+    }
+    
+    @Test
+    public void testToDetailedStringBasic() {
+        FoodNutrient food = new FoodNutrient("Apple", 100.0, 52);
+        String result = food.toDetailedString();
+        // Just check that it contains the essential information
+        assertTrue(result.contains("Apple"));
+        assertTrue(result.contains("100.0"));
+        assertTrue(result.contains("52"));
+        assertTrue(result.contains("Protein"));
+        assertTrue(result.contains("Carbs"));
+        assertTrue(result.contains("Fat"));
+    }
+    
+
+    
+
 }
