@@ -63,7 +63,7 @@ public class AuthenticationService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Kullanıcı kaydedilemedi: " + e.getMessage());
+            System.out.println("User could not be registered: " + e.getMessage());
             return false;
         }
     }
@@ -110,7 +110,7 @@ public class AuthenticationService {
             return false;
             
         } catch (SQLException e) {
-            System.out.println("Giriş yapılamadı: " + e.getMessage());
+            System.out.println("Login failed: " + e.getMessage());
             return false;
         }
     }
@@ -128,7 +128,7 @@ public class AuthenticationService {
                 pstmt.executeUpdate();
                 
             } catch (SQLException e) {
-                System.out.println("Çıkış yapılırken hata oluştu: " + e.getMessage());
+                System.out.println("An error occurred while logging out: " + e.getMessage());
             }
             
             currentUser.setLoggedIn(false);
@@ -188,7 +188,7 @@ public class AuthenticationService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Kullanıcılar alınamadı: " + e.getMessage());
+            System.out.println("Users could not be retrieved: " + e.getMessage());
         }
        
         return users;
