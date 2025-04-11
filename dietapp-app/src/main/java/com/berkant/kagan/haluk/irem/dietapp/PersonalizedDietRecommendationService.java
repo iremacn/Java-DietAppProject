@@ -30,7 +30,11 @@ public class PersonalizedDietRecommendationService {
         this.mealPlanningService = mealPlanningService;
     }
    
-    // Helper method to return default plans if they can't be retrieved from the database
+    /**
+     * Helper method to return default plans if they can't be retrieved from the database.
+     * 
+     * @return An array of default example diet plans as strings
+     */
     protected String[] getDefaultExampleDietPlans() {
         return new String[] {
             "Balanced Diet Plan:\n" +
@@ -63,7 +67,7 @@ public class PersonalizedDietRecommendationService {
      * @param healthConditions The user's health conditions or allergies
      * @param weightGoal The user's weight goal
      * @param excludedFoods List of foods the user wants to exclude
-     * @return true if profile created/updated successfully
+     * @return true if profile created/updated successfully, false otherwise
      */
     public boolean setUserDietProfile(String username, DietType dietType, 
                                     List<String> healthConditions,
@@ -173,7 +177,7 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Helper method to get user ID by username
+     * Helper method to get user ID by username.
      * 
      * @param conn Database connection
      * @param username Username to look up
@@ -195,7 +199,7 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Gets a user's diet profile.
+     * Gets a user's diet profile from the database.
      * 
      * @param username The username of the user
      * @return The user's diet profile or a default profile if none exists
@@ -340,7 +344,7 @@ public class PersonalizedDietRecommendationService {
      * 
      * @param calories The total daily calories
      * @param dietType The diet type preference
-     * @return A MacronutrientDistribution object
+     * @return A MacronutrientDistribution object with protein, carb, and fat amounts
      */
     private MacronutrientDistribution calculateMacronutrients(int calories, DietType dietType) {
         double proteinPercentage, carbPercentage, fatPercentage;
@@ -455,10 +459,10 @@ public class PersonalizedDietRecommendationService {
      * @param mealType The type of meal (breakfast, lunch, etc.)
      * @param options The food options for this meal
      * @param calories The target calories for this meal
-     * @param protein The target protein for this meal
-     * @param carbs The target carbs for this meal
-     * @param fat The target fat for this meal
-     * @return A RecommendedMeal object
+     * @param protein The target protein for this meal in grams
+     * @param carbs The target carbs for this meal in grams
+     * @param fat The target fat for this meal in grams
+     * @return A RecommendedMeal object with selected foods
      */
     private RecommendedMeal createMealRecommendation(String mealType, Food[] options,
                                                    int calories, int protein,
@@ -493,7 +497,7 @@ public class PersonalizedDietRecommendationService {
      * 
      * @param allOptions All available food options
      * @param profile The user's diet profile
-     * @return Array of appropriate food options
+     * @return Array of appropriate food options filtered according to the profile
      */
     private Food[] getAppropriateOptions(Food[] allOptions, UserDietProfile profile) {
         List<Food> appropriateOptions = new ArrayList<>();
@@ -547,7 +551,7 @@ public class PersonalizedDietRecommendationService {
      * Generates dietary guidelines based on the user's profile.
      * 
      * @param profile The user's diet profile
-     * @return List of dietary guidelines
+     * @return List of dietary guidelines as strings
      */
     private List<String> generateDietaryGuidelines(UserDietProfile profile) {
         List<String> guidelines = new ArrayList<>();
@@ -648,6 +652,14 @@ public class PersonalizedDietRecommendationService {
         private WeightGoal weightGoal;
         private List<String> excludedFoods;
         
+        /**
+         * Constructor for UserDietProfile class.
+         * 
+         * @param dietType The type of diet the user prefers
+         * @param healthConditions The user's health conditions or allergies
+         * @param weightGoal The user's weight goal
+         * @param excludedFoods List of foods the user wants to exclude
+         */
         public UserDietProfile(DietType dietType, List<String> healthConditions,
                               WeightGoal weightGoal, List<String> excludedFoods) {
             this.dietType = dietType;
@@ -656,18 +668,38 @@ public class PersonalizedDietRecommendationService {
             this.excludedFoods = excludedFoods;
         }
         
+        /**
+         * Gets the diet type of the user.
+         * 
+         * @return The diet type
+         */
         public DietType getDietType() {
             return dietType;
         }
         
+        /**
+         * Gets the health conditions of the user.
+         * 
+         * @return List of health conditions
+         */
         public List<String> getHealthConditions() {
             return healthConditions;
         }
         
+        /**
+         * Gets the weight goal of the user.
+         * 
+         * @return The weight goal
+         */
         public WeightGoal getWeightGoal() {
             return weightGoal;
         }
         
+        /**
+         * Gets the foods excluded by the user.
+         * 
+         * @return List of excluded foods
+         */
         public List<String> getExcludedFoods() {
             return excludedFoods;
         }
@@ -681,24 +713,51 @@ public class PersonalizedDietRecommendationService {
         private int carbGrams;
         private int fatGrams;
         
+        /**
+         * Constructor for MacronutrientDistribution class.
+         * 
+         * @param proteinGrams The protein amount in grams
+         * @param carbGrams The carbohydrate amount in grams
+         * @param fatGrams The fat amount in grams
+         */
         public MacronutrientDistribution(int proteinGrams, int carbGrams, int fatGrams) {
             this.proteinGrams = proteinGrams;
             this.carbGrams = carbGrams;
             this.fatGrams = fatGrams;
         }
         
+        /**
+         * Gets the protein amount in grams.
+         * 
+         * @return The protein in grams
+         */
         public int getProteinGrams() {
             return proteinGrams;
         }
         
+        /**
+         * Gets the carbohydrate amount in grams.
+         * 
+         * @return The carbohydrates in grams
+         */
         public int getCarbGrams() {
             return carbGrams;
         }
         
+        /**
+         * Gets the fat amount in grams.
+         * 
+         * @return The fat in grams
+         */
         public int getFatGrams() {
             return fatGrams;
         }
         
+        /**
+         * Returns a string representation of the MacronutrientDistribution object.
+         * 
+         * @return A string containing macronutrient information
+         */
         @Override
         public String toString() {
             return "Protein: " + proteinGrams + "g, Carbs: " + carbGrams + 
@@ -716,6 +775,17 @@ public class PersonalizedDietRecommendationService {
         private int targetProtein;
         private int targetCarbs;
         private int targetFat;
+        
+        /**
+         * Constructor for RecommendedMeal class.
+         * 
+         * @param mealType The type of meal (breakfast, lunch, etc.)
+         * @param foods List of foods recommended for this meal
+         * @param targetCalories Target calorie amount for this meal
+         * @param targetProtein Target protein amount in grams for this meal
+         * @param targetCarbs Target carbohydrates amount in grams for this meal
+         * @param targetFat Target fat amount in grams for this meal
+         */
         
         public RecommendedMeal(String mealType, List<Food> foods, int targetCalories,
                               int targetProtein, int targetCarbs, int targetFat) {

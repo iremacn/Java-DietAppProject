@@ -15,20 +15,35 @@ public class User {
     private boolean isLoggedIn;
     
     /**
-     * Default constructor for User class.
-     */
+    * @brief Default constructor for User class.
+    *
+    * @details Initializes a new User instance with default settings.
+    * Sets the initial login status to false, indicating the user is not logged in.
+    *
+    * @note Creates an empty User object with no specific credentials
+    *
+    * @post isLoggedIn is set to false
+    */
     public User() {
         this.isLoggedIn = false;
     }
     
     /**
-     * Parameterized constructor for User class.
-     * 
-     * @param username The username for the user account
-     * @param password The password for the user account
-     * @param email    The email address of the user
-     * @param name     The full name of the user
-     */
+    * @brief Parameterized constructor for User class.
+    *
+    * @details Initializes a new User instance with provided user account details.
+    * Sets all user-specific information and initializes login status to false.
+    *
+    * @param username The unique username for the user account
+    * @param password The user's account password
+    * @param email The user's email address for communication
+    * @param name The user's full name
+    *
+    * @note Newly created user is automatically set to a logged-out state
+    *
+    * @post User object is created with specified credentials
+    * @post isLoggedIn is set to false
+    */
     public User(String username, String password, String email, String name) {
         this.username = username;
         this.password = password;
@@ -38,19 +53,34 @@ public class User {
     }
     
     /**
-     * Gets the username of the user.
-     * 
-     * @return The username
-     */
+    * @brief Retrieves the user's username.
+    *
+    * @details Returns the unique identifier for the user account.
+    *
+    * @return String representing the user's username
+    * @retval String The unique username of the user
+    *
+    * @note Provides read-only access to the username attribute
+    *
+    * @see setUsername()
+    */
     public String getUsername() {
         return username;
     }
     
     /**
-     * Sets the username of the user.
-     * 
-     * @param username The username to set
-     */
+    * @brief Sets the username for the user account.
+    *
+    * @details Updates the user's unique identifier with the provided username.
+    *
+    * @param username The new username to be assigned to the user account
+    *
+    * @note Allows modification of the user's username
+    *
+    * @warning Ensure the new username follows any application-specific naming rules
+    *
+    * @see getUsername()
+    */
     public void setUsername(String username) {
         this.username = username;
     }

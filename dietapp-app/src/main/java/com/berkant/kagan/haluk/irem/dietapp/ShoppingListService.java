@@ -33,10 +33,10 @@ public class ShoppingListService {
     }
     
     /**
-     * Servis tarafından kullanılan veritabanı bağlantısını alır.
-     * Alt sınıflarla test edilebilir olması için protected olarak tanımlanmıştır.
+     * Gets the database connection used by the service.
+     * Protected for testing purposes in subclasses.
      * 
-     * @return Veritabanı bağlantısı
+     * @return The database connection
      */
     protected Connection getConnection() {
         return DatabaseHelper.getConnection();
@@ -44,6 +44,8 @@ public class ShoppingListService {
     
     /**
      * Initializes ingredients and recipes in the database if they don't exist.
+     * 
+     * @throws SQLException If a database error occurs
      */
     private void initializeIngredientsAndRecipes() throws SQLException {
         Connection conn = null;
@@ -92,9 +94,10 @@ public class ShoppingListService {
     }
     
     /**
-     * Initializes the ingredient prices database.
+     * Initializes the ingredient prices database with default values.
      * 
      * @param conn The database connection
+     * @throws SQLException If a database error occurs during insertion
      */
     private void initializeIngredientPrices(Connection conn) throws SQLException {
         // Prepare statement for ingredient insertion
@@ -130,6 +133,7 @@ public class ShoppingListService {
      * @param mealType The type of meal
      * @param recipeName The name of the recipe
      * @return The ID of the inserted recipe or -1 if failed
+     * @throws SQLException If a database error occurs
      */
     private int insertRecipe(Connection conn, String mealType, String recipeName) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
@@ -163,6 +167,7 @@ public class ShoppingListService {
      * @param amount The amount of the ingredient
      * @param unit The unit of measurement
      * @return true if successful, false otherwise
+     * @throws SQLException If a database error occurs
      */
     private boolean insertRecipeIngredient(Connection conn, int recipeId, String ingredientName, double amount, String unit) throws SQLException {
         // First, get the ingredient ID
@@ -190,6 +195,7 @@ public class ShoppingListService {
      * @param conn The database connection
      * @param ingredientName The name of the ingredient
      * @return The ID of the ingredient or -1 if not found
+     * @throws SQLException If a database error occurs
      */
     private int getIngredientId(Connection conn, String ingredientName) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
@@ -292,12 +298,23 @@ public class ShoppingListService {
         
         return totalCost;
     }
+    /**
+     * Inner class to represent an ingredient with its amount, unit, and price.
+     */
     public class Ingredient {
         private String name;
         private double amount;
         private String unit;
         private double price;
         
+        /**
+         * Constructor for Ingredient class.
+         * 
+         * @param name The name of the ingredient
+         * @param amount The amount of the ingredient
+         * @param unit The unit of measurement (g, ml, unit, etc.)
+         * @param price The price per standard unit
+         */
         public Ingredient(String name, double amount, String unit, double price) {
             this.name = name != null ? name : "";
             this.amount = Math.max(0, amount);
@@ -305,22 +322,47 @@ public class ShoppingListService {
             this.price = Math.max(0, price);
         }
         
+        /**
+         * Gets the name of the ingredient.
+         * 
+         * @return The ingredient name
+         */
         public String getName() {
             return name;
         }
         
+        /**
+         * Gets the amount of the ingredient.
+         * 
+         * @return The amount
+         */
         public double getAmount() {
             return amount;
         }
         
+        /**
+         * Gets the unit of measurement for the ingredient.
+         * 
+         * @return The unit (g, ml, unit, etc.)
+         */
         public String getUnit() {
             return unit;
         }
         
+        /**
+         * Gets the price of the ingredient per standard unit.
+         * 
+         * @return The price
+         */
         public double getPrice() {
             return price;
         }
         
+        /**
+         * Returns a string representation of the Ingredient object.
+         * 
+         * @return A string containing ingredient information
+         */
         @Override
         public String toString() {
             return name + " (" + amount + " " + unit + ")";
