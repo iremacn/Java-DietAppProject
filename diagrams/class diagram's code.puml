@@ -1,0 +1,263 @@
+@startuml Diet Planner Class Diagram
+
+' Ayarlar
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam defaultFontName Arial
+
+' Sınıfları paketlere ayıralım
+package "Core Data Classes" {
+  class Food {
+    -String name
+    -double grams
+    -int calories
+    +Food()
+    +getter/setter methods()
+    +boolean isValid()
+    +String toString()
+  }
+
+  class FoodNutrient {
+    -double protein, carbs, fat
+    -double fiber, sugar, sodium
+    +FoodNutrient()
+    +getter/setter methods()
+    +boolean isValid()
+    +String toString()
+  }
+
+  class User {
+    -String username, password
+    -String email, name
+    -boolean isLoggedIn
+    +User()
+    +getter/setter methods()
+    +String toString()
+  }
+}
+
+package "Service Classes" {
+  class AuthenticationService {
+    -User currentUser
+    +register(), login(), logout()
+    +enableGuestMode()
+    +getCurrentUser()
+    +isUserLoggedIn()
+  }
+
+  class MealPlanningService {
+    +addMealPlan(), logFood()
+    +getMealPlan(), getFoodLog()
+    +getTotalCalories()
+    +getFood options methods()
+  }
+
+  class CalorieNutrientTrackingService {
+    -MealPlanningService mealPlanningService
+    +setNutritionGoals()
+    +getNutritionGoals()
+    +getNutritionReport()
+    +calculateSuggestedCalories()
+  }
+
+  class ShoppingListService {
+    -MealPlanningService mealPlanningService
+    +getIngredientsForFood()
+    +calculateTotalCost()
+  }
+
+  class PersonalizedDietRecommendationService {
+    -CalorieNutrientTrackingService calorieService
+    -MealPlanningService mealPlanningService
+    +setUserDietProfile()
+    +getUserDietProfile()
+    +generateRecommendations()
+    +getExampleDietPlans()
+  }
+
+  class DatabaseHelper {
+    -{static} DB connection fields
+    +{static} database operations
+  }
+}
+
+package "Menu Classes" {
+  class MealPlanningMenu {
+    -MealPlanningService service
+    -AuthenticationService authService
+    -Scanner scanner
+    +displayMenu()
+  }
+
+  class CalorieNutrientTrackingMenu {
+    -CalorieNutrientTrackingService service
+    -MealPlanningService mealService
+    -AuthenticationService authService
+    -Scanner scanner
+    +displayMenu()
+  }
+
+  class ShoppingListMenu {
+    -ShoppingListService service
+    -MealPlanningService mealService
+    -AuthenticationService authService
+    -Scanner scanner
+    +displayMenu()
+  }
+
+  class PersonalizedDietRecommendationMenu {
+    -PersonalizedDietRecommendationService service
+    -AuthenticationService authService
+    -Scanner scanner
+    -DietRecommendation lastRecommendation
+    +displayMenu()
+  }
+}
+
+package "App Classes" {
+  class Dietapp {
+    -AuthenticationService authService
+    +getAuthService()
+    +registerUser(), loginUser()
+    +logoutUser(), enableGuestMode()
+    +isUserLoggedIn(), getCurrentUser()
+  }
+
+  class DietappApp {
+    -Dietapp dietApp
+    -Scanner scanner
+    -Service and Menu references
+    +DietappApp()
+    +run()
+    +{static} main(String[] args)
+  }
+}
+
+package "Model Classes" {
+  class NutritionGoal {
+    -int calorieGoal
+    -double proteinGoal, carbGoal, fatGoal
+    +getter methods()
+  }
+
+  class NutritionReport {
+    -String date
+    -Nutrition values
+    -NutritionGoal goals
+    +getter methods()
+    +percentage calculation methods()
+  }
+
+  class Ingredient {
+    -String name
+    -double amount
+    -String unit
+    -double price
+    +getter methods()
+    +toString()
+  }
+
+  class UserDietProfile {
+    -DietType dietType
+    -List<String> healthConditions
+    -WeightGoal weightGoal
+    -List<String> excludedFoods
+    +getter methods()
+  }
+
+  class MacronutrientDistribution {
+    -int proteinGrams, carbGrams, fatGrams
+    +getter methods()
+    +toString()
+  }
+
+  class RecommendedMeal {
+    -String mealType
+    -List<Food> foods
+    -Target nutrition values
+    +getter methods()
+    +getTotalCalories()
+  }
+
+  class DietRecommendation {
+    -int dailyCalories
+    -MacronutrientDistribution macros
+    -List<RecommendedMeal> meals
+    -List<String> dietaryGuidelines
+    +getter methods()
+  }
+
+  enum DietType {
+    BALANCED
+    LOW_CARB
+    HIGH_PROTEIN
+    VEGETARIAN
+    VEGAN
+  }
+
+  enum WeightGoal {
+    LOSE
+    MAINTAIN
+    GAIN
+  }
+}
+
+' İlişkiler
+
+' Kalıtım
+Food <|-- FoodNutrient
+
+' Kompozisyon
+CalorieNutrientTrackingService *-- NutritionGoal
+CalorieNutrientTrackingService *-- NutritionReport
+ShoppingListService *-- Ingredient
+PersonalizedDietRecommendationService *-- UserDietProfile
+PersonalizedDietRecommendationService *-- DietRecommendation
+PersonalizedDietRecommendationService *-- MacronutrientDistribution
+PersonalizedDietRecommendationService *-- RecommendedMeal
+
+' Bağlantılar
+Dietapp --> AuthenticationService
+DietappApp --> Dietapp
+DietappApp --> MealPlanningService
+DietappApp --> MealPlanningMenu
+DietappApp --> CalorieNutrientTrackingService
+DietappApp --> CalorieNutrientTrackingMenu
+DietappApp --> ShoppingListService
+DietappApp --> ShoppingListMenu
+DietappApp --> PersonalizedDietRecommendationService
+DietappApp --> PersonalizedDietRecommendationMenu
+
+AuthenticationService --> User
+
+MealPlanningMenu --> MealPlanningService
+MealPlanningMenu --> AuthenticationService
+
+CalorieNutrientTrackingMenu --> CalorieNutrientTrackingService
+CalorieNutrientTrackingMenu --> MealPlanningService
+CalorieNutrientTrackingMenu --> AuthenticationService
+
+ShoppingListMenu --> ShoppingListService
+ShoppingListMenu --> MealPlanningService
+ShoppingListMenu --> AuthenticationService
+
+PersonalizedDietRecommendationMenu --> PersonalizedDietRecommendationService
+PersonalizedDietRecommendationMenu --> AuthenticationService
+
+MealPlanningService --> Food
+ShoppingListService --> MealPlanningService
+CalorieNutrientTrackingService --> MealPlanningService
+PersonalizedDietRecommendationService --> CalorieNutrientTrackingService
+PersonalizedDietRecommendationService --> MealPlanningService
+
+RecommendedMeal --> Food
+NutritionReport --> NutritionGoal
+UserDietProfile --> DietType
+UserDietProfile --> WeightGoal
+DietRecommendation --> MacronutrientDistribution
+DietRecommendation --> RecommendedMeal
+
+@enduml
