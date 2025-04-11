@@ -7,13 +7,18 @@ package com.berkant.kagan.haluk.irem.dietapp;
  * @author irem
  */
 public class FoodNutrient extends Food {
-    // Private fields for nutrients
-    private double protein;  // in grams
-    private double carbs;    // in grams
-    private double fat;      // in grams
-    private double fiber;    // in grams
-    private double sugar;    // in grams
-    private double sodium;   // in milligrams
+    /** The protein content in grams */
+    private double protein;
+    /** The carbohydrate content in grams */
+    private double carbs;
+    /** The fat content in grams */
+    private double fat;
+    /** The fiber content in grams */
+    private double fiber;
+    /** The sugar content in grams */
+    private double sugar;
+    /** The sodium content in milligrams */
+    private double sodium;
     
     /**
      * Default constructor for FoodNutrient class.

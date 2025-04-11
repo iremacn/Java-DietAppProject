@@ -10,9 +10,11 @@ import java.util.Scanner;
  * @author berkant
  */
 public class MealPlanningMenu {
-    // Service objects
+    /** Service for meal planning operations */
     private MealPlanningService mealPlanningService;
+    /** Service for user authentication */
     private AuthenticationService authService;
+    /** Scanner for reading user input */
     private Scanner scanner;
     
     /**

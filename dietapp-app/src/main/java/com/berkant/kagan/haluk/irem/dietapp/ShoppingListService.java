@@ -13,7 +13,7 @@ import java.util.Map;
  * @author haluk
  */
 public class ShoppingListService {
-    // Service dependencies
+    /** Service for accessing meal planning data and food options */
     private MealPlanningService mealPlanningService;
     
     /**
@@ -300,11 +300,17 @@ public class ShoppingListService {
     }
     /**
      * Inner class to represent an ingredient with its amount, unit, and price.
+     * @details Contains information about a specific ingredient including its
+     *          name, quantity, measurement unit, and price per unit.
      */
     public class Ingredient {
+        /** The name of the ingredient */
         private String name;
+        /** The quantity of the ingredient needed */
         private double amount;
+        /** The unit of measurement (g, ml, unit, etc.) */
         private String unit;
+        /** The price per standard unit */
         private double price;
         
         /**

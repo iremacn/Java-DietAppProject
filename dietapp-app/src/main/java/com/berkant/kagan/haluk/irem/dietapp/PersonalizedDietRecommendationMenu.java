@@ -16,12 +16,13 @@ import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationServic
  * @author haluk
  */
 public class PersonalizedDietRecommendationMenu {
-    // Service objects
+    /** The personalized diet recommendation service */
     private PersonalizedDietRecommendationService personalizedDietService;
+    /** The authentication service */
     private AuthenticationService authService;
+    /** Scanner for reading user input */
     private Scanner scanner;
-    
-    // Store the last generated recommendation for viewing
+    /** Stores the most recently generated diet recommendation */
     private DietRecommendation lastRecommendation;
     
     /**
@@ -83,7 +84,7 @@ public class PersonalizedDietRecommendationMenu {
     /**
      * Gets the user's menu choice from the console.
      * 
-     * @return The user's choice as an integer
+     * @return The user's choice as an integer, returns -1 if input is invalid
      */
     private int getUserChoice() {
         try {
@@ -94,7 +95,9 @@ public class PersonalizedDietRecommendationMenu {
     }
     
     /**
-     * Handles setting diet preferences.
+     * Handles setting diet preferences through user interaction.
+     * @details Guides the user through selecting diet type, weight goal, health conditions,
+     *          and food exclusions, then saves these preferences.
      */
     private void handleSetDietPreferences() {
         System.out.println("\n===== Set Diet Preferences =====");
@@ -240,7 +243,9 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
     /**
-     * Handles generating personalized diet recommendations.
+     * Handles generating personalized diet recommendations through user interaction.
+     * @details Collects user metrics (gender, age, height, weight, activity level)
+     *          and generates personalized diet recommendations.
      */
     private void handleGenerateRecommendations() {
         System.out.println("\n===== Generate Diet Recommendations =====");
@@ -342,6 +347,8 @@ public class PersonalizedDietRecommendationMenu {
     
     /**
      * Handles viewing personalized diet recommendations.
+     * @details Displays the most recently generated diet recommendation including
+     *          daily calorie target, macronutrient distribution, meal plan, and guidelines.
      */
     private void handleViewRecommendations() {
         System.out.println("\n===== View Diet Recommendations =====");
@@ -396,6 +403,8 @@ public class PersonalizedDietRecommendationMenu {
     
     /**
      * Handles viewing example diet plans.
+     * @details Displays a list of example diet plans that demonstrate different
+     *          dietary approaches and their characteristics.
      */
     private void handleViewExampleDietPlans() {
     	  System.out.println("\n===== Example Diet Plans =====");
@@ -411,3 +420,4 @@ public class PersonalizedDietRecommendationMenu {
           scanner.nextLine();
       }
 }
+

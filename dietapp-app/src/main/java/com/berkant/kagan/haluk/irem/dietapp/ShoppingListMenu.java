@@ -10,14 +10,19 @@ import java.util.Scanner;
  * @author haluk
  */
 public class ShoppingListMenu {
-    // Service objects
+    /** Service for managing shopping lists and ingredients */
     private ShoppingListService shoppingListService;
+    /** Service for accessing meal planning data */
     private MealPlanningService mealPlanningService;
+    /** Service for user authentication */
     private AuthenticationService authService;
+    /** Scanner for reading user input */
     private Scanner scanner;
     
     /**
      * Constructor for ShoppingListMenu class.
+     * @details Initializes the menu with required services for shopping list generation,
+     *          meal planning data access, and user authentication.
      * 
      * @param shoppingListService The shopping list service
      * @param mealPlanningService The meal planning service
@@ -36,6 +41,8 @@ public class ShoppingListMenu {
     
     /**
      * Displays the main shopping list menu and handles user selections.
+     * @details Shows available options for shopping list generation and processes
+     *          user input until they choose to return to the main menu.
      */
     public void displayMenu() {
         boolean running = true;
@@ -63,8 +70,10 @@ public class ShoppingListMenu {
     
     /**
      * Gets the user's menu choice from the console.
+     * @details Reads and parses user input as an integer, handling invalid input
+     *          by returning -1 to indicate an error.
      * 
-     * @return The user's choice as an integer
+     * @return The user's choice as an integer, returns -1 for invalid input
      */
     private int getUserChoice() {
         try {
@@ -76,6 +85,13 @@ public class ShoppingListMenu {
     
     /**
      * Handles the shopping list generation process.
+     * @details Guides the user through selecting a meal type and specific food,
+     *          then generates a shopping list with ingredients and estimated costs.
+     *          The process includes:
+     *          - Selecting meal type (breakfast, lunch, snack, dinner)
+     *          - Choosing a specific food from available options
+     *          - Displaying ingredients and their quantities
+     *          - Showing estimated total cost
      */
     private void handleGenerateShoppingList() {
         System.out.println("\n===== Generate Shopping List =====");
@@ -160,9 +176,12 @@ public class ShoppingListMenu {
     
     /**
      * Capitalizes the first letter of a string.
+     * @details Converts the first character of the input string to uppercase
+     *          while leaving the rest of the string unchanged. Handles null
+     *          and empty strings safely.
      * 
      * @param str The string to capitalize
-     * @return The capitalized string
+     * @return The capitalized string, or the original string if null or empty
      */
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {

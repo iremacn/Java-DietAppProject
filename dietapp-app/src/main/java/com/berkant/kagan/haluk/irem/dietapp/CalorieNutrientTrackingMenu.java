@@ -11,10 +11,13 @@ import java.util.Scanner;
  * @author irem
  */
 public class CalorieNutrientTrackingMenu {
-    // Service dependencies
+    /** The calorie and nutrient tracking service */
     private CalorieNutrientTrackingService calorieNutrientService;
+    /** The meal planning service */
     private MealPlanningService mealPlanningService;
+    /** The authentication service */
     private AuthenticationService authService;
+    /** Scanner for reading user input */
     private Scanner scanner;
     
     /**
@@ -82,7 +85,7 @@ public class CalorieNutrientTrackingMenu {
     /**
      * Gets the user's menu choice from the console.
      * 
-     * @return The user's choice as an integer
+     * @return The user's choice as an integer, returns -1 if input is invalid
      */
     private int getUserChoice() {
         try {
@@ -93,7 +96,9 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Handles setting nutrition goals.
+     * Handles setting nutrition goals through user interaction.
+     * @details Guides the user through setting daily goals for calories, protein,
+     *          carbohydrates, and fat, then saves these goals to their profile.
      */
     private void handleSetNutritionGoals() {
         System.out.println("\n===== Set Nutrition Goals =====");
@@ -167,6 +172,8 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Handles viewing the daily nutrition report.
+     * @details Displays a detailed report of calories and nutrients consumed for a specific date,
+     *          including comparisons against daily goals and percentage achievements.
      */
     private void handleViewDailyReport() {
         System.out.println("\n===== Daily Nutrition Report =====");
@@ -212,6 +219,8 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Handles viewing the weekly nutrition report.
+     * @details Shows nutrition summaries for a 7-day period, including daily totals
+     *          and weekly averages for calories and macronutrients.
      */
     private void handleViewWeeklyReport() {
         System.out.println("\n===== Weekly Nutrition Report =====");
@@ -274,6 +283,8 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Handles calculating suggested calories.
+     * @details Calculates recommended daily calorie intake based on user metrics
+     *          and activity level, with option to set it as a new goal.
      */
     private void handleCalculateSuggestedCalories() {
         System.out.println("\n===== Calculate Suggested Calories =====");
@@ -389,6 +400,8 @@ public class CalorieNutrientTrackingMenu {
    
     /**
      * Handles browsing common foods with nutrients.
+     * @details Displays a list of common foods with their nutritional information,
+     *          including calories, macronutrients, fiber, sugar, and sodium content.
      */
     private void handleBrowseCommonFoods() {
         System.out.println("\n===== Common Foods with Nutrients =====");
@@ -414,8 +427,10 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Helper method to get a date input in YYYY-MM-DD format.
+     * @details Guides the user through entering a valid year, month, and day,
+     *          with validation for each component.
      * 
-     * @return The date string or empty string if canceled
+     * @return The date string in YYYY-MM-DD format, or empty string if canceled
      */
     private String getDateInput() {
         // Get year
@@ -467,6 +482,7 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Helper method to get the maximum number of days in a month.
+     * @details Accounts for different month lengths and leap years.
      * 
      * @param month The month (1-12)
      * @param year The year
@@ -488,6 +504,10 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Helper method to check if a year is a leap year.
+     * @details Uses the standard leap year calculation rules:
+     *          - Years divisible by 4 are leap years
+     *          - Years divisible by 100 are not leap years
+     *          - Years divisible by 400 are leap years
      * 
      * @param year The year to check
      * @return true if leap year, false otherwise
@@ -498,9 +518,11 @@ public class CalorieNutrientTrackingMenu {
     
     /**
      * Helper method to generate an array of dates for a week starting from the given date.
+     * @details Generates 7 consecutive dates starting from the provided date,
+     *          handling month and year transitions correctly.
      * 
      * @param startDate The start date in format YYYY-MM-DD
-     * @return Array of 7 dates (including the start date)
+     * @return Array of 7 dates (including the start date) in YYYY-MM-DD format
      */
     private String[] generateWeekDates(String startDate) {
         String[] dates = new String[7];

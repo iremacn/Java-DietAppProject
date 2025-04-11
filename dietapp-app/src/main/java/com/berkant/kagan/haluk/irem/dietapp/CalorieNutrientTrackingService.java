@@ -11,7 +11,7 @@ import java.util.List;
  * @author irem
  */
 public class CalorieNutrientTrackingService {
-    // Service dependencies
+    /** The meal planning service for accessing food logs */
     private MealPlanningService mealPlanningService;
     
     /** 
@@ -386,13 +386,26 @@ public class CalorieNutrientTrackingService {
     
     /**
      * Inner class to represent a user's nutrition goals.
+     * @details Contains daily targets for calories and macronutrients.
      */
     public class NutritionGoal {
+        /** The daily calorie goal */
         private int calorieGoal;
+        /** The daily protein goal in grams */
         private double proteinGoal;
+        /** The daily carbohydrate goal in grams */
         private double carbGoal;
+        /** The daily fat goal in grams */
         private double fatGoal;
         
+        /**
+         * Constructor for NutritionGoal class.
+         * 
+         * @param calorieGoal The daily calorie goal
+         * @param proteinGoal The daily protein goal in grams
+         * @param carbGoal The daily carbohydrate goal in grams
+         * @param fatGoal The daily fat goal in grams
+         */
         public NutritionGoal(int calorieGoal, double proteinGoal, 
                             double carbGoal, double fatGoal) {
             this.calorieGoal = Math.max(0, calorieGoal); // Ensure non-negative
@@ -401,18 +414,34 @@ public class CalorieNutrientTrackingService {
             this.fatGoal = Math.max(0, fatGoal);         // Ensure non-negative
         }
         
+        /**
+         * Gets the daily calorie goal.
+         * @return The calorie goal in calories
+         */
         public int getCalorieGoal() {
             return calorieGoal;
         }
         
+        /**
+         * Gets the daily protein goal.
+         * @return The protein goal in grams
+         */
         public double getProteinGoal() {
             return proteinGoal;
         }
         
+        /**
+         * Gets the daily carbohydrate goal.
+         * @return The carbohydrate goal in grams
+         */
         public double getCarbGoal() {
             return carbGoal;
         }
         
+        /**
+         * Gets the daily fat goal.
+         * @return The fat goal in grams
+         */
         public double getFatGoal() {
             return fatGoal;
         }
@@ -420,18 +449,41 @@ public class CalorieNutrientTrackingService {
     
     /**
      * Inner class to represent a nutrition report for a specific date.
+     * @details Contains daily totals for calories and nutrients, along with goals and progress.
      */
     public class NutritionReport {
+        /** The date of the report in YYYY-MM-DD format */
         private String date;
+        /** Total calories consumed */
         private int totalCalories;
+        /** Total protein consumed in grams */
         private double totalProtein;
+        /** Total carbohydrates consumed in grams */
         private double totalCarbs;
+        /** Total fat consumed in grams */
         private double totalFat;
+        /** Total fiber consumed in grams */
         private double totalFiber;
+        /** Total sugar consumed in grams */
         private double totalSugar;
+        /** Total sodium consumed in milligrams */
         private double totalSodium;
+        /** The nutrition goals for comparison */
         private NutritionGoal goals;
         
+        /**
+         * Constructor for NutritionReport class.
+         * 
+         * @param date The date of the report
+         * @param totalCalories Total calories consumed
+         * @param totalProtein Total protein consumed in grams
+         * @param totalCarbs Total carbohydrates consumed in grams
+         * @param totalFat Total fat consumed in grams
+         * @param totalFiber Total fiber consumed in grams
+         * @param totalSugar Total sugar consumed in grams
+         * @param totalSodium Total sodium consumed in milligrams
+         * @param goals The nutrition goals for comparison
+         */
         public NutritionReport(String date, int totalCalories, double totalProtein,
                               double totalCarbs, double totalFat, double totalFiber,
                               double totalSugar, double totalSodium, NutritionGoal goals) {
@@ -446,54 +498,106 @@ public class CalorieNutrientTrackingService {
             this.goals = goals != null ? goals : new NutritionGoal(2000, 50, 250, 70);
         }
         
+        /**
+         * Gets the date of the report.
+         * @return The date in YYYY-MM-DD format
+         */
         public String getDate() {
             return date;
         }
         
+        /**
+         * Gets the total calories consumed.
+         * @return Total calories
+         */
         public int getTotalCalories() {
             return totalCalories;
         }
         
+        /**
+         * Gets the total protein consumed.
+         * @return Total protein in grams
+         */
         public double getTotalProtein() {
             return totalProtein;
         }
         
+        /**
+         * Gets the total carbohydrates consumed.
+         * @return Total carbohydrates in grams
+         */
         public double getTotalCarbs() {
             return totalCarbs;
         }
         
+        /**
+         * Gets the total fat consumed.
+         * @return Total fat in grams
+         */
         public double getTotalFat() {
             return totalFat;
         }
         
+        /**
+         * Gets the total fiber consumed.
+         * @return Total fiber in grams
+         */
         public double getTotalFiber() {
             return totalFiber;
         }
         
+        /**
+         * Gets the total sugar consumed.
+         * @return Total sugar in grams
+         */
         public double getTotalSugar() {
             return totalSugar;
         }
         
+        /**
+         * Gets the total sodium consumed.
+         * @return Total sodium in milligrams
+         */
         public double getTotalSodium() {
             return totalSodium;
         }
         
+        /**
+         * Gets the nutrition goals.
+         * @return The NutritionGoal object
+         */
         public NutritionGoal getGoals() {
             return goals;
         }
         
+        /**
+         * Calculates the percentage of calorie goal achieved.
+         * @return Percentage of calorie goal (0-100+)
+         */
         public double getCaloriePercentage() {
             return goals.getCalorieGoal() > 0 ? (totalCalories * 100.0 / goals.getCalorieGoal()) : 0;
         }
         
+        /**
+         * Calculates the percentage of protein goal achieved.
+         * @return Percentage of protein goal (0-100+)
+         */
         public double getProteinPercentage() {
             return goals.getProteinGoal() > 0 ? (totalProtein * 100.0 / goals.getProteinGoal()) : 0;
         }
         
+        /**
+         * Calculates the percentage of carbohydrate goal achieved.
+         * @return Percentage of carbohydrate goal (0-100+)
+         */
         public double getCarbPercentage() {
             return goals.getCarbGoal() > 0 ? (totalCarbs * 100.0 / goals.getCarbGoal()) : 0;
         }
         
+        /**
+         * Calculates the percentage of fat goal achieved.
+         * @return Percentage of fat goal (0-100+)
+         */
         public double getFatPercentage() {
             return goals.getFatGoal() > 0 ? (totalFat * 100.0 / goals.getFatGoal()) : 0;
         }

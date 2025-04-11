@@ -17,8 +17,9 @@ import java.util.Map;
  * @author haluk
  */
 public class PersonalizedDietRecommendationService {
-    // Service dependencies
+    /** The calorie and nutrient tracking service */
     private CalorieNutrientTrackingService calorieNutrientService;
+    /** The meal planning service */
     private MealPlanningService mealPlanningService;
    
     /**
@@ -154,6 +155,17 @@ public class PersonalizedDietRecommendationService {
                                WeightGoal.MAINTAIN, Arrays.asList("shellfish"));
         }
     }
+    /**
+     * Generates personalized diet recommendations based on user metrics and profile.
+     * 
+     * @param username The username of the user
+     * @param gender The gender of the user ('M' or 'F')
+     * @param age The age of the user in years
+     * @param heightCm The height of the user in centimeters
+     * @param weightKg The weight of the user in kilograms
+     * @param activityLevel The activity level of the user (1-5)
+     * @return A DietRecommendation object containing personalized recommendations
+     */
     public DietRecommendation generateRecommendations(String username, char gender, int age,
                                                     double heightCm, double weightKg, 
                                                     int activityLevel) {
@@ -504,31 +516,46 @@ public class PersonalizedDietRecommendationService {
     
     /**
      * Enum for different diet types.
+     * @details Represents the various types of diets that can be recommended.
      */
     public enum DietType {
+        /** Standard balanced diet with proportional macronutrients */
         BALANCED,
+        /** Diet with reduced carbohydrate intake */
         LOW_CARB,
+        /** Diet with increased protein intake */
         HIGH_PROTEIN,
+        /** Diet excluding meat but may include dairy and eggs */
         VEGETARIAN,
+        /** Diet excluding all animal products */
         VEGAN
     }
     
     /**
      * Enum for weight goals.
+     * @details Represents the user's weight management objectives.
      */
     public enum WeightGoal {
+        /** Goal to reduce body weight */
         LOSE,
+        /** Goal to maintain current body weight */
         MAINTAIN,
+        /** Goal to increase body weight */
         GAIN
     }
     
     /**
      * Inner class to represent a user's diet profile.
+     * @details Contains all dietary preferences and restrictions for a user.
      */
     public class UserDietProfile {
+        /** The type of diet preferred by the user */
         private DietType dietType;
+        /** List of user's health conditions and allergies */
         private List<String> healthConditions;
+        /** The user's weight management goal */
         private WeightGoal weightGoal;
+        /** List of foods the user wants to exclude from their diet */
         private List<String> excludedFoods;
         
         /**
@@ -586,10 +613,14 @@ public class PersonalizedDietRecommendationService {
     
     /**
      * Inner class to represent macronutrient distribution.
+     * @details Contains the daily recommended amounts of protein, carbohydrates, and fats.
      */
     public class MacronutrientDistribution {
+        /** Amount of protein in grams */
         private int proteinGrams;
+        /** Amount of carbohydrates in grams */
         private int carbGrams;
+        /** Amount of fat in grams */
         private int fatGrams;
         
         /**
@@ -646,13 +677,20 @@ public class PersonalizedDietRecommendationService {
     
     /**
      * Inner class to represent a recommended meal.
+     * @details Contains information about a specific meal including its type, foods, and nutritional targets.
      */
     public class RecommendedMeal {
+        /** Type of meal (e.g., breakfast, lunch, dinner) */
         private String mealType;
+        /** List of recommended foods for this meal */
         private List<Food> foods;
+        /** Target calorie amount for this meal */
         private int targetCalories;
+        /** Target protein amount in grams */
         private int targetProtein;
+        /** Target carbohydrates amount in grams */
         private int targetCarbs;
+        /** Target fat amount in grams */
         private int targetFat;
         
         /**
@@ -711,11 +749,17 @@ public class PersonalizedDietRecommendationService {
     
     /**
      * Inner class to represent a diet recommendation.
+     * @details Contains complete diet recommendation including daily calories, macronutrients,
+     *          meal plans, and dietary guidelines.
      */
     public class DietRecommendation {
+        /** Total daily calorie target */
         private int dailyCalories;
+        /** Recommended macronutrient distribution */
         private MacronutrientDistribution macros;
+        /** List of recommended meals */
         private List<RecommendedMeal> meals;
+        /** List of dietary guidelines and recommendations */
         private List<String> dietaryGuidelines;
         
         public DietRecommendation(int dailyCalories, MacronutrientDistribution macros,

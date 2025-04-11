@@ -7,11 +7,15 @@ package com.berkant.kagan.haluk.irem.dietapp;
  * @author ugur.coruh
  */
 public class User {
-    // Private fields for encapsulation
+    /** The unique username for the user account */
     private String username;
+    /** The user's account password */
     private String password;
+    /** The user's email address for communication */
     private String email;
+    /** The user's full name */
     private String name;
+    /** The current login status of the user */
     private boolean isLoggedIn;
     
     /**
@@ -87,8 +91,8 @@ public class User {
     
     /**
      * Gets the password of the user.
-     * 
-     * @return The password
+     * @details Returns the password associated with the user account.
+     * @return The user's password
      */
     public String getPassword() {
         return password;
@@ -96,8 +100,8 @@ public class User {
     
     /**
      * Sets the password of the user.
-     * 
-     * @param password The password to set
+     * @details Updates the user's account password with the provided value.
+     * @param password The new password to set
      */
     public void setPassword(String password) {
         this.password = password;
@@ -105,8 +109,8 @@ public class User {
     
     /**
      * Gets the email of the user.
-     * 
-     * @return The email
+     * @details Returns the email address associated with the user account.
+     * @return The user's email address
      */
     public String getEmail() {
         return email;
@@ -114,8 +118,8 @@ public class User {
     
     /**
      * Sets the email of the user.
-     * 
-     * @param email The email to set
+     * @details Updates the user's email address with the provided value.
+     * @param email The new email address to set
      */
     public void setEmail(String email) {
         this.email = email;
@@ -123,8 +127,8 @@ public class User {
     
     /**
      * Gets the name of the user.
-     * 
-     * @return The name
+     * @details Returns the full name of the user.
+     * @return The user's full name
      */
     public String getName() {
         return name;
@@ -132,8 +136,8 @@ public class User {
     
     /**
      * Sets the name of the user.
-     * 
-     * @param name The name to set
+     * @details Updates the user's full name with the provided value.
+     * @param name The new name to set
      */
     public void setName(String name) {
         this.name = name;
@@ -141,8 +145,8 @@ public class User {
     
     /**
      * Checks if the user is logged in.
-     * 
-     * @return true if user is logged in, false otherwise
+     * @details Returns the current login status of the user.
+     * @return true if user is currently logged in, false otherwise
      */
     public boolean isLoggedIn() {
         return isLoggedIn;
@@ -150,8 +154,8 @@ public class User {
     
     /**
      * Sets the login status of the user.
-     * 
-     * @param isLoggedIn The login status to set
+     * @details Updates the user's login status with the provided value.
+     * @param isLoggedIn The new login status to set
      */
     public void setLoggedIn(boolean isLoggedIn) {
         this.isLoggedIn = isLoggedIn;
@@ -159,8 +163,8 @@ public class User {
     
     /**
      * Returns a string representation of the User object.
-     * 
-     * @return A string containing user information
+     * @details Creates a string containing all user information except the password.
+     * @return A string containing user information (username, email, name, login status)
      */
     @Override
     public String toString() {

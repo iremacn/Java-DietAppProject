@@ -7,9 +7,11 @@ package com.berkant.kagan.haluk.irem.dietapp;
  * @author berkant
  */
 public class Food {
-    // Private fields for encapsulation
+    /** The name of the food item */
     private String name;
+    /** The amount of food in grams */
     private double grams;
+    /** The calorie content of the food */
     private int calories;
 
     /**

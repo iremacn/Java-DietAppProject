@@ -9,19 +9,25 @@ import java.util.Scanner;
  * @author ugur.coruh
  */
 public class DietappApp {
-    // Private fields for encapsulation
+    /** The main DietApp instance */
     private Dietapp dietApp;
+    /** Scanner for reading user input */
     private Scanner scanner;
+    /** Service for meal planning operations */
     private MealPlanningService mealPlanningService;
+    /** Menu interface for meal planning */
     private MealPlanningMenu mealPlanningMenu;
-    // Newly added variables
+    /** Service for calorie and nutrient tracking */
     private CalorieNutrientTrackingService calorieNutrientService;
+    /** Menu interface for calorie and nutrient tracking */
     private CalorieNutrientTrackingMenu calorieNutrientMenu;
-    // Variables added for shopping list
+    /** Service for shopping list operations */
     private ShoppingListService shoppingListService;
+    /** Menu interface for shopping list */
     private ShoppingListMenu shoppingListMenu;
-    // Variables added for PersonalizedDietRecommendations
+    /** Service for personalized diet recommendations */
     private PersonalizedDietRecommendationService personalizedDietService;
+    /** Menu interface for personalized diet recommendations */
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
   
     /**
@@ -77,6 +83,8 @@ public class DietappApp {
     
     /**
      * Runs the main application loop.
+     * @details Handles the main application flow, including user authentication
+     *          and menu navigation. Continues running until the user chooses to exit.
      */
     public void run() {
         boolean running = true;
@@ -108,6 +116,8 @@ public class DietappApp {
 
     /**
      * Handles the authentication menu choices.
+     * @details Processes user selections from the authentication menu,
+     *          including login, registration, and guest mode options.
      * 
      * @param choice The user's menu choice
      * @return true to continue running, false to exit
@@ -134,6 +144,8 @@ public class DietappApp {
     
     /**
      * Prints the authentication menu.
+     * @details Displays the available authentication options to the user,
+     *          including login, registration, and guest mode.
      */
     private void printAuthMenu() {
         System.out.println("\n===== Diet Planner Authentication =====");
@@ -146,6 +158,8 @@ public class DietappApp {
     
     /**
      * Prints the main user menu after authentication.
+     * @details Displays the main menu options available to authenticated users,
+     *          including meal planning, tracking, and recommendations.
      */
     private void printUserMainMenu() {
         User currentUser = dietApp.getCurrentUser();
@@ -162,8 +176,10 @@ public class DietappApp {
     
     /**
      * Gets the user's menu choice from the console with improved validation.
+     * @details Validates user input to ensure it is a valid numeric choice.
+     *          Handles empty input and non-numeric characters.
      * 
-     * @return The user's choice as an integer
+     * @return The user's choice as an integer, returns -1 for invalid input
      */
     private int getUserChoice() {
         String input = scanner.nextLine().trim();
@@ -190,6 +206,8 @@ public class DietappApp {
     
     /**
      * Handles the main user menu choices.
+     * @details Processes user selections from the main menu, directing to appropriate
+     *          sub-menus for different features of the application.
      * 
      * @param choice The user's menu choice
      * @return true to continue running, false to exit
@@ -228,6 +246,8 @@ public class DietappApp {
     
     /**
      * Handles the user login process.
+     * @details Guides the user through the login process, validating input
+     *          and providing feedback on success or failure.
      */
     private void handleLogin() {
         System.out.println("\n===== Login =====");
@@ -261,6 +281,8 @@ public class DietappApp {
     
     /**
      * Handles the user registration process with improved validation.
+     * @details Guides the user through registration, validating all inputs
+     *          including username, password, email, and name.
      */
     void handleRegistration() {
         System.out.println("\n===== Registration =====");
@@ -316,7 +338,10 @@ public class DietappApp {
     
     /**
      * Checks if an email address is valid.
-     * Simple validation that checks for @ symbol and a period after it.
+     * @details Performs basic email validation by checking for proper format:
+     *          - Must contain @ symbol
+     *          - Must have at least one period after @
+     *          - Cannot start or end with @ or period
      *
      * @param email The email address to validate
      * @return true if email is valid, false otherwise
@@ -344,6 +369,8 @@ public class DietappApp {
     
     /**
      * Handles guest mode login.
+     * @details Enables guest mode access to the application with limited
+     *          functionality and informs the user of restrictions.
      */
     private void handleGuestMode() {
         dietApp.enableGuestMode();
