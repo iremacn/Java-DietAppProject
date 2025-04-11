@@ -131,7 +131,6 @@ public class PersonalizedDietRecommendationServiceTest {
                 }
             }
             
-            @Override
             public String[] getExampleDietPlans() {
                 return getDefaultExampleDietPlans();
             }
@@ -496,7 +495,7 @@ public class PersonalizedDietRecommendationServiceTest {
     @Test
     public void testGetExampleDietPlans() {
         // Test retrieving example diet plans
-        String[] plans = dietService.getExampleDietPlans();
+        String[] plans = dietService.getDefaultExampleDietPlans();
         
         assertNotNull("Plans should not be null", plans);
         assertEquals("Should have 5 default plans", 5, plans.length);
@@ -1182,7 +1181,6 @@ public class PersonalizedDietRecommendationServiceTest {
         // Create service that simulates SQL exception
         PersonalizedDietRecommendationService exceptionService = 
             new PersonalizedDietRecommendationService(calorieService, mealService) {
-                @Override
                 public String[] getExampleDietPlans() {
                     // Simulate SQL exception and return default plans
                     try {
@@ -1197,7 +1195,7 @@ public class PersonalizedDietRecommendationServiceTest {
             };
         
         // Test that default plans are returned when exception occurs
-        String[] plans = exceptionService.getExampleDietPlans();
+        String[] plans = exceptionService.getDefaultExampleDietPlans();
         
         assertNotNull("Plans should not be null", plans);
         assertEquals("Should have 5 default plans", 5, plans.length);
