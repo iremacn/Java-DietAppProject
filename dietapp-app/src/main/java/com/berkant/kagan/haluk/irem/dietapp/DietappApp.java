@@ -262,7 +262,7 @@ public class DietappApp {
     /**
      * Handles the user registration process with improved validation.
      */
-    private void handleRegistration() {
+    void handleRegistration() {
         System.out.println("\n===== Registration =====");
         
         // Get and validate username
@@ -321,7 +321,7 @@ public class DietappApp {
      * @param email The email address to validate
      * @return true if email is valid, false otherwise
      */
-    private boolean isValidEmail(String email) {
+    boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }

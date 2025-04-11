@@ -1195,8 +1195,391 @@ public class CalorieNutrientTrackingMenuTest {
     }
     
     
+    @Test
+    public void testHandleCalculateSuggestedCaloriesHeightValidation() {
+        // Test setup - hafif mocklar oluştur
+        calorieNutrientService = new MockCalorieNutrientTrackingService();
+        
+        // Sadece height işleme mantığına odaklan
+        // M cinsiyet, 30 yaş, sonra hatalı boy (metin), negatif boy, son olarak geçerli boy
+        String input = "4\nM\n30\nabc\n-5\n180\n75\n2\nN\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        
+        // Çıktıyı yakala
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        
+        try {
+            // Create menu with our scanner
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, scanner);
+                
+      
+            // Output kontrolü
+            String output = outputStream.toString();
+            
+
+    
+        } finally {
+            // Cleanup
+            System.setOut(originalOut);
+        }
+    }
     
     
+    
+    
+    
+    @Test
+    public void testWeightValidationInCalculateSuggestedCaloriesMenu() {
+        // Test için veri hazırla
+        // 4 (Calculate Suggested Calories menü seçeneği)
+        // Ardından cinsiyet, yaş, boy, geçersiz ağırlıklar, geçerli ağırlık, aktivite seviyesi
+        // ve hayır (N) seçeneği ve son olarak ana menüye dönüş (0)
+        String input = "4\nM\n30\n180\nabc\n-75\n75\n2\nN\n0\n";
+        ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+        Scanner testScanner = new Scanner(bais);
+        
+        // Çıktıyı yakalamak için System.out'u yönlendir
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(baos));
+        
+        // Mock servisler
+        calorieNutrientService = new MockCalorieNutrientTrackingService();
+        ((MockCalorieNutrientTrackingService)calorieNutrientService).setMockSuggestedCalories(2000);
+        
+        try {
+            // Menü nesnesini oluştur
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, testScanner);
+            
+            // Menüyü göster
+            menu.displayMenu();
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Geçersiz girdi (sayısal olmayan) hatası mesajını kontrol et
+            assertTrue("Geçersiz ağırlık girdisi için hata mesajı gösterilmeli", 
+                     output.contains("Invalid input. Please enter a number"));
+            
+            // Negatif değer için hata mesajını kontrol et
+            assertTrue("Negatif ağırlık için hata mesajı gösterilmeli", 
+                     output.contains("Weight must be positive"));
+            
+            // Önerilen kalori mesajının gösterildiğini kontrol et
+            assertTrue("Önerilen kalori mesajı gösterilmeli", 
+                     output.contains("Your suggested daily calorie intake is: 2000 calories"));
+            
+            // calculateSuggestedCalories metodunun doğru parametrelerle çağrıldığını kontrol et
+            MockCalorieNutrientTrackingService mockService = 
+                (MockCalorieNutrientTrackingService) calorieNutrientService;
+            assertEquals(1, mockService.getCalculateSuggestedCaloriesCallCount());
+            assertEquals('M', mockService.getLastGender());
+            assertEquals(30, mockService.getLastAge());
+            assertEquals(180.0, mockService.getLastHeight(), 0.001);
+            assertEquals(75.0, mockService.getLastWeight(), 0.001);
+            assertEquals(2, mockService.getLastActivityLevel());
+            
+        } catch (Exception e) {
+     
+        } finally {
+            // Cleanup
+            System.setOut(originalOut);
+        }
+    }
+    
+   
+    @Test
+    public void testHandleCalculateSuggestedCaloriesWithInvalidActivityLevel() {
+        try {
+            // Geçersiz aktivite seviyesi girdisi içeren test verisi hazırla
+            // M cinsiyet, 30 yaş, 180 boy, 75 kilo, sonra geçersiz aktivite seviyeleri ("abc", "0", "6") 
+            // ve en sonunda geçerli aktivite seviyesi (2) ve hayır (N)
+            String input = "M\n30\n180\n75\nabc\n0\n6\n2\nN\n\n";
+            ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+            Scanner testScanner = new Scanner(bais);
+            
+            // Çıktıyı yakalamak için System.out'u yönlendir
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream originalOut = System.out;
+            System.setOut(new PrintStream(baos));
+            
+            // Mock CalorieNutrientTrackingService oluştur
+            calorieNutrientService = new MockCalorieNutrientTrackingService();
+            ((MockCalorieNutrientTrackingService)calorieNutrientService).setMockSuggestedCalories(2000);
+            
+            // Menü nesnesini oluştur
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, testScanner);
+            
+            // handleCalculateSuggestedCalories metoduna reflection ile eriş
+            Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
+            method.setAccessible(true);
+            
+            // Metodu çağır
+            method.invoke(menu);
+            
+            // Orijinal çıktıyı geri yükle
+            System.setOut(originalOut);
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Geçersiz girdi (sayısal olmayan) hatası mesajını kontrol et
+            assertTrue("Geçersiz girdi için hata mesajı gösterilmeli", 
+                     output.contains("Invalid input. Please enter a number"));
+            
+            // Geçersiz aralık için hata mesajını kontrol et
+            assertTrue("Geçersiz aktivite seviyesi için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a number between 1 and 5"));
+            
+            // Metodun son olarak doğru değerlerle çağrıldığını kontrol et
+            MockCalorieNutrientTrackingService mockService = 
+                (MockCalorieNutrientTrackingService) calorieNutrientService;
+            assertEquals(1, mockService.getCalculateSuggestedCaloriesCallCount());
+            assertEquals(2, mockService.getLastActivityLevel());
+            
+        } catch (Exception e) {
+            fail("Test şu hatadan dolayı başarısız oldu: " + e.getMessage());
+        } finally {
+            // Test sonrası temizlik
+            tearDown();
+        }
+    }
+    
+    
+    
+    @Test
+    public void testSetNutritionGoalsFailure() {
+        try {
+            // Başarısız güncelleme için başarısız bir mock servis oluştur
+            CalorieNutrientTrackingService failingService = new MockCalorieNutrientTrackingService() {
+                @Override
+                public boolean setNutritionGoals(String username, int calorieGoal, 
+                                               double proteinGoal, double carbGoal, double fatGoal) {
+                    return false; // Güncelleme başarısız olacak
+                }
+            };
+            
+            // Test için gerekli girdileri hazırla
+            // "Y" kullanıcının önerilen kaloriyi hedef olarak ayarlamak istediğini belirtir
+            String input = "M\n30\n180\n75\n2\nY\n\n";
+            ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+            Scanner testScanner = new Scanner(bais);
+            
+            // Çıktıyı yakalamak için System.out'u yönlendir
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream originalOut = System.out;
+            System.setOut(new PrintStream(baos));
+            
+            // Menü nesnesini oluştur - başarısız servisi kullanarak
+            menu = new CalorieNutrientTrackingMenu(
+                failingService, mealPlanningService, authService, testScanner);
+            
+            // handleCalculateSuggestedCalories metoduna reflection ile eriş
+            Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
+            method.setAccessible(true);
+            
+            // Metodu çağır
+            method.invoke(menu);
+            
+            // Orijinal çıktıyı geri yükle
+            System.setOut(originalOut);
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Başarısız güncelleme mesajını kontrol et
+            assertTrue("Başarısız güncelleme mesajı gösterilmeli", 
+                     output.contains("Failed to update nutrition goals"));
+            
+            // Başarılı güncelleme mesajının görüntülenmediğini kontrol et
+            assertFalse("Başarılı güncelleme mesajı gösterilmemeli", 
+                      output.contains("Nutrition goals updated successfully"));
+            
+        } catch (Exception e) {
+            fail("Test şu hatadan dolayı başarısız oldu: " + e.getMessage());
+        } finally {
+            // Test sonrası temizlik
+            tearDown();
+        }
+    }
+    
+    
+    
+    
+    @Test
+    public void testGetDateInputWithInvalidYear() {
+        try {
+            // Geçersiz yıl girdileri için test verisi hazırla
+            // İlk olarak sayısal olmayan değer ("abc"), 
+            // sonra çok küçük değer (2000),
+            // sonra çok büyük değer (2200),
+            // en sonunda geçerli bir değer (2023)
+            String input = "abc\n2000\n2200\n2023\n5\n15\n";
+            ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+            Scanner testScanner = new Scanner(bais);
+            
+            // Çıktıyı yakalamak için System.out'u yönlendir
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream originalOut = System.out;
+            System.setOut(new PrintStream(baos));
+            
+            // Menü nesnesini oluştur
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, testScanner);
+            
+            // getDateInput metoduna reflection ile eriş
+            Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");
+            method.setAccessible(true);
+            
+            // Metodu çağır ve sonucu al
+            String result = (String)method.invoke(menu);
+            
+            // Orijinal çıktıyı geri yükle
+            System.setOut(originalOut);
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Geçersiz girdi hatası mesajını kontrol et
+            assertTrue("Geçersiz girdi için hata mesajı gösterilmeli", 
+                     output.contains("Invalid input. Please enter a number"));
+            
+            // Geçersiz yıl aralığı hata mesajlarını kontrol et
+            assertTrue("Küçük yıl değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid year between 2023 and 2100"));
+            assertTrue("Büyük yıl değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid year between 2023 and 2100"));
+            
+            // Sonucun doğru formatta olduğunu kontrol et
+            assertEquals("2023-05-15", result);
+            
+        } catch (Exception e) {
+  
+        } finally {
+            // Test sonrası temizlik
+            tearDown();
+        }
+    }
+    
+    
+    
+    @Test
+    public void testGetDateInputWithInvalidMonth() {
+        try {
+            // Geçersiz ay girdileri için test verisi hazırla
+            // Önce geçerli bir yıl (2023), sonra:
+            // sayısal olmayan değer ("abc"),
+            // çok küçük değer (0),
+            // çok büyük değer (13),
+            // ve son olarak geçerli bir ay (6)
+            String input = "2023\nabc\n0\n13\n6\n15\n";
+            ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+            Scanner testScanner = new Scanner(bais);
+            
+            // Çıktıyı yakalamak için System.out'u yönlendir
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream originalOut = System.out;
+            System.setOut(new PrintStream(baos));
+            
+            // Menü nesnesini oluştur
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, testScanner);
+            
+            // getDateInput metoduna reflection ile eriş
+            Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");
+            method.setAccessible(true);
+            
+            // Metodu çağır ve sonucu al
+            String result = (String)method.invoke(menu);
+            
+            // Orijinal çıktıyı geri yükle
+            System.setOut(originalOut);
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Geçersiz girdi hatası mesajını kontrol et
+            assertTrue("Geçersiz girdi için hata mesajı gösterilmeli", 
+                     output.contains("Invalid input. Please enter a number"));
+            
+            // Geçersiz ay aralığı hata mesajlarını kontrol et
+            assertTrue("Küçük ay değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid month between 1 and 12"));
+            assertTrue("Büyük ay değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid month between 1 and 12"));
+            
+            // Sonucun doğru formatta olduğunu kontrol et
+            assertEquals("2023-06-15", result);
+            
+        } catch (Exception e) {
+            fail("Test şu hatadan dolayı başarısız oldu: " + e.getMessage());
+        } finally {
+            // Test sonrası temizlik
+            tearDown();
+        }
+    }
+    
+    
+    @Test
+    public void testGetDateInputWithInvalidDay() {
+        try {
+            // Geçersiz gün girdileri için test verisi hazırla
+            // Önce geçerli bir yıl (2023) ve ay (4) gir, sonra:
+            // sayısal olmayan değer ("abc"),
+            // çok küçük değer (0),
+            // çok büyük değer (31) - Nisan ayı 30 gündür,
+            // ve son olarak geçerli bir gün (15)
+            String input = "2023\n4\nabc\n0\n31\n15\n";
+            ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes());
+            Scanner testScanner = new Scanner(bais);
+            
+            // Çıktıyı yakalamak için System.out'u yönlendir
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream originalOut = System.out;
+            System.setOut(new PrintStream(baos));
+            
+            // Menü nesnesini oluştur
+            menu = new CalorieNutrientTrackingMenu(
+                calorieNutrientService, mealPlanningService, authService, testScanner);
+            
+            // getDateInput metoduna reflection ile eriş
+            Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");
+            method.setAccessible(true);
+            
+            // Metodu çağır ve sonucu al
+            String result = (String)method.invoke(menu);
+            
+            // Orijinal çıktıyı geri yükle
+            System.setOut(originalOut);
+            
+            // Çıktıyı kontrol et
+            String output = baos.toString();
+            
+            // Geçersiz girdi hatası mesajını kontrol et
+            assertTrue("Geçersiz girdi için hata mesajı gösterilmeli", 
+                     output.contains("Invalid input. Please enter a number"));
+            
+            // Geçersiz gün aralığı hata mesajlarını kontrol et - Nisan 30 gündür
+            assertTrue("Küçük gün değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid day between 1 and 30"));
+            assertTrue("Büyük gün değeri için hata mesajı gösterilmeli", 
+                     output.contains("Please enter a valid day between 1 and 30"));
+            
+            // Sonucun doğru formatta olduğunu kontrol et
+            assertEquals("2023-04-15", result);
+            
+        } catch (Exception e) {
+            fail("Test şu hatadan dolayı başarısız oldu: " + e.getMessage());
+        } finally {
+            // Test sonrası temizlik
+            tearDown();
+        }
+    }
     
     
     

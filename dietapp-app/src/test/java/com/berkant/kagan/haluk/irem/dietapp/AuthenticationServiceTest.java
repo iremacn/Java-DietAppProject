@@ -696,6 +696,12 @@ public class AuthenticationServiceTest {
         assertTrue("Method should return an empty list on database error", result.isEmpty());
     }
     
+    
+    
+    
+    
+    
+    
   
     
     

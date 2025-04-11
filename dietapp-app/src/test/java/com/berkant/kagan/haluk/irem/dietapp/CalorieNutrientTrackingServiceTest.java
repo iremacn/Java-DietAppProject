@@ -1174,4 +1174,62 @@ public class CalorieNutrientTrackingServiceTest {
             assertEquals(0, report2.getTotalSugar(), 0.001);
             assertEquals(0, report2.getTotalSodium(), 0.001);
         }
+        
+        
+        
+        @Test
+        public void testActivityFactorInCalculateSuggestedCalories() {
+            // Create a test instance that directly calls the real implementation
+            CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(null);
+            
+            // Base parameters (fixed for all tests)
+            char gender = 'M';
+            int age = 30;
+            double heightCm = 180.0;
+            double weightKg = 75.0;
+            
+            // Calculate expected BMR for our test subject
+            // For male: BMR = 10 * weightKg + 6.25 * heightCm - 5 * age + 5
+            // BMR = 10 * 75 + 6.25 * 180 - 5 * 30 + 5 = 750 + 1125 - 150 + 5 = 1730
+            double expectedBMR = 1730;
+            
+            // Test for each activity level
+            
+            // Level 1: Sedentary (1.2) -> 1730 * 1.2 = 2076
+            int calories1 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 1);
+            assertEquals("Sedentary activity level should calculate correct calories", 2076, calories1);
+            
+            // Level 2: Lightly active (1.375) -> 1730 * 1.375 = 2379 (rounded)
+            int calories2 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 2);
+            assertEquals("Lightly active level should calculate correct calories", 2379, calories2);
+            
+            // Level 3: Moderately active (1.55) -> 1730 * 1.55 = 2682 (rounded)
+            int calories3 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 3);
+            assertEquals("Moderately active level should calculate correct calories", 2682, calories3);
+            
+            // Level 4: Very active (1.725) -> 1730 * 1.725 = 2984 (rounded)
+            int calories4 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 4);
+            assertEquals("Very active level should calculate correct calories", 2984, calories4);
+            
+            // Level 5: Extra active (1.9) -> 1730 * 1.9 = 3287 (rounded)
+            int calories5 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 5);
+            assertEquals("Extra active level should calculate correct calories", 3287, calories5);
+            
+            // Invalid levels should return 0
+            int calories0 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 0);
+            assertEquals("Invalid activity level 0 should return 0", 0, calories0);
+            
+            int calories6 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 6);
+            assertEquals("Invalid activity level 6 should return 0", 0, calories6);
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
     }
