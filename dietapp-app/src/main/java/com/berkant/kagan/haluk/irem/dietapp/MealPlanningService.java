@@ -39,7 +39,6 @@ public class MealPlanningService {
         try {
             conn = DatabaseHelper.getConnection();
             if (conn == null) {
-                System.out.println("Failed to obtain database connection");
                 return false;
             }
             
@@ -55,7 +54,6 @@ public class MealPlanningService {
             // Save food and get its ID
             int foodId = saveFoodAndGetId(conn, food);
             if (foodId == -1) {
-                System.out.println("Failed to save food: " + food.getName());
                 return false; // Food couldn't be saved
             }
             
@@ -86,9 +84,7 @@ public class MealPlanningService {
                     conn.rollback(); // Rollback transaction on error
                 }
             } catch (SQLException ex) {
-                System.out.println("Failed to rollback transaction: " + ex.getMessage());
             }
-            System.out.println("Could not add meal plan: " + e.getMessage());
             e.printStackTrace(); // For error details
             return false;
         } finally {
@@ -96,7 +92,6 @@ public class MealPlanningService {
                 try {
                     conn.setAutoCommit(true); // Reset auto-commit
                 } catch (SQLException e) {
-                    System.out.println("Failed to reset auto-commit: " + e.getMessage());
                 }
                 DatabaseHelper.releaseConnection(conn);
             }
@@ -274,7 +269,6 @@ public class MealPlanningService {
         try {
             conn = DatabaseHelper.getConnection();
             if (conn == null) {
-                System.out.println("Failed to obtain database connection");
                 return false;
             }
             
@@ -291,7 +285,6 @@ public class MealPlanningService {
             // Save food and get its ID
             int foodId = saveFoodAndGetId(conn, food);
             if (foodId == -1) {
-                System.out.println("Failed to save food: " + food.getName());
                 conn.rollback();
                 return false;
             }
@@ -331,7 +324,6 @@ public class MealPlanningService {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException e) {
-                    System.out.println("Failed to reset auto-commit: " + e.getMessage());
                 }
                 DatabaseHelper.releaseConnection(conn);
             }
@@ -404,7 +396,6 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Could not get meal plan: " + e.getMessage());
         } finally {
             DatabaseHelper.releaseConnection(conn);
         }
@@ -476,7 +467,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Could not get food records: " + e.getMessage());
+
         } finally {
             DatabaseHelper.releaseConnection(conn);
         }
@@ -525,7 +516,7 @@ public class MealPlanningService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Could not calculate total calories: " + e.getMessage());
+
         } finally {
             DatabaseHelper.releaseConnection(conn);
         }
@@ -627,7 +618,6 @@ public class MealPlanningService {
                     try {
                         conn.rollback();
                     } catch (SQLException ex) {
-                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
                     }
                 }
             } finally {
@@ -635,7 +625,6 @@ public class MealPlanningService {
                     try {
                         conn.setAutoCommit(true);
                     } catch (SQLException e) {
-                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
                     }
                     DatabaseHelper.releaseConnection(conn);
                 }
@@ -687,7 +676,6 @@ public class MealPlanningService {
                     try {
                         conn.rollback();
                     } catch (SQLException ex) {
-                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
                     }
                 }
             } finally {
@@ -695,7 +683,6 @@ public class MealPlanningService {
                     try {
                         conn.setAutoCommit(true);
                     } catch (SQLException e) {
-                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
                     }
                     DatabaseHelper.releaseConnection(conn);
                 }
@@ -748,7 +735,7 @@ public class MealPlanningService {
                     try {
                         conn.rollback();
                     } catch (SQLException ex) {
-                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+
                     }
                 }
             } finally {
@@ -756,7 +743,7 @@ public class MealPlanningService {
                     try {
                         conn.setAutoCommit(true);
                     } catch (SQLException e) {
-                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+
                     }
                     DatabaseHelper.releaseConnection(conn);
                 }
@@ -809,7 +796,7 @@ public class MealPlanningService {
                     try {
                         conn.rollback();
                     } catch (SQLException ex) {
-                        System.out.println("Failed to rollback transaction: " + ex.getMessage());
+
                     }
                 }
             } finally {
@@ -817,7 +804,7 @@ public class MealPlanningService {
                 	try {
                         conn.setAutoCommit(true);
                     } catch (SQLException e) {
-                        System.out.println("Failed to reset auto-commit: " + e.getMessage());
+
                     }
                     DatabaseHelper.releaseConnection(conn);
                 }
