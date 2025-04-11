@@ -165,6 +165,7 @@
 					    <include>**/UserTest</include>
 					 	<include>**/AuthenticationServiceTest</include>
 					    <include>**/DataHelperTest</include>
+						<include>**/DatabaseHelperTest</include>
 						
 						
 						
