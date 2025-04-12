@@ -272,7 +272,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>
-										com.berkant.kagan.haluk.irem.dietapp.dietappApp</mainClass>
+										com.berkant.kagan.haluk.irem.dietapp.DietappApp</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
