@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  dietapp:
+    build: .
+    container_name: dietapp-container
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Europe/Istanbul
+    restart: on-failure
+    mem_limit: 256m
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535

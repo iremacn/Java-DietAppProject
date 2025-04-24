@@ -1,9 +1,9 @@
-
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
 
 /**
  * This class handles database operations for the Diet Planner application.
@@ -11,13 +11,30 @@ import java.util.List;
  * @author Claude
  */
 public class DatabaseHelper {
-    private static final String DB_URL = "jdbc:sqlite:dietplanner.db";
+    // Docker veya yerel ortam için veritabanı yolunu belirle
+    private static final String DB_URL;
     private static final int MAX_CONNECTIONS = 10;
     private static List<Connection> connectionPool = new ArrayList<>();
    
     static {
+        // Docker ortamında mı yoksa lokal ortamda mı çalıştığımızı kontrol et
+        File dockerDataDir = new File("/app/data");
+        if (dockerDataDir.exists() || "true".equals(System.getenv("DOCKER_ENV"))) {
+            DB_URL = "jdbc:sqlite:/app/data/dietplanner.db";
+            System.out.println("Docker environment detected, using Docker data path");
+            
+            // Docker ortamında veri dizininin var olduğundan emin ol
+            if (!dockerDataDir.exists()) {
+                dockerDataDir.mkdirs();
+                System.out.println("Data directory created: " + dockerDataDir.getAbsolutePath());
+            }
+        } else {
+            DB_URL = "jdbc:sqlite:dietplanner.db";
+            System.out.println("Local environment detected, using local data path");
+        }
+        
         try {
-            // Load the SQLite JDBC driver
+            // SQLite JDBC sürücüsünü yükle
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             System.out.println("SQLite JDBC driver not found: " + e.getMessage());
