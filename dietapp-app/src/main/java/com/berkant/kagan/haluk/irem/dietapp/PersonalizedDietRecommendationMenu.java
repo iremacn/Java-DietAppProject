@@ -69,7 +69,7 @@ public class PersonalizedDietRecommendationMenu {
             System.out.print("Enter activity level (Sedentary/Light/Moderate/Active/Very Active): ");
             String activityLevel = scanner.nextLine().trim();
 
-            // generateRecommendations fonksiyonu bir String veya List<String> dönebilir. Burada ilk elemanı alıyoruz.
+            // generateRecommendations function can return a String or List<String>. Here we take the first element.
             String recommendationResult = "";
             Object result = dietService.generateRecommendations(age, weight, height, gender, activityLevel);
             if (result instanceof String) {

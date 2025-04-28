@@ -31,13 +31,13 @@ public class UserAuthenticationPanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        // Logo yükleme
+        // Load logo
         try {
-            // Görseli resources klasöründen yükle
+            // Load image from resources folder
             URL imageUrl = getClass().getResource("/images/logo.png");
             if (imageUrl != null) {
                 Image image = ImageIO.read(imageUrl);
-                // Logoyu yeniden boyutlandır
+                // Resize logo
                 Image scaledImage = image.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
                 JLabel logoLabel = new JLabel(new ImageIcon(scaledImage));
                 
@@ -49,11 +49,11 @@ public class UserAuthenticationPanel extends JPanel {
                 add(logoLabel, gbc);
             }
         } catch (Exception e) {
-            System.err.println("Logo yüklenemedi: " + e.getMessage());
+            System.err.println("Logo could not be loaded: " + e.getMessage());
             e.printStackTrace();
         }
 
-        // Başlık
+        // Title
         JLabel titleLabel = new JLabel("Diet Planner");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(new Color(41, 128, 185));
@@ -64,15 +64,15 @@ public class UserAuthenticationPanel extends JPanel {
         gbc.insets = new Insets(0, 5, 30, 5);
         add(titleLabel, gbc);
 
-        // Panel için özel arka plan rengi
+        // Custom background color for panel
         setBackground(new Color(236, 240, 241));
 
-        // Username alanı
+        // Username field
         gbc.gridwidth = 1;
         gbc.gridy = 2;
         gbc.anchor = GridBagConstraints.EAST;
         gbc.insets = new Insets(5, 5, 5, 5);
-        JLabel userLabel = new JLabel("Kullanıcı Adı:");
+        JLabel userLabel = new JLabel("Username:");
         userLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         userLabel.setForeground(new Color(44, 62, 80));
         add(userLabel, gbc);
@@ -83,11 +83,11 @@ public class UserAuthenticationPanel extends JPanel {
         usernameField.setPreferredSize(new Dimension(200, 30));
         add(usernameField, gbc);
 
-        // Password alanı
+        // Password field
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.anchor = GridBagConstraints.EAST;
-        JLabel passLabel = new JLabel("Şifre:");
+        JLabel passLabel = new JLabel("Password:");
         passLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         passLabel.setForeground(new Color(44, 62, 80));
         add(passLabel, gbc);
@@ -98,16 +98,16 @@ public class UserAuthenticationPanel extends JPanel {
         passwordField.setPreferredSize(new Dimension(200, 30));
         add(passwordField, gbc);
 
-        // Butonlar için panel
+        // Buttons panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setOpaque(false);
 
-        // Login butonu
-        JButton loginButton = createStyledButton("Giriş Yap", new Color(52, 152, 219));
+        // Login button
+        JButton loginButton = createStyledButton("Login", new Color(52, 152, 219));
         buttonPanel.add(loginButton);
 
-        // Register butonu
-        JButton registerButton = createStyledButton("Kayıt Ol", new Color(46, 204, 113));
+        // Register button
+        JButton registerButton = createStyledButton("Register", new Color(46, 204, 113));
         buttonPanel.add(registerButton);
 
         // Buton panelini ekle
@@ -154,25 +154,25 @@ public class UserAuthenticationPanel extends JPanel {
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
-                "Kullanıcı adı ve şifre boş olamaz!", 
-                "Hata", 
+                "Username and password cannot be empty!", 
+                "Error", 
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
             if (authService.login(username, password)) {
-                JOptionPane.showMessageDialog(this, "Giriş başarılı!");
+                JOptionPane.showMessageDialog(this, "Login successful!");
                 if (loginSuccessCallback != null) {
                     loginSuccessCallback.run();
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Hatalı kullanıcı adı veya şifre!", 
-                    "Giriş Hatası", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid username or password!", 
+                    "Login Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Giriş sırasında hata: " + e.getMessage(),
-                "Hata", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error during login: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -182,24 +182,24 @@ public class UserAuthenticationPanel extends JPanel {
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
-                "Kullanıcı adı ve şifre boş olamaz!", 
-                "Hata", 
+                "Username and password cannot be empty!", 
+                "Error", 
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
             if (authService.register(username, password, username + "@example.com", username)) {
-                JOptionPane.showMessageDialog(this, "Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+                JOptionPane.showMessageDialog(this, "Registration successful! You can now login.");
                 usernameField.setText("");
                 passwordField.setText("");
             } else {
-                JOptionPane.showMessageDialog(this, "Bu kullanıcı adı zaten kullanılıyor!",
-                    "Kayıt Hatası", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "This username is already taken!",
+                    "Registration Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Kayıt sırasında hata: " + e.getMessage(),
-                "Hata", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error during registration: " + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

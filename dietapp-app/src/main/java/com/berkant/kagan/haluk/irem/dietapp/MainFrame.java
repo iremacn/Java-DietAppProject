@@ -1,22 +1,27 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 public class MainFrame extends JFrame {
-    private JTabbedPane tabbedPane;
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
     private CalorieTrackingPanel calorieTrackingPanel;
     private MealPlanningPanel mealPlanningPanel;
     private PersonalizedDietPanel personalizedDietPanel;
     private ShoppingListPanel shoppingListPanel;
     private UserAuthenticationPanel authPanel;
-    private JPanel mainPanel;
-    private CardLayout cardLayout;
+    private JPanel buttonPanel;
 
     public MainFrame() {
         setTitle("Diet Planner");
@@ -24,56 +29,97 @@ public class MainFrame extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);
 
-        // Veritabanını başlat
+        // Initialize database
         DatabaseHelper.initializeDatabase();
 
-        // Card Layout için ana panel
+        // Main panel with CardLayout
         mainPanel = new JPanel();
         cardLayout = new CardLayout();
         mainPanel.setLayout(cardLayout);
 
-        // Servis nesnelerini oluştur
+        // Create service objects
         AuthenticationService authService = new AuthenticationService();
         MealPlanningService mealService = new MealPlanningService(null);
         CalorieNutrientTrackingService calorieService = new CalorieNutrientTrackingService(mealService);
         PersonalizedDietRecommendationService dietService = new PersonalizedDietRecommendationService(calorieService, mealService);
         ShoppingListService shoppingService = new ShoppingListService(mealService);
 
-        // Login panelini oluştur
+        // Create panels
         authPanel = new UserAuthenticationPanel(authService);
         authPanel.setLoginSuccessCallback(this::showMainMenu);
 
-        // Panel nesnelerini oluştur
         calorieTrackingPanel = new CalorieTrackingPanel(calorieService);
         mealPlanningPanel = new MealPlanningPanel(mealService);
         personalizedDietPanel = new PersonalizedDietPanel(dietService);
         shoppingListPanel = new ShoppingListPanel(shoppingService);
 
-        // TabbedPane oluştur ve panelleri ekle
-        tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Kalori Takibi", calorieTrackingPanel);
-        tabbedPane.addTab("Yemek Planlama", mealPlanningPanel);
-        tabbedPane.addTab("Kişisel Diyet", personalizedDietPanel);
-        tabbedPane.addTab("Alışveriş Listesi", shoppingListPanel);
+        // Create navigation buttons
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(new Color(236, 240, 241));
 
-        // Card Layout'a panelleri ekle
+        JButton calorieButton = createNavButton("Calorie Tracking");
+        JButton mealButton = createNavButton("Meal Planning");
+        JButton dietButton = createNavButton("Personalized Diet");
+        JButton shoppingButton = createNavButton("Shopping List");
+
+        buttonPanel.add(calorieButton);
+        buttonPanel.add(mealButton);
+        buttonPanel.add(dietButton);
+        buttonPanel.add(shoppingButton);
+
+        // Add panels to CardLayout
         mainPanel.add(authPanel, "login");
-        mainPanel.add(tabbedPane, "main");
+        mainPanel.add(calorieTrackingPanel, "calorie");
+        mainPanel.add(mealPlanningPanel, "meal");
+        mainPanel.add(personalizedDietPanel, "diet");
+        mainPanel.add(shoppingListPanel, "shopping");
 
-        // Ana paneli frame'e ekle
-        add(mainPanel);
+        // Add button panel to frame
+        add(buttonPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
 
-        // Başlangıçta login ekranını göster
+        // Show login screen initially
         cardLayout.show(mainPanel, "login");
+        buttonPanel.setVisible(false);
+    }
+
+    private JButton createNavButton(String text) {
+        JButton button = new JButton(text);
+        button.setPreferredSize(new Dimension(150, 40));
+        button.setBackground(new Color(52, 152, 219));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+
+        button.addActionListener(e -> {
+            switch (text) {
+                case "Calorie Tracking":
+                    cardLayout.show(mainPanel, "calorie");
+                    break;
+                case "Meal Planning":
+                    cardLayout.show(mainPanel, "meal");
+                    break;
+                case "Personalized Diet":
+                    cardLayout.show(mainPanel, "diet");
+                    break;
+                case "Shopping List":
+                    cardLayout.show(mainPanel, "shopping");
+                    break;
+            }
+        });
+
+        return button;
     }
 
     public void showMainMenu() {
-        cardLayout.show(mainPanel, "main");
+        cardLayout.show(mainPanel, "calorie");
+        buttonPanel.setVisible(true);
     }
 
     public static void main(String[] args) {
         try {
-            // SQLite JDBC sürücüsünü yükle
+            // Load SQLite JDBC driver
             Class.forName("org.sqlite.JDBC");
             
             SwingUtilities.invokeLater(() -> {
@@ -82,8 +128,8 @@ public class MainFrame extends JFrame {
             });
         } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(null, 
-                "SQLite JDBC sürücüsü bulunamadı: " + e.getMessage(),
-                "Hata",
+                "SQLite JDBC driver not found: " + e.getMessage(),
+                "Error",
                 JOptionPane.ERROR_MESSAGE);
         }
     }

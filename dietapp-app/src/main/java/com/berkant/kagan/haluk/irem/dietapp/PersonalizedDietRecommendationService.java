@@ -27,49 +27,49 @@ public class PersonalizedDietRecommendationService {
     public List<String> generateRecommendations(int age, double weight, double height, String gender, String activityLevel) throws SQLException {
         List<String> recommendations = new ArrayList<>();
         
-        // BMR (Bazal Metabolik Hız) hesaplama
+        // Calculate BMR (Basal Metabolic Rate)
         double bmr;
-        if (gender.equals("Erkek")) {
+        if (gender.equals("Male")) {
             bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
         } else {
             bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
         }
 
-        // Aktivite seviyesine göre günlük kalori ihtiyacı hesaplama
+        // Calculate daily calorie needs based on activity level
         double dailyCalories;
         switch (activityLevel) {
-            case "Hareketsiz":
+            case "Sedentary":
                 dailyCalories = bmr * 1.2;
                 break;
-            case "Az Aktif":
+            case "Light":
                 dailyCalories = bmr * 1.375;
                 break;
-            case "Orta Aktif":
+            case "Moderate":
                 dailyCalories = bmr * 1.55;
                 break;
-            case "Çok Aktif":
+            case "Active":
                 dailyCalories = bmr * 1.725;
                 break;
-            case "Aşırı Aktif":
+            case "Very Active":
                 dailyCalories = bmr * 1.9;
                 break;
             default:
                 dailyCalories = bmr * 1.2;
         }
 
-        recommendations.add(String.format("Günlük Kalori İhtiyacı: %.0f kcal", dailyCalories));
-        recommendations.add(String.format("Protein İhtiyacı: %.0f gram", weight * 1.6));
-        recommendations.add(String.format("Karbonhidrat İhtiyacı: %.0f gram", (dailyCalories * 0.5) / 4));
-        recommendations.add(String.format("Yağ İhtiyacı: %.0f gram", (dailyCalories * 0.3) / 9));
+        recommendations.add(String.format("Daily Calorie Need: %.0f kcal", dailyCalories));
+        recommendations.add(String.format("Protein Need: %.0f grams", weight * 1.6));
+        recommendations.add(String.format("Carbohydrate Need: %.0f grams", (dailyCalories * 0.5) / 4));
+        recommendations.add(String.format("Fat Need: %.0f grams", (dailyCalories * 0.3) / 9));
 
-        // Veritabanından uygun yemek önerileri
+        // Get suitable meal recommendations from database
         String sql = "SELECT * FROM meals WHERE calories <= ? ORDER BY RAND() LIMIT 5";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDouble(1, dailyCalories / 3); // Öğün başına maksimum kalori
+            stmt.setDouble(1, dailyCalories / 3); // Maximum calories per meal
             try (ResultSet rs = stmt.executeQuery()) {
-                recommendations.add("\nÖnerilen Yemekler:");
+                recommendations.add("\nRecommended Meals:");
                 while (rs.next()) {
-                    String meal = String.format("%s - Kalori: %d, Protein: %.1fg, Karbonhidrat: %.1fg, Yağ: %.1fg",
+                    String meal = String.format("%s - Calories: %d, Protein: %.1fg, Carbs: %.1fg, Fat: %.1fg",
                         rs.getString("meal_name"),
                         rs.getInt("calories"),
                         rs.getDouble("protein"),

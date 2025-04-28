@@ -2,13 +2,13 @@ package com.berkant.kagan.haluk.irem.dietapp;
 
 public class Main {
     public static void main(String[] args) {
-        // Servisleri oluştur
+        // Create services
         PersonalizedDietRecommendationService dietService = new PersonalizedDietRecommendationService(null, null);
         
-        // Menu sınıfını oluştur
+        // Create menu class
         PersonalizedDietRecommendationMenu menu = new PersonalizedDietRecommendationMenu(dietService);
         
-        // Menüyü başlat
+        // Start menu
         menu.displayMenu();
     }
 } 

@@ -33,9 +33,9 @@ public class CalorieTrackingPanel extends JPanel {
         fatField = new JTextField(10);
         resultArea = new JTextArea(10, 30);
         resultArea.setEditable(false);
-        addButton = new JButton("Ekle");
-        viewButton = new JButton("Görüntüle");
-        deleteButton = new JButton("Sil");
+        addButton = new JButton("Add");
+        viewButton = new JButton("View");
+        deleteButton = new JButton("Delete");
     }
 
     private void setupLayout() {
@@ -48,13 +48,13 @@ public class CalorieTrackingPanel extends JPanel {
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        inputPanel.add(new JLabel("Yemek Adı:"), gbc);
+        inputPanel.add(new JLabel("Food Name:"), gbc);
         gbc.gridx = 1;
         inputPanel.add(foodNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        inputPanel.add(new JLabel("Kalori:"), gbc);
+        inputPanel.add(new JLabel("Calories:"), gbc);
         gbc.gridx = 1;
         inputPanel.add(caloriesField, gbc);
 
@@ -66,13 +66,13 @@ public class CalorieTrackingPanel extends JPanel {
 
         gbc.gridx = 0;
         gbc.gridy = 3;
-        inputPanel.add(new JLabel("Karbonhidrat (g):"), gbc);
+        inputPanel.add(new JLabel("Carbs (g):"), gbc);
         gbc.gridx = 1;
         inputPanel.add(carbsField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 4;
-        inputPanel.add(new JLabel("Yağ (g):"), gbc);
+        inputPanel.add(new JLabel("Fat (g):"), gbc);
         gbc.gridx = 1;
         inputPanel.add(fatField, gbc);
 
@@ -98,12 +98,12 @@ public class CalorieTrackingPanel extends JPanel {
                     double fat = Double.parseDouble(fatField.getText());
 
                     trackingService.addFoodEntry(foodName, calories, protein, carbs, fat);
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Yemek başarıyla eklendi!");
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Food added successfully!");
                     clearFields();
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Lütfen geçerli sayısal değerler girin!");
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Please enter valid numeric values!");
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Hata oluştu: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Error occurred: " + ex.getMessage());
                 }
             }
         });
@@ -119,7 +119,7 @@ public class CalorieTrackingPanel extends JPanel {
                     }
                     resultArea.setText(sb.toString());
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Hata oluştu: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Error occurred: " + ex.getMessage());
                 }
             }
         });
@@ -130,10 +130,10 @@ public class CalorieTrackingPanel extends JPanel {
                 try {
                     String foodName = foodNameField.getText();
                     trackingService.deleteFoodEntry(foodName);
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Yemek başarıyla silindi!");
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Food deleted successfully!");
                     clearFields();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Hata oluştu: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(CalorieTrackingPanel.this, "Error occurred: " + ex.getMessage());
                 }
             }
         });
