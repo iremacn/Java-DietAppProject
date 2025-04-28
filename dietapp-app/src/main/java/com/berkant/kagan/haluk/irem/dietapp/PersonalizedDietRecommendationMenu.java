@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.DietRecommendation;
-import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.DietType;
-import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.MacronutrientDistribution;
-import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.RecommendedMeal;
-import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.WeightGoal;
 /**
  * This class handles the personalized diet recommendation menu operations for the Diet Planner application.
  * @details The PersonalizedDietRecommendationMenu class provides menu interfaces for setting diet preferences,
@@ -16,408 +11,129 @@ import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationServic
  * @author haluk
  */
 public class PersonalizedDietRecommendationMenu {
-    /** The personalized diet recommendation service */
-    private PersonalizedDietRecommendationService personalizedDietService;
-    /** The authentication service */
-    private AuthenticationService authService;
-    /** Scanner for reading user input */
-    private Scanner scanner;
-    /** Stores the most recently generated diet recommendation */
-    private DietRecommendation lastRecommendation;
-    
-    /**
-     * Constructor for PersonalizedDietRecommendationMenu class.
-     * 
-     * @param personalizedDietService The personalized diet recommendation service
-     * @param authService The authentication service
-     * @param scanner The scanner for user input
-     */
-    public PersonalizedDietRecommendationMenu(
-            PersonalizedDietRecommendationService personalizedDietService,
-            AuthenticationService authService,
-            Scanner scanner) {
-        this.personalizedDietService = personalizedDietService;
-        this.authService = authService;
-        this.scanner = scanner;
-        this.lastRecommendation = null;
+    private final Scanner scanner;
+    private final PersonalizedDietRecommendationService dietService;
+    private final List<DietRecommendation> recommendations;
+
+    public PersonalizedDietRecommendationMenu(PersonalizedDietRecommendationService dietService) {
+        this.scanner = new Scanner(System.in);
+        this.dietService = dietService;
+        this.recommendations = new ArrayList<>();
     }
-   
-    /**
-     * Displays the main personalized diet recommendation menu and handles user selections.
-     */
+
     public void displayMenu() {
-        boolean running = true;
-        
-        while (running) {
-            System.out.println("\n===== Personalized Diet Recommendations =====");
-            System.out.println("1. Set Diet Preferences");
-            System.out.println("2. Generate Diet Recommendations");
-            System.out.println("3. View Recommendations");
-            System.out.println("4. View Example Diet Plans");
-            System.out.println("0. Return to Main Menu");
+        while (true) {
+            System.out.println("\n=== Personalized Diet Recommendation Menu ===");
+            System.out.println("1. Generate New Diet Recommendation");
+            System.out.println("2. View Previous Recommendations");
+            System.out.println("3. Exit");
             System.out.print("Enter your choice: ");
-            
-            int choice = getUserChoice();
-            
-            switch (choice) {
-                case 1:
-                    handleSetDietPreferences();
-                    break;
-                case 2:
-                    handleGenerateRecommendations();
-                    break;
-                case 3:
-                    handleViewRecommendations();
-                    break;
-                case 4:
-                    handleViewExampleDietPlans();
-                    break;
-                case 0:
-                    running = false;
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+
+            try {
+                int choice = Integer.parseInt(scanner.nextLine().trim());
+                switch (choice) {
+                    case 1:
+                        generateNewRecommendation();
+                        break;
+                    case 2:
+                        viewPreviousRecommendations();
+                        break;
+                    case 3:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            } catch (Exception e) {
+                System.out.println("An error occurred: " + e.getMessage());
             }
         }
     }
-   
-    /**
-     * Gets the user's menu choice from the console.
-     * 
-     * @return The user's choice as an integer, returns -1 if input is invalid
-     */
-    private int getUserChoice() {
+
+    private void generateNewRecommendation() {
         try {
-            return Integer.parseInt(scanner.nextLine());
-        } catch (NumberFormatException e) {
-            return -1; // Invalid input
-        }
-    }
-    
-    /**
-     * Handles setting diet preferences through user interaction.
-     * @details Guides the user through selecting diet type, weight goal, health conditions,
-     *          and food exclusions, then saves these preferences.
-     */
-    private void handleSetDietPreferences() {
-        System.out.println("\n===== Set Diet Preferences =====");
-        
-        // Get diet type preference
-        System.out.println("\nSelect Diet Type:");
-        System.out.println("1. Balanced");
-        System.out.println("2. Low Carb");
-        System.out.println("3. High Protein");
-        System.out.println("4. Vegetarian");
-        System.out.println("5. Vegan");
-        DietType dietType;
-        int dietTypeChoice;
-                
-        // Keep looping until a valid selection is made
-        while (true) {
-            System.out.print("Enter your choice (1-5): ");
-            String input = scanner.nextLine();
-                    
-            try {
-                dietTypeChoice = Integer.parseInt(input);
-                if (dietTypeChoice >= 1 && dietTypeChoice <= 5) {
-                    // Valid input, exit the loop
-                    break;
-                } else {
-                    System.out.println("Invalid selection. Please enter a number between 1 and 5.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number between 1 and 5.");
-            }
-        }
-                
-        // Now we have a valid input, determine the diet type
-        switch (dietTypeChoice) {
-            case 1:
-                dietType = DietType.BALANCED;
-                break;
-            case 2:
-                dietType = DietType.LOW_CARB;
-                break;
-            case 3:
-                dietType = DietType.HIGH_PROTEIN;
-                break;
-            case 4:
-                dietType = DietType.VEGETARIAN;
-                break;
-            case 5:
-                dietType = DietType.VEGAN;
-                break;
-            default:
-                // This should never happen due to the validation above
-                dietType = DietType.BALANCED;
-                break;
-        }
-        
-        // Get weight goal
-        System.out.println("\nSelect Weight Goal:");
-        System.out.println("1. Lose Weight");
-        System.out.println("2. Maintain Weight");
-        System.out.println("3. Gain Weight");
-        System.out.print("Enter your choice (1-3): ");
-        
-        int weightGoalChoice = getUserChoice();
-        WeightGoal weightGoal;
-        
-        switch (weightGoalChoice) {
-            case 1:
-                weightGoal = WeightGoal.LOSE;
-                break;
-            case 2:
-                weightGoal = WeightGoal.MAINTAIN;
-                break;
-            case 3:
-                weightGoal = WeightGoal.GAIN;
-                break;
-            default:
-                System.out.println("Invalid choice. Using Maintain Weight as default.");
-                weightGoal = WeightGoal.MAINTAIN;
-                break;
-        }
-        
-        // Get health conditions/allergies with validation
-        String hasConditions;
-        while (true) {
-            System.out.println("\nDo you have any health conditions or allergies? (Y/N): ");
-            hasConditions = scanner.nextLine().toUpperCase();
-            
-            if (hasConditions.equals("Y") || hasConditions.equals("N")) {
-                break;
-            } else {
-                System.out.println("Invalid input. Please enter 'Y' for Yes or 'N' for No.");
-            }
-        }
-        
-        List<String> healthConditions = new ArrayList<>();
-        if (hasConditions.equals("Y")) {
-            System.out.println("Enter your health conditions/allergies (comma separated): ");
-            String conditionsInput = scanner.nextLine();
-            
-            if (!conditionsInput.isEmpty()) {
-                String[] conditions = conditionsInput.split(",");
-                for (String condition : conditions) {
-                    healthConditions.add(condition.trim());
-                }
-            }
-        }
-        
-        // Get excluded foods with validation
-        String hasExclusions;
-        while (true) {
-            System.out.println("\nDo you want to exclude any specific foods? (Y/N): ");
-            hasExclusions = scanner.nextLine().toUpperCase();
-            
-            if (hasExclusions.equals("Y") || hasExclusions.equals("N")) {
-                break;
-            } else {
-                System.out.println("Invalid input. Please enter 'Y' for Yes or 'N' for No.");
-            }
-        }
-        
-        List<String> excludedFoods = new ArrayList<>();
-        if (hasExclusions.equals("Y")) {
-            System.out.println("Enter foods to exclude (comma separated): ");
-            String exclusionsInput = scanner.nextLine();
-            
-            if (!exclusionsInput.isEmpty()) {
-                String[] exclusions = exclusionsInput.split(",");
-                for (String exclusion : exclusions) {
-                    excludedFoods.add(exclusion.trim().toLowerCase());
-                }
-            }
-        }
-        
-        // Save user diet profile
-        String username = authService.getCurrentUser().getUsername();
-        boolean success = personalizedDietService.setUserDietProfile(
-            username, dietType, healthConditions, weightGoal, excludedFoods);
-        
-        if (success) {
-            System.out.println("Diet preferences updated successfully!");
-        } else {
-            System.out.println("Failed to update diet preferences.");
-        }
-    }
-    /**
-     * Handles generating personalized diet recommendations through user interaction.
-     * @details Collects user metrics (gender, age, height, weight, activity level)
-     *          and generates personalized diet recommendations.
-     */
-    private void handleGenerateRecommendations() {
-        System.out.println("\n===== Generate Diet Recommendations =====");
-        
-        // Get user information
-        char gender;
-        while (true) {
-            System.out.print("Enter gender (M/F): ");
-            String input = scanner.nextLine().toUpperCase();
-            if (input.equals("M") || input.equals("F")) {
-                gender = input.charAt(0);
-                break;
-            } else {
-                System.out.println("Please enter 'M' for male or 'F' for female.");
-            }
-        }
-        
-        int age;
-        while (true) {
             System.out.print("Enter age: ");
-            try {
-                age = Integer.parseInt(scanner.nextLine());
-                if (age > 0 && age < 120) {
-                    break;
-                } else {
-                    System.out.println("Please enter a valid age between 1 and 120.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
-            }
-        }
-       
-        double heightCm;
-        while (true) {
-            System.out.print("Enter height (cm): ");
-            String heightInput = scanner.nextLine();
-            try {
-                heightCm = Double.parseDouble(heightInput);
-                if (heightCm > 0) {
-                    break;
-                } else {
-                    System.out.println("Height must be positive.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
-            }
-        }
-        
-        double weightKg;
-        while (true) {
+            int age = Integer.parseInt(scanner.nextLine().trim());
+
             System.out.print("Enter weight (kg): ");
-            try {
-                weightKg = Double.parseDouble(scanner.nextLine());
-                if (weightKg > 0) {
-                    break;
-                } else {
-                    System.out.println("Weight must be positive.");
+            double weight = Double.parseDouble(scanner.nextLine().trim());
+
+            System.out.print("Enter height (cm): ");
+            double height = Double.parseDouble(scanner.nextLine().trim());
+
+            System.out.print("Enter gender (Male/Female): ");
+            String gender = scanner.nextLine().trim();
+
+            System.out.print("Enter activity level (Sedentary/Light/Moderate/Active/Very Active): ");
+            String activityLevel = scanner.nextLine().trim();
+
+            // generateRecommendations fonksiyonu bir String veya List<String> dönebilir. Burada ilk elemanı alıyoruz.
+            String recommendationResult = "";
+            Object result = dietService.generateRecommendations(age, weight, height, gender, activityLevel);
+            if (result instanceof String) {
+                recommendationResult = (String) result;
+            } else if (result instanceof List) {
+                List<?> list = (List<?>) result;
+                if (!list.isEmpty() && list.get(0) instanceof String) {
+                    recommendationResult = (String) list.get(0);
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
             }
+            recommendations.add(new DietRecommendation(age, weight, height, gender, activityLevel, recommendationResult));
+            System.out.println("\nDiet Recommendation Generated Successfully!");
+            System.out.println(recommendationResult);
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter valid numbers for age, weight, and height.");
+        } catch (Exception e) {
+            System.out.println("Error generating recommendation: " + e.getMessage());
         }
-        
-        System.out.println("\nSelect your activity level:");
-        System.out.println("1. Sedentary (little or no exercise)");
-        System.out.println("2. Lightly active (light exercise/sports 1-3 days/week)");
-        System.out.println("3. Moderately active (moderate exercise/sports 3-5 days/week)");
-        System.out.println("4. Very active (hard exercise/sports 6-7 days/week)");
-        System.out.println("5. Extra active (very hard exercise & physical job or training twice a day)");
-        System.out.print("Enter your choice (1-5): ");
-        
-        int activityLevel;
-        while (true) {
-            try {
-                activityLevel = Integer.parseInt(scanner.nextLine());
-                if (activityLevel >= 1 && activityLevel <= 5) {
-                    break;
-                } else {
-                    System.out.println("Please enter a number between 1 and 5.");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number.");
-            }
-        }
-        
-        // Generate diet recommendations
-        String username = authService.getCurrentUser().getUsername();
-        
-        System.out.println("\nGenerating personalized diet recommendations...");
-        this.lastRecommendation = personalizedDietService.generateRecommendations(
-            username, gender, age, heightCm, weightKg, activityLevel);
-        
-        System.out.println("Diet recommendations generated successfully!");
-        System.out.println("\nPress Enter to view your diet recommendations...");
-        scanner.nextLine();
-        
-        handleViewRecommendations();
     }
-    
-    /**
-     * Handles viewing personalized diet recommendations.
-     * @details Displays the most recently generated diet recommendation including
-     *          daily calorie target, macronutrient distribution, meal plan, and guidelines.
-     */
-    private void handleViewRecommendations() {
-        System.out.println("\n===== View Diet Recommendations =====");
-        
-        if (lastRecommendation == null) {
-            System.out.println("No diet recommendations have been generated yet.");
-            System.out.println("Please use 'Generate Diet Recommendations' option first.");
-            
-            // Pause before returning to menu
-            System.out.println("\nPress Enter to continue...");
-            scanner.nextLine();
+
+    private void viewPreviousRecommendations() {
+        if (recommendations.isEmpty()) {
+            System.out.println("No previous recommendations found.");
             return;
         }
-        
-        // Display diet recommendation summary
-        System.out.println("\n--- Personalized Diet Recommendation Summary ---");
-        System.out.println("Daily Calorie Target: " + lastRecommendation.getDailyCalories() + " calories");
-        System.out.println("Macronutrient Distribution: " + lastRecommendation.getMacros().toString());
-        
-        // Display meal plan
-        System.out.println("\n--- Daily Meal Plan ---");
-        for (RecommendedMeal meal : lastRecommendation.getMeals()) {
-            System.out.println("\n" + meal.getMealType() + ":");
-            System.out.println("Target: " + meal.getTargetCalories() + " calories, " +
-                              meal.getTargetProtein() + "g protein, " +
-                              meal.getTargetCarbs() + "g carbs, " +
-                              meal.getTargetFat() + "g fat");
-            
-            List<Food> foods = meal.getFoods();
-            if (foods.isEmpty()) {
-                System.out.println("No specific foods recommended.");
-            } else {
-                System.out.println("Recommended foods:");
-                for (Food food : foods) {
-                    System.out.println("- " + food.toString());
-                }
-                System.out.println("Total calories: " + meal.getTotalCalories());
-            }
+
+        System.out.println("\nPrevious Diet Recommendations:");
+        for (int i = 0; i < recommendations.size(); i++) {
+            DietRecommendation rec = recommendations.get(i);
+            System.out.println("\nRecommendation #" + (i + 1));
+            System.out.println("Age: " + rec.getAge());
+            System.out.println("Weight: " + rec.getWeight() + " kg");
+            System.out.println("Height: " + rec.getHeight() + " cm");
+            System.out.println("Gender: " + rec.getGender());
+            System.out.println("Activity Level: " + rec.getActivityLevel());
+            System.out.println("Recommendation: " + rec.getRecommendation());
+            System.out.println("-------------------");
         }
-        
-        // Display dietary guidelines
-        System.out.println("\n--- Dietary Guidelines ---");
-        List<String> guidelines = lastRecommendation.getDietaryGuidelines();
-        for (int i = 0; i < guidelines.size(); i++) {
-            System.out.println((i + 1) + ". " + guidelines.get(i));
-        }
-        
-        // Pause before returning to menu
-        System.out.println("\nPress Enter to continue...");
-        scanner.nextLine();
     }
-    
-    /**
-     * Handles viewing example diet plans.
-     * @details Displays a list of example diet plans that demonstrate different
-     *          dietary approaches and their characteristics.
-     */
-    private void handleViewExampleDietPlans() {
-    	  System.out.println("\n===== Example Diet Plans =====");
-          
-          String[] examplePlans = personalizedDietService.getExampleDietPlans();
-          
-          for (int i = 0; i < examplePlans.length; i++) {
-              System.out.println("\n" + examplePlans[i]);
-          }
-         
-          // Pause before returning to menu
-          System.out.println("\nPress Enter to continue...");
-          scanner.nextLine();
-      }
+
+    // record yerine klasik iç sınıf
+    public static class DietRecommendation {
+        private final int age;
+        private final double weight;
+        private final double height;
+        private final String gender;
+        private final String activityLevel;
+        private final String recommendation;
+
+        public DietRecommendation(int age, double weight, double height, String gender, String activityLevel, String recommendation) {
+            this.age = age;
+            this.weight = weight;
+            this.height = height;
+            this.gender = gender;
+            this.activityLevel = activityLevel;
+            this.recommendation = recommendation;
+        }
+
+        public int getAge() { return age; }
+        public double getWeight() { return weight; }
+        public double getHeight() { return height; }
+        public String getGender() { return gender; }
+        public String getActivityLevel() { return activityLevel; }
+        public String getRecommendation() { return recommendation; }
+    }
 }
 

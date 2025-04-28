@@ -1,6 +1,6 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import java.util.Scanner;
+import javax.swing.SwingUtilities;
 
 /**
  * This class represents the main application class for the DietApp.
@@ -12,7 +12,7 @@ public class DietappApp {
     /** The main DietApp instance */
     private Dietapp dietApp;
     /** Scanner for reading user input */
-    private Scanner scanner;
+    private java.util.Scanner scanner;
     /** Service for meal planning operations */
     private MealPlanningService mealPlanningService;
     /** Menu interface for meal planning */
@@ -36,8 +36,8 @@ public class DietappApp {
      */
     public DietappApp() {
         this.dietApp = new Dietapp();
-        this.scanner = new Scanner(System.in);
-        this.mealPlanningService = new MealPlanningService();
+        this.scanner = new java.util.Scanner(System.in);
+        this.mealPlanningService = new MealPlanningService(null);
         this.mealPlanningMenu = new MealPlanningMenu(mealPlanningService, dietApp.getAuthService(), scanner);
         
         // Add new services
@@ -53,7 +53,7 @@ public class DietappApp {
         this.personalizedDietService = new PersonalizedDietRecommendationService(
             calorieNutrientService, mealPlanningService);
         this.personalizedDietMenu = new PersonalizedDietRecommendationMenu(
-            personalizedDietService, dietApp.getAuthService(), scanner);
+            personalizedDietService);
     }
    
     /**
@@ -66,17 +66,17 @@ public class DietappApp {
      * @param args The command-line arguments passed to the application.
      */
     public static void main(String[] args) {
-    	// Initialize database connection
+        // Veritabanı bağlantısını başlat
         DatabaseHelper.initializeDatabase();
         
         try {
-            // Create an instance of the application
-            DietappApp app = new DietappApp();
-            
-            // Run the application
-            app.run();
+            // Swing UI'ı başlat
+            SwingUtilities.invokeLater(() -> {
+                MainFrame frame = new MainFrame();
+                frame.setVisible(true);
+            });
         } finally {
-            // Close database connection when application shuts down
+            // Uygulama kapandığında veritabanı bağlantısını kapat
             DatabaseHelper.closeConnection();
         }
     }

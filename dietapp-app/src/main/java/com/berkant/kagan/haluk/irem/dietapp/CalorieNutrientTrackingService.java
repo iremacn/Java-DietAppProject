@@ -1,6 +1,10 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -600,6 +604,99 @@ public class CalorieNutrientTrackingService {
          */
         public double getFatPercentage() {
             return goals.getFatGoal() > 0 ? (totalFat * 100.0 / goals.getFatGoal()) : 0;
+        }
+    }
+
+    public List<String> getAllFoods() {
+        List<String> foods = new ArrayList<>();
+        try (Connection conn = DatabaseHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT name FROM foods")) {
+            
+            while (rs.next()) {
+                foods.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Foods could not be retrieved: " + e.getMessage());
+        }
+        return foods;
+    }
+
+    public boolean addFoodConsumption(String foodName, double quantity) {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO food_consumption (food_name, quantity, date) VALUES (?, ?, CURRENT_DATE)")) {
+            
+            pstmt.setString(1, foodName);
+            pstmt.setDouble(2, quantity);
+            
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.out.println("Food consumption could not be added: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public String getDailyConsumptionLog() {
+        StringBuilder log = new StringBuilder();
+        try (Connection conn = DatabaseHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT f.name, fc.quantity, f.calories " +
+                 "FROM food_consumption fc " +
+                 "JOIN foods f ON fc.food_name = f.name " +
+                 "WHERE fc.date = CURRENT_DATE")) {
+            
+            while (rs.next()) {
+                log.append(rs.getString("name"))
+                   .append(" - ")
+                   .append(rs.getDouble("quantity"))
+                   .append("g (")
+                   .append(rs.getInt("calories"))
+                   .append(" kalori)\n");
+            }
+        } catch (SQLException e) {
+            System.out.println("Daily consumption log could not be retrieved: " + e.getMessage());
+        }
+        return log.toString();
+    }
+
+    public void addFoodEntry(String foodName, int calories, double protein, double carbs, double fat) throws SQLException {
+        String sql = "INSERT INTO food_entries (food_name, calories, protein, carbs, fat) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = DatabaseHelper.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, foodName);
+            stmt.setInt(2, calories);
+            stmt.setDouble(3, protein);
+            stmt.setDouble(4, carbs);
+            stmt.setDouble(5, fat);
+            stmt.executeUpdate();
+        }
+    }
+
+    public List<String> viewFoodEntries() throws SQLException {
+        List<String> entries = new ArrayList<>();
+        String sql = "SELECT * FROM food_entries";
+        try (Statement stmt = DatabaseHelper.getConnection().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                String entry = String.format("%s - Kalori: %d, Protein: %.1fg, Karbonhidrat: %.1fg, Yağ: %.1fg",
+                    rs.getString("food_name"),
+                    rs.getInt("calories"),
+                    rs.getDouble("protein"),
+                    rs.getDouble("carbs"),
+                    rs.getDouble("fat"));
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
+    public void deleteFoodEntry(String foodName) throws SQLException {
+        String sql = "DELETE FROM food_entries WHERE food_name = ?";
+        try (PreparedStatement stmt = DatabaseHelper.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, foodName);
+            stmt.executeUpdate();
         }
     }
 }

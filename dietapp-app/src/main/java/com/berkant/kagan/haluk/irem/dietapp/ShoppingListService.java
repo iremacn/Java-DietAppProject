@@ -1,6 +1,10 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -298,6 +302,67 @@ public class ShoppingListService {
         
         return totalCost;
     }
+
+    public List<String> generateShoppingList() {
+        List<String> shoppingList = new ArrayList<>();
+        Map<String, Double> ingredientAmounts = new HashMap<>();
+        
+        try (Connection conn = getConnection()) {
+            // Haftalık yemek planından malzemeleri topla
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(
+                     "SELECT ri.ingredient_id, i.name, SUM(ri.amount) as total_amount, ri.unit " +
+                     "FROM recipe_ingredients ri " +
+                     "JOIN ingredients i ON ri.ingredient_id = i.id " +
+                     "JOIN recipes r ON ri.recipe_id = r.id " +
+                     "JOIN meal_plans mp ON r.name = mp.food_name " +
+                     "GROUP BY ri.ingredient_id, i.name, ri.unit")) {
+                
+                while (rs.next()) {
+                    String ingredientName = rs.getString("name");
+                    double amount = rs.getDouble("total_amount");
+                    String unit = rs.getString("unit");
+                    
+                    // Malzeme miktarlarını birleştir
+                    if (ingredientAmounts.containsKey(ingredientName)) {
+                        amount += ingredientAmounts.get(ingredientName);
+                    }
+                    ingredientAmounts.put(ingredientName, amount);
+                    
+                    // Alışveriş listesine ekle
+                    shoppingList.add(String.format("%s - %.2f %s", 
+                        ingredientName, amount, unit));
+                }
+            }
+            
+            // Toplam maliyeti hesapla
+            double totalCost = 0.0;
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(
+                     "SELECT i.name, i.price, SUM(ri.amount) as total_amount " +
+                     "FROM recipe_ingredients ri " +
+                     "JOIN ingredients i ON ri.ingredient_id = i.id " +
+                     "JOIN recipes r ON ri.recipe_id = r.id " +
+                     "JOIN meal_plans mp ON r.name = mp.food_name " +
+                     "GROUP BY i.name, i.price")) {
+                
+                while (rs.next()) {
+                    double price = rs.getDouble("price");
+                    double amount = rs.getDouble("total_amount");
+                    totalCost += price * amount;
+                }
+            }
+            
+            // Toplam maliyeti listeye ekle
+            shoppingList.add(String.format("\nToplam Tahmini Maliyet: %.2f TL", totalCost));
+            
+        } catch (SQLException e) {
+            System.out.println("Shopping list could not be generated: " + e.getMessage());
+        }
+        
+        return shoppingList;
+    }
+
     /**
      * Inner class to represent an ingredient with its amount, unit, and price.
      * @details Contains information about a specific ingredient including its
