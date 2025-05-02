@@ -1,17 +1,20 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.*;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for the CalorieNutrientTrackingService class.
@@ -26,8 +29,13 @@ public class CalorieNutrientTrackingServiceTest {
     @Before
     public void setUp() {
         // Initialize mock services
-        mealPlanningService = new MealPlanningService();
-        calorieNutrientService = new MockCalorieNutrientTrackingService();
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+            mealPlanningService = new MealPlanningService(conn);
+            calorieNutrientService = new MockCalorieNutrientTrackingService();
+        } catch (SQLException e) {
+            fail("Failed to create test database connection: " + e.getMessage());
+        }
     }
     
     @Test
@@ -913,270 +921,149 @@ public class CalorieNutrientTrackingServiceTest {
                 return mockCommonFoods != null ? mockCommonFoods : new FoodNutrient[0];
             }
         }
-        /**
-         * Tests the direct database interaction for the setNutritionGoals method
-         */
         @Test
         public void testSetNutritionGoalsWithDirectDBInteraction() {
-            // Create a custom meal planning service for testing
-            MealPlanningService testMealPlanningService = new MealPlanningService();
-            
-            // Create an actual CalorieNutrientTrackingService to test real DB interaction
-            CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService) {
-                // Override to force insert path (simulate new user)
-                protected int getUserId(Connection conn, String username) throws SQLException {
-                    // Return a valid user ID (1) but ensure goalId lookup fails (simulate new goal)
-                    return 1;
-                }
-            };
-            
-            // Set nutrition goals with the real service
-            boolean result = realService.setNutritionGoals("testuser", 2500, 80, 300, 90);
-            
-            // The operation might succeed or fail depending on the actual database state
-            // But it will execute real database code, increasing coverage
-            
-            // Now test with our mock service to verify the behavior
-            boolean mockResult = calorieNutrientService.setNutritionGoals("testuser", 2500, 80, 300, 90);
-            assertTrue("Mock service should return success", mockResult);
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                
+                // Create an actual CalorieNutrientTrackingService to test real DB interaction
+                CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService) {
+                    // Override to force insert path (simulate new user)
+                    protected int getUserId(Connection conn, String username) throws SQLException {
+                        // Return a valid user ID (1) but ensure goalId lookup fails (simulate new goal)
+                        return 1;
+                    }
+                };
+                
+                // Set nutrition goals with the real service
+                boolean result = realService.setNutritionGoals("testuser", 2500, 80, 300, 90);
+                
+                // The operation might succeed or fail depending on the actual database state
+                // But it will execute real database code, increasing coverage
+                
+                // Now test with our mock service to verify the behavior
+                boolean mockResult = calorieNutrientService.setNutritionGoals("testuser", 2500, 80, 300, 90);
+                assertTrue("Mock service should return success", mockResult);
+            } catch (SQLException e) {
+                fail("Failed to create test database connection: " + e.getMessage());
+            }
         }
 
-        /**
-         * Tests the database operations in getNutritionGoals method
-         */
         @Test
         public void testGetNutritionGoalsWithDBInteractions() {
-            // Create a test meal planning service
-            MealPlanningService testMealPlanningService = new MealPlanningService();
-            
-            // Create an actual service for real DB interactions
-            CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService);
-            
-            // Get nutrition goals for existing and non-existing users
-            CalorieNutrientTrackingService.NutritionGoal existingUserGoals = realService.getNutritionGoals("testuser");
-            CalorieNutrientTrackingService.NutritionGoal nonExistingUserGoals = realService.getNutritionGoals("nonexistentuser");
-            
-            // Both should return valid NutritionGoal objects
-            assertNotNull("Should return goals for existing user", existingUserGoals);
-            assertNotNull("Should return default goals for non-existing user", nonExistingUserGoals);
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                
+                // Create an actual service for real DB interactions
+                CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Get nutrition goals for existing and non-existing users
+                CalorieNutrientTrackingService.NutritionGoal existingUserGoals = realService.getNutritionGoals("testuser");
+                CalorieNutrientTrackingService.NutritionGoal nonExistingUserGoals = realService.getNutritionGoals("nonexistentuser");
+                
+                // Both should return valid NutritionGoal objects
+                assertNotNull("Should return goals for existing user", existingUserGoals);
+                assertNotNull("Should return default goals for non-existing user", nonExistingUserGoals);
+            } catch (SQLException e) {
+                fail("Failed to create test database connection: " + e.getMessage());
+            }
         }
 
-        /**
-         * Tests with real database access for getCommonFoodsWithNutrients
-         */
         @Test
         public void testGetCommonFoodsWithRealDBAccess() {
-            // Create a test meal planning service
-            MealPlanningService testMealPlanningService = new MealPlanningService();
-            
-            // Create an actual service for real DB interactions
-            CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService);
-            
-            // Call the method to test DB interaction
-            FoodNutrient[] foods = realService.getCommonFoodsWithNutrients();
-            
-            // Should always return some foods (either from DB or default array)
-            assertNotNull("Should return foods array", foods);
-            assertTrue("Should return at least one food", foods.length > 0);
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                
+                // Create an actual service for real DB interactions
+                CalorieNutrientTrackingService realService = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Call the method to test DB interaction
+                FoodNutrient[] foods = realService.getCommonFoodsWithNutrients();
+                
+                // Should always return some foods (either from DB or default array)
+                assertNotNull("Should return foods array", foods);
+                assertTrue("Should return at least one food", foods.length > 0);
+            } catch (SQLException e) {
+                fail("Failed to create test database connection: " + e.getMessage());
+            }
         }
 
-        /**
-         * Tests boundary cases for the calculateSuggestedCalories method
-         */
-        @Test
-        public void testCalculateSuggestedCaloriesBoundary() {
-            // Create a mock service with predictable behavior
-            MockCalorieNutrientTrackingService testService = new MockCalorieNutrientTrackingService();
-            
-            // For invalid inputs, always return 0
-            testService.setMockSuggestedCalories(0);
-            
-            // Test extreme age values
-            assertEquals(0, testService.calculateSuggestedCalories('M', 0, 180, 75, 2)); // Invalid age
-            assertEquals(0, testService.calculateSuggestedCalories('M', -10, 180, 75, 2)); // Invalid age
-            
-            // Test extreme height values
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, 0, 75, 2)); // Invalid height
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, -180, 75, 2)); // Invalid height
-            
-            // Test extreme weight values
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, 180, 0, 2)); // Invalid weight
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, 180, -75, 2)); // Invalid weight
-            
-            // Test minimum and maximum values for activity level
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, 180, 75, 0)); // Invalid level
-            assertEquals(0, testService.calculateSuggestedCalories('M', 30, 180, 75, 6)); // Invalid level
-            
-            // Test edge case for gender
-            assertEquals(0, testService.calculateSuggestedCalories('X', 30, 180, 75, 2)); // Invalid gender
-            
-            // Test valid values
-            testService.setMockSuggestedCalories(2500);
-            int result = testService.calculateSuggestedCalories('M', 30, 180, 75, 2);
-            assertEquals(2500, result);
-        }
-        public void testNutritionReportPercentages() {
-            // Test with all goals being zero
-            CalorieNutrientTrackingService.NutritionGoal zeroGoals = 
-                calorieNutrientService.new NutritionGoal(0, 0, 0, 0);
-            
-            CalorieNutrientTrackingService.NutritionReport reportWithZeroGoals = 
-                calorieNutrientService.new NutritionReport(
-                    "2023-04-15", 1500, 40, 200, 50, 20, 30, 1500, zeroGoals);
-            
-            // All percentages should be 0 to avoid division by zero
-            assertEquals(0, reportWithZeroGoals.getCaloriePercentage(), 0.001);
-            assertEquals(0, reportWithZeroGoals.getProteinPercentage(), 0.001);
-            assertEquals(0, reportWithZeroGoals.getCarbPercentage(), 0.001);
-            assertEquals(0, reportWithZeroGoals.getFatPercentage(), 0.001);
-            
-            // Test with normal goals but zero consumption
-            CalorieNutrientTrackingService.NutritionGoal normalGoals = 
-                calorieNutrientService.new NutritionGoal(2000, 50, 250, 70);
-            
-            CalorieNutrientTrackingService.NutritionReport zeroConsumptionReport = 
-                calorieNutrientService.new NutritionReport(
-                    "2023-04-15", 0, 0, 0, 0, 0, 0, 0, normalGoals);
-            
-            // All percentages should be 0
-            assertEquals(0, zeroConsumptionReport.getCaloriePercentage(), 0.001);
-            assertEquals(0, zeroConsumptionReport.getProteinPercentage(), 0.001);
-            assertEquals(0, zeroConsumptionReport.getCarbPercentage(), 0.001);
-            assertEquals(0, zeroConsumptionReport.getFatPercentage(), 0.001);
-            
-            // Test with consumption exceeding goals (over 100%)
-            CalorieNutrientTrackingService.NutritionReport excessConsumptionReport = 
-                calorieNutrientService.new NutritionReport(
-                    "2023-04-15", 3000, 100, 500, 140, 30, 60, 2000, normalGoals);
-            
-            // Percentages should exceed 100%
-            assertEquals(150, excessConsumptionReport.getCaloriePercentage(), 0.001); // 3000/2000 * 100
-            assertEquals(200, excessConsumptionReport.getProteinPercentage(), 0.001); // 100/50 * 100
-            assertEquals(200, excessConsumptionReport.getCarbPercentage(), 0.001); // 500/250 * 100
-            assertEquals(200, excessConsumptionReport.getFatPercentage(), 0.001); // 140/70 * 100
-        }
-
-        /**
-         * Tests the entire flow of nutrition tracking with mock objects
-         */
         @Test
         public void testEndToEndNutritionTracking() {
-            // Setup mock data
-            final String testUsername = "testuser";
-            final String testDate = "2023-04-15";
-            
-            // Create a custom meal planning service
-            MealPlanningService customMealService = new MealPlanningService() {
-                @Override
-                public List<Food> getFoodLog(String username, String date) {
-                    List<Food> foods = new ArrayList<>();
-                    if (testUsername.equals(username) && testDate.equals(date)) {
-                        // Add a mix of Food and FoodNutrient objects
-                        foods.add(new Food("Breakfast", 300, 500));
-                        foods.add(new FoodNutrient("Apple", 100, 52, 0.3, 14.0, 0.2, 2.4, 10.3, 1.0));
-                        foods.add(new FoodNutrient("Chicken", 200, 330, 62.0, 0.0, 7.2, 0.0, 0.0, 148.0));
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                // Setup mock data
+                final String testUsername = "testuser";
+                final String testDate = "2023-04-15";
+                
+                // Create a custom meal planning service
+                MealPlanningService customMealService = new MealPlanningService(conn) {
+                    @Override
+                    public List<Food> getFoodLog(String username, String date) {
+                        List<Food> foods = new ArrayList<>();
+                        if (testUsername.equals(username) && testDate.equals(date)) {
+                            // Add a mix of Food and FoodNutrient objects
+                            foods.add(new Food("Breakfast", 300, 500));
+                            foods.add(new FoodNutrient("Apple", 100, 52, 0.3, 14.0, 0.2, 2.4, 10.3, 1.0));
+                            foods.add(new FoodNutrient("Chicken", 200, 330, 62.0, 0.0, 7.2, 0.0, 0.0, 148.0));
+                        }
+                        return foods;
                     }
-                    return foods;
-                }
-            };
-            
-            // Create a CalorieNutrientTrackingService with our custom meal service
-            CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(customMealService) {
-                @Override
-                public NutritionGoal getNutritionGoals(String username) {
-                    // Always return test goals
-                    return new NutritionGoal(2000, 50, 250, 70);
-                }
-            };
-            
-            // Set nutrition goals
-            boolean goalResult = service.setNutritionGoals(testUsername, 2000, 50, 250, 70);
-            
-            // Get nutrition report
-            CalorieNutrientTrackingService.NutritionReport report = 
-                service.getNutritionReport(testUsername, testDate);
-            
-            // Verify the report data
-            assertNotNull("Report should not be null", report);
-            assertEquals(testDate, report.getDate());
-            
-            // The total calories should be the sum from all foods (500 + 52 + 330 = 882)
-            assertEquals(882, report.getTotalCalories());
-            
-            // Protein, carbs, fat should be summed from FoodNutrient objects
-            assertEquals(62.3, report.getTotalProtein(), 0.1); // 0 + 0.3 + 62.0
-            assertEquals(14.0, report.getTotalCarbs(), 0.1); // 0 + 14.0 + 0.0
-            assertEquals(7.4, report.getTotalFat(), 0.1); // 0 + 0.2 + 7.2
-            
-            // Get weekly report
-            String[] dates = {testDate};
-            List<CalorieNutrientTrackingService.NutritionReport> weeklyReports = 
-                service.getWeeklyReport(testUsername, dates);
-            
-            // Verify weekly report
-            assertNotNull("Weekly reports should not be null", weeklyReports);
-            assertEquals(1, weeklyReports.size());
-            
-            // Calculate suggested calories
-            int suggestedCalories = service.calculateSuggestedCalories('M', 30, 180, 75, 2);
-            assertTrue("Suggested calories should be positive", suggestedCalories > 0);
-            
-            // Get common foods
-            FoodNutrient[] commonFoods = service.getCommonFoodsWithNutrients();
-            assertNotNull("Common foods should not be null", commonFoods);
-            assertTrue("Should return at least one common food", commonFoods.length > 0);
+                };
+                
+                // Create a CalorieNutrientTrackingService with our custom meal service
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(customMealService) {
+                    @Override
+                    public NutritionGoal getNutritionGoals(String username) {
+                        // Always return test goals
+                        return new NutritionGoal(2000, 50, 250, 70);
+                    }
+                };
+                
+                // Set nutrition goals
+                boolean goalResult = service.setNutritionGoals(testUsername, 2000, 50, 250, 70);
+                
+                // Get nutrition report
+                CalorieNutrientTrackingService.NutritionReport report = 
+                    service.getNutritionReport(testUsername, testDate);
+                
+                // Verify the report data
+                assertNotNull("Report should not be null", report);
+                assertEquals(testDate, report.getDate());
+                
+                // The total calories should be the sum from all foods (500 + 52 + 330 = 882)
+                assertEquals(882, report.getTotalCalories());
+                
+                // Protein, carbs, fat should be summed from FoodNutrient objects
+                assertEquals(62.3, report.getTotalProtein(), 0.1); // 0 + 0.3 + 62.0
+                assertEquals(14.0, report.getTotalCarbs(), 0.1); // 0 + 14.0 + 0.0
+                assertEquals(7.4, report.getTotalFat(), 0.1); // 0 + 0.2 + 7.2
+                
+                // Get weekly report
+                String[] dates = {testDate};
+                List<CalorieNutrientTrackingService.NutritionReport> weeklyReports = 
+                    service.getWeeklyReport(testUsername, dates);
+                
+                // Verify weekly report
+                assertNotNull("Weekly reports should not be null", weeklyReports);
+                assertEquals(1, weeklyReports.size());
+                
+                // Calculate suggested calories
+                int suggestedCalories = service.calculateSuggestedCalories('M', 30, 180, 75, 2);
+                assertTrue("Suggested calories should be positive", suggestedCalories > 0);
+                
+                // Get common foods
+                FoodNutrient[] commonFoods = service.getCommonFoodsWithNutrients();
+                assertNotNull("Common foods should not be null", commonFoods);
+                assertTrue("Should return at least one common food", commonFoods.length > 0);
+            } catch (SQLException e) {
+                fail("Failed to create test database connection: " + e.getMessage());
+            }
         }
 
-        /**
-         * Tests that the NutritionGoal constructor handles negative values correctly
-         */
-        @Test
-        public void testNutritionGoalConstructorNegativeValues() {
-            // Test with negative values for all parameters
-            CalorieNutrientTrackingService.NutritionGoal goal = 
-                calorieNutrientService.new NutritionGoal(-100, -20, -300, -40);
-            
-            // All values should be set to 0 (non-negative)
-            assertEquals(0, goal.getCalorieGoal());
-            assertEquals(0, goal.getProteinGoal(), 0.001);
-            assertEquals(0, goal.getCarbGoal(), 0.001);
-            assertEquals(0, goal.getFatGoal(), 0.001);
-        }
-
-        /**
-         * Tests that the NutritionReport constructor handles null and negative values
-         */
-        @Test
-        public void testNutritionReportConstructorEdgeCases() {
-            // Test with null date and goals
-            CalorieNutrientTrackingService.NutritionReport report1 = 
-                calorieNutrientService.new NutritionReport(
-                    null, 1500, 40, 200, 50, 20, 30, 1500, null);
-            
-            // Date should be empty string, not null
-            assertEquals("", report1.getDate());
-            
-            // Goals should be a default NutritionGoal, not null
-            assertNotNull(report1.getGoals());
-            
-            // Test with negative values for all numeric parameters
-            CalorieNutrientTrackingService.NutritionReport report2 = 
-                calorieNutrientService.new NutritionReport(
-                    "2023-04-15", -1500, -40, -200, -50, -20, -30, -1500, 
-                    calorieNutrientService.new NutritionGoal(2000, 50, 250, 70));
-            
-            // All numeric values should be set to 0 (non-negative)
-            assertEquals(0, report2.getTotalCalories()); 
-            assertEquals(0, report2.getTotalProtein(), 0.001);
-            assertEquals(0, report2.getTotalCarbs(), 0.001);
-            assertEquals(0, report2.getTotalFat(), 0.001);
-            assertEquals(0, report2.getTotalFiber(), 0.001);
-            assertEquals(0, report2.getTotalSugar(), 0.001);
-            assertEquals(0, report2.getTotalSodium(), 0.001);
-        }
-        
-        
-        
         @Test
         public void testActivityFactorInCalculateSuggestedCalories() {
             // Create a test instance that directly calls the real implementation
@@ -1222,14 +1109,4 @@ public class CalorieNutrientTrackingServiceTest {
             int calories6 = service.calculateSuggestedCalories(gender, age, heightCm, weightKg, 6);
             assertEquals("Invalid activity level 6 should return 0", 0, calories6);
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
     }

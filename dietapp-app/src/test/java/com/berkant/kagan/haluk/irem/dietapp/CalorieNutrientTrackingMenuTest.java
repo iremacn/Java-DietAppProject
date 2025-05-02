@@ -58,7 +58,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -81,7 +81,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -99,7 +99,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -117,7 +117,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -141,7 +141,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -169,7 +169,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -226,7 +226,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -252,7 +252,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -280,7 +280,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -312,7 +312,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -343,7 +343,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -368,7 +368,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -393,7 +393,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -410,7 +410,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -434,7 +434,7 @@ public class CalorieNutrientTrackingMenuTest {
         
         // Create menu
         menu = new CalorieNutrientTrackingMenu(
-            calorieNutrientService, mealPlanningService, authService, scanner);
+            calorieNutrientService, new MockMealPlanningService(), authService, scanner);
         
         // Display menu
         menu.displayMenu();
@@ -644,8 +644,7 @@ public class CalorieNutrientTrackingMenuTest {
      */
     private static class MockMealPlanningService extends MealPlanningService {
         public MockMealPlanningService() {
-            // Call super constructor with null (not used in tests)
-            super();
+            super(null); // Test için null connection kullanıyoruz
         }
     }
     
@@ -676,8 +675,8 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Sınıf örneğini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                new CalorieNutrientTrackingService(new MealPlanningService()),
-                new MealPlanningService(),
+                new CalorieNutrientTrackingService(new MockMealPlanningService()),
+                new MockMealPlanningService(),
                 new AuthenticationService(),
                 new Scanner(System.in)
             );
@@ -705,8 +704,8 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Sınıf örneğini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                new CalorieNutrientTrackingService(new MealPlanningService()),
-                new MealPlanningService(),
+                new CalorieNutrientTrackingService(new MockMealPlanningService()),
+                new MockMealPlanningService(),
                 new AuthenticationService(),
                 new Scanner(System.in)
             );
@@ -743,8 +742,8 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Sınıf örneğini oluştur - test için boş Scanner yeterli
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                new CalorieNutrientTrackingService(new MealPlanningService()),
-                new MealPlanningService(),
+                new CalorieNutrientTrackingService(new MockMealPlanningService()),
+                new MockMealPlanningService(),
                 new AuthenticationService(),
                 new Scanner("")
             );
@@ -803,8 +802,8 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Sınıf örneğini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                new CalorieNutrientTrackingService(new MealPlanningService()),
-                new MealPlanningService(),
+                new CalorieNutrientTrackingService(new MockMealPlanningService()),
+                new MockMealPlanningService(),
                 new AuthenticationService(),
                 new Scanner("")
             );
@@ -864,7 +863,7 @@ public class CalorieNutrientTrackingMenuTest {
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
                 successService,
-                new MealPlanningService(),
+                new MockMealPlanningService(),
                 authService,
                 testScanner
             );
@@ -894,7 +893,7 @@ public class CalorieNutrientTrackingMenuTest {
     public void testHandleSetNutritionGoalsFailed() {
         try {
             // Başarısız servis sonucu için mock servis oluştur
-            CalorieNutrientTrackingService failureService = new CalorieNutrientTrackingService(null) {
+            CalorieNutrientTrackingService failureService = new MockCalorieNutrientTrackingService() {
                 @Override
                 public boolean setNutritionGoals(String username, int calorieGoal, 
                                                double proteinGoal, double carbGoal, double fatGoal) {
@@ -926,7 +925,7 @@ public class CalorieNutrientTrackingMenuTest {
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
                 failureService,
-                new MealPlanningService(),
+                new MockMealPlanningService(),
                 authService,
                 testScanner
             );
@@ -956,7 +955,7 @@ public class CalorieNutrientTrackingMenuTest {
     public void testHandleSetNutritionGoalsWithInvalidInputs() {
         try {
             // Mock servis oluştur (başarılı sonuç dönecek ama invalid input olacak)
-            CalorieNutrientTrackingService mockService = new CalorieNutrientTrackingService(null) {
+            CalorieNutrientTrackingService mockService = new MockCalorieNutrientTrackingService() {
                 @Override
                 public boolean setNutritionGoals(String username, int calorieGoal, 
                                                double proteinGoal, double carbGoal, double fatGoal) {
@@ -988,7 +987,7 @@ public class CalorieNutrientTrackingMenuTest {
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
                 mockService,
-                new MealPlanningService(),
+                new MockMealPlanningService(),
                 authService,
                 testScanner
             );
@@ -1018,7 +1017,7 @@ public class CalorieNutrientTrackingMenuTest {
     public void testHandleSetNutritionGoalsWithNegativeValues() {
         try {
             // Mock servis oluştur
-            CalorieNutrientTrackingService mockService = new CalorieNutrientTrackingService(null) {
+            CalorieNutrientTrackingService mockService = new MockCalorieNutrientTrackingService() {
                 @Override
                 public boolean setNutritionGoals(String username, int calorieGoal, 
                                                double proteinGoal, double carbGoal, double fatGoal) {
@@ -1050,7 +1049,7 @@ public class CalorieNutrientTrackingMenuTest {
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
                 mockService,
-                new MealPlanningService(),
+                new MockMealPlanningService(),
                 authService,
                 testScanner
             );
@@ -1090,7 +1089,7 @@ public class CalorieNutrientTrackingMenuTest {
             System.setOut(new PrintStream(baos));
             
             // Basit bir mock CalorieNutrientTrackingService oluştur
-            CalorieNutrientTrackingService mockCalorieService = new CalorieNutrientTrackingService(null) {
+            CalorieNutrientTrackingService mockCalorieService = new MockCalorieNutrientTrackingService() {
                 @Override
                 public int calculateSuggestedCalories(char gender, int age, double heightCm, 
                                                    double weightKg, int activityLevel) {
@@ -1111,7 +1110,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                mockCalorieService, new MealPlanningService(), authService, testScanner);
+                mockCalorieService, new MockMealPlanningService(), authService, testScanner);
             
             // handleCalculateSuggestedCalories metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
@@ -1150,7 +1149,7 @@ public class CalorieNutrientTrackingMenuTest {
             System.setOut(new PrintStream(baos));
             
             // Basit bir mock CalorieNutrientTrackingService oluştur
-            CalorieNutrientTrackingService mockCalorieService = new CalorieNutrientTrackingService(null) {
+            CalorieNutrientTrackingService mockCalorieService = new MockCalorieNutrientTrackingService() {
                 @Override
                 public int calculateSuggestedCalories(char gender, int age, double heightCm, 
                                                    double weightKg, int activityLevel) {
@@ -1171,7 +1170,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             CalorieNutrientTrackingMenu menu = new CalorieNutrientTrackingMenu(
-                mockCalorieService, new MealPlanningService(), authService, testScanner);
+                mockCalorieService, new MockMealPlanningService(), authService, testScanner);
             
             // handleCalculateSuggestedCalories metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
@@ -1213,7 +1212,7 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Create menu with our scanner
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, scanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, scanner);
                 
       
             // Output kontrolü
@@ -1253,7 +1252,7 @@ public class CalorieNutrientTrackingMenuTest {
         try {
             // Menü nesnesini oluştur
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, testScanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, testScanner);
             
             // Menüyü göster
             menu.displayMenu();
@@ -1313,7 +1312,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, testScanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, testScanner);
             
             // handleCalculateSuggestedCalories metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
@@ -1377,7 +1376,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur - başarısız servisi kullanarak
             menu = new CalorieNutrientTrackingMenu(
-                failingService, mealPlanningService, authService, testScanner);
+                failingService, new MockMealPlanningService(), authService, testScanner);
             
             // handleCalculateSuggestedCalories metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("handleCalculateSuggestedCalories");
@@ -1430,7 +1429,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, testScanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, testScanner);
             
             // getDateInput metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");
@@ -1488,7 +1487,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, testScanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, testScanner);
             
             // getDateInput metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");
@@ -1545,7 +1544,7 @@ public class CalorieNutrientTrackingMenuTest {
             
             // Menü nesnesini oluştur
             menu = new CalorieNutrientTrackingMenu(
-                calorieNutrientService, mealPlanningService, authService, testScanner);
+                calorieNutrientService, new MockMealPlanningService(), authService, testScanner);
             
             // getDateInput metoduna reflection ile eriş
             Method method = CalorieNutrientTrackingMenu.class.getDeclaredMethod("getDateInput");

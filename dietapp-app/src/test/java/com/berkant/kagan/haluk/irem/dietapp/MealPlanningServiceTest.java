@@ -120,7 +120,7 @@ public class MealPlanningServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        mealPlanningService = new MealPlanningService();
+        mealPlanningService = new MealPlanningService(null);
         
         // Clean up any data that might have been left from previous tests
         cleanupTestData();
