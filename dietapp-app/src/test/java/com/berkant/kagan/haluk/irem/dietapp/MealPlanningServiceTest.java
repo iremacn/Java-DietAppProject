@@ -120,7 +120,12 @@ public class MealPlanningServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        mealPlanningService = new MealPlanningService(null);
+        // Get a real connection for the tests
+        Connection connection = DatabaseHelper.getConnection();
+        // Ensure test tables exist
+        ensureTablesExist(connection);
+        
+        mealPlanningService = new MealPlanningService(connection);
         
         // Clean up any data that might have been left from previous tests
         cleanupTestData();

@@ -41,7 +41,7 @@ public class PersonalizedDietRecommendationServiceTest {
             }
         };
         
-        mealService = new MealPlanningService() {
+        mealService = new MealPlanningService(null) {
             @Override
             public Food[] getBreakfastOptions() {
                 return new Food[] {

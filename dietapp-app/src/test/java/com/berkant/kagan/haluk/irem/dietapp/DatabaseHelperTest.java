@@ -1286,7 +1286,7 @@ public class DatabaseHelperTest {
                 fail("Null connection should not pass this check");
             }
         }
-        
+       
         // Block 2: The try-catch for connection status
         {
             try {

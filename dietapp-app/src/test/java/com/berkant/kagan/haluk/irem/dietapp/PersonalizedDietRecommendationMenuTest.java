@@ -80,7 +80,7 @@ public class PersonalizedDietRecommendationMenuTest {
             setUserDietProfileResult = result;
         }
     }
-    
+   
     private static class AuthenticationServiceMock extends AuthenticationService {
         private User currentUser = new User("testuser", "password", "test@example.com", "Test User");
         

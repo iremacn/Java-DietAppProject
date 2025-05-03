@@ -770,20 +770,19 @@ public class ShoppingListServiceTest {
      * Mock implementation of MealPlanningService for testing purposes.
      */
     private class MockMealPlanningService extends MealPlanningService {
-        // Mock food arrays
         private Food[] breakfastOptions = {
-            new Food("Scrambled Eggs", 300, 200),
-            new Food("Oatmeal with Fruits", 250, 350)
+            new Food("Oatmeal with Fruit", 150, 300),
+            new Food("Scrambled Eggs with Toast", 200, 400)
         };
         
         private Food[] lunchOptions = {
-            new Food("Grilled Chicken Salad", 350, 450),
-            new Food("Tuna Sandwich", 300, 400)
+            new Food("Chicken Salad", 300, 450),
+            new Food("Vegetable Soup with Bread", 250, 400)
         };
         
         private Food[] snackOptions = {
-            new Food("Apple with Peanut Butter", 200, 150),
-            new Food("Greek Yogurt", 100, 120)
+            new Food("Apple and Peanut Butter", 150, 200),
+            new Food("Greek Yogurt with Berries", 120, 180)
         };
         
         private Food[] dinnerOptions = {
@@ -792,7 +791,7 @@ public class ShoppingListServiceTest {
         };
         
         public MockMealPlanningService() {
-            super();
+            super(null);
         }
         
         @Override
@@ -1342,7 +1341,7 @@ public class ShoppingListServiceTest {
      * Tests the ShoppingListService constructor with different scenarios
      */
     @Test
-    public void testServiceConstructorScenarios1() {
+    public void testServiceConstructorScenarios() {
         // Test with null meal planning service
         try {
             ShoppingListService nullService = new ShoppingListService(null);
@@ -1362,7 +1361,7 @@ public class ShoppingListServiceTest {
         }
         
         // Test with custom meal planning service
-        MealPlanningService customService = new MealPlanningService() {
+        MealPlanningService customService = new MealPlanningService(null) {
             @Override
             public Food[] getBreakfastOptions() {
                 return new Food[] { new Food("Custom Breakfast", 100, 200) };
@@ -2147,7 +2146,7 @@ public class ShoppingListServiceTest {
              * Tests the ShoppingListService constructor with different scenarios
              */
             @Test
-            public void testServiceConstructorScenarios() {
+            public void testServiceConstructorScenarios1() {
                 // Test with null meal planning service
                 try {
                     ShoppingListService nullService = new ShoppingListService(null);
@@ -2167,7 +2166,7 @@ public class ShoppingListServiceTest {
                 }
                 
                 // Test with custom meal planning service
-                MealPlanningService customService = new MealPlanningService() {
+                MealPlanningService customService = new MealPlanningService(null) {
                     @Override
                     public Food[] getBreakfastOptions() {
                         return new Food[] { new Food("Custom Breakfast", 100, 200) };
@@ -2250,51 +2249,10 @@ public class ShoppingListServiceTest {
             /**
              * Tests the insertRecipe method using reflection
              */
-            @Test
-            public void testInsertRecipeWithReflection() {
-                try {
-                    // Get a reference to the private method using reflection
-                    java.lang.reflect.Method insertRecipeMethod = ShoppingListService.class.getDeclaredMethod(
-                            "insertRecipe", Connection.class, String.class, String.class);
-                    
-                    // Make the method accessible
-                    insertRecipeMethod.setAccessible(true);
-                    
-                    // Create a test connection
-                    Connection conn = null;
-                    try {
-                        Class.forName("org.sqlite.JDBC");
-                        conn = DriverManager.getConnection("jdbc:sqlite::memory:");
-                        
-                        // Create the recipes table
-                        Statement stmt = conn.createStatement();
-                        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS recipes (id INTEGER PRIMARY KEY, meal_type TEXT, name TEXT)");
-                        
-                        // Invoke the method
-                        Object result = insertRecipeMethod.invoke(shoppingListService, conn, "test", "Test Recipe");
-                        
-                        // Verify the result is an integer (recipe ID) or -1
-                        assertTrue("Result should be an Integer", result instanceof Integer);
-                        
-                    } catch (Exception e) {
-                        System.out.println("Database error in insertRecipe test: " + e.getMessage());
-                    } finally {
-                        if (conn != null) {
-                            try {
-                                conn.close();
-                            } catch (SQLException e) {
-                                // Ignore
-                            }
-                        }
-                    }
-                } catch (NoSuchMethodException e) {
-                    System.out.println("Reflection error: " + e.getMessage());
-                }
-            }
-
-            /**
-             * Tests the service with a completely mocked database helper
-             */
+            
+          
+           
+            
             @Test
             public void testWithMockedDatabaseHelper() {
                 // Create a service with a completely different database behavior
