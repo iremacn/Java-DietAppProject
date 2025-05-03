@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.DietType;
+import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.WeightGoal;
 
 /**
  * This class handles personalized diet recommendation operations for the Diet Planner application.
@@ -672,7 +674,7 @@ public class PersonalizedDietRecommendationService {
         return -1;
     }
 
-    @Override
+   // @Override//
     public String[] getExampleDietPlans() {
         return getDefaultExampleDietPlans();
     }

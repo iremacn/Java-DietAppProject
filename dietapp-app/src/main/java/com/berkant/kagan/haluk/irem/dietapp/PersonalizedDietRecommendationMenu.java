@@ -207,8 +207,13 @@ public class PersonalizedDietRecommendationMenu {
                 }
             }
            
-            // Call service to set user diet profile
-            boolean success = dietService.setUserDietProfile(username, dietType, healthConditions, weightGoal, excludedFoods);
+            boolean success = dietService.setUserDietProfile(
+            	    username, 
+            	    PersonalizedDietRecommendationService.DietType.valueOf(dietType.name()), 
+            	    healthConditions, 
+            	    PersonalizedDietRecommendationService.WeightGoal.valueOf(weightGoal.name()), 
+            	    excludedFoods
+            	);
             
             if (success) {
                 System.out.println("Diet preferences updated successfully!");
