@@ -166,6 +166,15 @@
 					 	<include>**/AuthenticationServiceTest</include>
 					    <include>**/DataHelperTest</include>
 						<include>**/DatabaseHelperTest</include>
+						<include>**/CalorieTrackingPanelTest</include>
+                        <include>**/CalorieTrackingPanelTest</include>
+                        <include>**/MealPlanningPanelTest</include>
+                        <include>**/PersonalizedDietPanelTest</include>
+                        <include>**/ShoppingListPanelTest</include>
+                        <include>**/CalorieTrackingPanelTest</include>
+                        <include>**/DietappAppScannerTest</include>
+                     
+
 						
 						
 						
