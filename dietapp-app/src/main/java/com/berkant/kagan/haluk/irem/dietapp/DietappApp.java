@@ -30,6 +30,19 @@ public class DietappApp {
     /** Menu interface for personalized diet recommendations */
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
   
+    // Add this static field
+    private static boolean testMode = false;
+    
+    // Add this static method
+    public static void setTestMode(boolean mode) {
+        testMode = mode;
+    }
+    
+    // Check the test mode 
+    public static boolean isTestMode() {
+        return testMode;
+    }
+    
     /**
      * Constructor for DietAppApp class.
      * Initializes the DietApp and Scanner objects.
@@ -66,17 +79,19 @@ public class DietappApp {
      * @param args The command-line arguments passed to the application.
      */
     public static void main(String[] args) {
-        // Veritabanı bağlantısını başlat
+        
         DatabaseHelper.initializeDatabase();
         
         try {
-            // Swing UI'ı başlat
-            SwingUtilities.invokeLater(() -> {
-                MainFrame frame = new MainFrame();
-                frame.setVisible(true);
-            });
+            // Modify this section to check testMode
+            if (!testMode) {
+                SwingUtilities.invokeLater(() -> {
+                    MainFrame frame = new MainFrame();
+                    frame.setVisible(true);
+                });
+            }
         } finally {
-            // Uygulama kapandığında veritabanı bağlantısını kapat
+            
             DatabaseHelper.closeConnection();
         }
     }
@@ -90,6 +105,12 @@ public class DietappApp {
         boolean running = true;
         
         System.out.println("Welcome to Diet Planner Application!");
+        
+        // dietApp null kontrolü
+        if (dietApp == null) {
+            System.out.println("Error: dietApp is null");
+            return;
+        }
         
         while (running) {
             if (dietApp.isUserLoggedIn()) {
@@ -108,12 +129,19 @@ public class DietappApp {
         }
         
         // Close the scanner
-        scanner.close();
+        if (scanner != null) {
+            scanner.close();
+        }
         
         // Close database connection
-        DatabaseHelper.closeAllConnections();
+        try {
+            DatabaseHelper.closeAllConnections();
+        } catch (Exception e) {
+            System.out.println("Error closing database connections: " + e.getMessage());
+        }
     }
 
+    
     /**
      * Handles the authentication menu choices.
      * @details Processes user selections from the authentication menu,
@@ -375,5 +403,6 @@ public class DietappApp {
     private void handleGuestMode() {
         dietApp.enableGuestMode();
         System.out.println("You are now using the application as a guest. Some features may be limited.");
+    
     }
 }

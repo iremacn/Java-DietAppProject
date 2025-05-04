@@ -25,10 +25,10 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         setTitle("Diet Planner");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
-
+ 
         // Initialize database
         DatabaseHelper.initializeDatabase();
 
