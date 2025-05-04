@@ -172,6 +172,9 @@
                         <include>**/PersonalizedDietPanelTest</include>
                         <include>**/ShoppingListPanelTest</include>
                         <include>**/CalorieTrackingPanelTest</include>
+						<include>**/UserAuthenticationPanelTest</include>
+						<include>**/MainFrameTest</include>
+						
                     
                      
 
