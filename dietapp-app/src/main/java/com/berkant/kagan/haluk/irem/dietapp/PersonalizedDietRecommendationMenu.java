@@ -109,7 +109,7 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
 
-    private void viewPreviousRecommendations() {
+    protected void viewPreviousRecommendations() {
         if (recommendations.isEmpty()) {
             System.out.println("No previous recommendations found.");
             return;
