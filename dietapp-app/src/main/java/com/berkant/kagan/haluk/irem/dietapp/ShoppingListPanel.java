@@ -47,7 +47,7 @@ public class ShoppingListPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
     }
-
+//
     private void setupListeners() {
         generateButton.addActionListener(e -> {
             try {
