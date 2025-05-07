@@ -31,7 +31,7 @@ public class MainFrame extends JFrame {
  
         // Initialize database
         DatabaseHelper.initializeDatabase();
-
+//
         // Main panel with CardLayout
         mainPanel = new JPanel();
         cardLayout = new CardLayout();
@@ -43,7 +43,7 @@ public class MainFrame extends JFrame {
         CalorieNutrientTrackingService calorieService = new CalorieNutrientTrackingService(mealService);
         PersonalizedDietRecommendationService dietService = new PersonalizedDietRecommendationService(calorieService, mealService);
         ShoppingListService shoppingService = new ShoppingListService(mealService);
-
+//
         // Create panels
         authPanel = new UserAuthenticationPanel(authService);
         authPanel.setLoginSuccessCallback(this::showMainMenu);
