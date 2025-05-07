@@ -115,7 +115,7 @@ public class PersonalizedDietRecommendationService {
         recommendations.add(String.format("Fat Need: %.0f grams", (dailyCalories * 0.3) / 9));
 
         // Get suitable meal recommendations from database
-        String sql = "SELECT * FROM meals WHERE calories <= ? ORDER BY RAND() LIMIT 5";
+        String sql = "SELECT name AS meal_name, calories, protein, carbs, fat FROM foods WHERE calories <= ? ORDER BY RANDOM() LIMIT 5";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDouble(1, dailyCalories / 3); // Maximum calories per meal
             try (ResultSet rs = stmt.executeQuery()) {

@@ -52,6 +52,7 @@ public class DatabaseHelperTest {
             connection.close();
         }
         DatabaseHelper.closeAllConnections();
+        clearTestData();
     }
     
     /**
@@ -69,14 +70,14 @@ public class DatabaseHelperTest {
      */
     private void clearTestData() {
         try {
-            Statement stmt = connection.createStatement();
-            // Delete test data in reverse order to avoid foreign key constraints
-            stmt.execute("DELETE FROM food_nutrients WHERE food_id IN (SELECT id FROM foods WHERE name LIKE 'Test%')");
-            stmt.execute("DELETE FROM foods WHERE name LIKE 'Test%'");
-            stmt.execute("DELETE FROM users WHERE username LIKE 'test_%'");
-            stmt.close();
+            PreparedStatement stmt1 = connection.prepareStatement("DELETE FROM food_nutrients");
+            stmt1.executeUpdate();
+            stmt1.close();
+            PreparedStatement stmt2 = connection.prepareStatement("DELETE FROM foods");
+            stmt2.executeUpdate();
+            stmt2.close();
         } catch (SQLException e) {
-            // Ignore errors if tables don't exist yet
+            // ignore
         }
     }
     
@@ -352,20 +353,12 @@ public class DatabaseHelperTest {
      * Save food nutrients directly to the database
      */
     private boolean saveFoodNutrientsDirectly(int foodId, FoodNutrient foodNutrient) throws SQLException {
-        // First check if nutrients already exist for this food
-        PreparedStatement checkStmt = connection.prepareStatement(
-            "SELECT food_id FROM food_nutrients WHERE food_id = ?");
-        checkStmt.setInt(1, foodId);
-        ResultSet rs = checkStmt.executeQuery();
-        boolean exists = rs.next();
-        rs.close();
-        checkStmt.close();
-        
-        if (exists) {
-     
-        }
-        
-        // Insert new nutrients
+        // Önce eski kaydı sil
+        PreparedStatement delStmt = connection.prepareStatement("DELETE FROM food_nutrients WHERE food_id = ?");
+        delStmt.setInt(1, foodId);
+        delStmt.executeUpdate();
+        delStmt.close();
+        // Sonra yeni kaydı ekle
         PreparedStatement pstmt = connection.prepareStatement(
             "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -376,10 +369,8 @@ public class DatabaseHelperTest {
         pstmt.setDouble(5, foodNutrient.getFiber());
         pstmt.setDouble(6, foodNutrient.getSugar());
         pstmt.setDouble(7, foodNutrient.getSodium());
-        
         int result = pstmt.executeUpdate();
         pstmt.close();
-        
         return result > 0;
     }
     
@@ -460,15 +451,6 @@ public class DatabaseHelperTest {
         pstmt.close();
         return value;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     /**
      * Test for saveFoodNutrients method with successful case

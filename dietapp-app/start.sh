@@ -35,6 +35,6 @@ echo "Çalıştırma başlıyor..."
 
 # Guest mode'a giriş yap (3) ve sonra uygulamadan çık (0)
 # Menü etkileşimlerini simüle et
-echo -e "3\n0" | java -Xms64m -Xmx128m -XX:+UseSerialGC -cp "/app/sqlite-jdbc.jar:/app/classes" com.berkant.kagan.haluk.irem.dietapp.DietappApp
+echo -e "3\n0" | java -Djava.awt.headless=true -Xms64m -Xmx128m -XX:+UseSerialGC -cp "/app/sqlite-jdbc.jar:/app/classes" com.berkant.kagan.haluk.irem.dietapp.DietappApp
 
 echo "Uygulama başarıyla çalıştı ve tamamlandı." 

@@ -108,7 +108,11 @@ public class PersonalizedDietPanel extends JPanel {
                 String activityLevel = (String) activityLevelComboBox.getSelectedItem();
                 
                 List<String> recommendations = dietService.generateRecommendations(age, weight, height, gender, activityLevel);
-                recommendationsArea.setCaret((Caret) recommendations);
+                StringBuilder sb = new StringBuilder();
+                for (String rec : recommendations) {
+                    sb.append(rec).append("\n");
+                }
+                recommendationsArea.setText(sb.toString());
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Please enter valid numbers for age, weight, and height");
             } catch (Exception ex) {

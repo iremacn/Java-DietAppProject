@@ -315,7 +315,7 @@ public class ShoppingListService {
                      "FROM recipe_ingredients ri " +
                      "JOIN ingredients i ON ri.ingredient_id = i.id " +
                      "JOIN recipes r ON ri.recipe_id = r.id " +
-                     "JOIN meal_plans mp ON r.name = mp.food_name " +
+                     "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
                      "GROUP BY ri.ingredient_id, i.name, ri.unit")) {
                 
                 while (rs.next()) {
@@ -343,7 +343,7 @@ public class ShoppingListService {
                      "FROM recipe_ingredients ri " +
                      "JOIN ingredients i ON ri.ingredient_id = i.id " +
                      "JOIN recipes r ON ri.recipe_id = r.id " +
-                     "JOIN meal_plans mp ON r.name = mp.food_name " +
+                     "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
                      "GROUP BY i.name, i.price")) {
                 
                 while (rs.next()) {

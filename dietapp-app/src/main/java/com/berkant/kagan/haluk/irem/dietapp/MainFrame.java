@@ -39,7 +39,7 @@ public class MainFrame extends JFrame {
 
         // Create service objects
         AuthenticationService authService = new AuthenticationService();
-        MealPlanningService mealService = new MealPlanningService(null);
+        MealPlanningService mealService = new MealPlanningService(DatabaseHelper.getConnection());
         CalorieNutrientTrackingService calorieService = new CalorieNutrientTrackingService(mealService);
         PersonalizedDietRecommendationService dietService = new PersonalizedDietRecommendationService(calorieService, mealService);
         ShoppingListService shoppingService = new ShoppingListService(mealService);

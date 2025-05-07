@@ -156,7 +156,8 @@ public class MealPlanningPanel extends JPanel {
                     throw new IllegalArgumentException("Please fill in all fields");
                 }
                 
-                planningService.addMeal(day, mealType, name, calories, protein, carbs, fat, ingredients);
+                int userId = 1; // TODO: Aktif kullanıcıdan alınabilir
+                planningService.addMeal(userId, day, mealType, name, calories, protein, carbs, fat, ingredients);
                 clearFields();
                 updateWeeklyPlan();
                 JOptionPane.showMessageDialog(this, "Meal added successfully!");

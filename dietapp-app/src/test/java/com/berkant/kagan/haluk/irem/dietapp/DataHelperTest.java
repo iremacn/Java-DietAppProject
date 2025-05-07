@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 
 public class DataHelperTest {
     private static final String TEST_DB_URL = "jdbc:sqlite:test_dietplanner.db";
@@ -22,6 +23,7 @@ public class DataHelperTest {
         // Reset connection pool and initialize database
         DatabaseHelper.closeAllConnections();
         DatabaseHelper.initializeDatabase();
+        clearTestData();
     }
 
     @After
@@ -29,6 +31,7 @@ public class DataHelperTest {
         // Close all connections and delete test database
         DatabaseHelper.closeAllConnections();
         deleteTestDatabase();
+        clearTestData();
     }
 
     private void deleteTestDatabase() {
@@ -39,6 +42,20 @@ public class DataHelperTest {
             }
         } catch (Exception e) {
             // Ignore if deletion fails
+        }
+    }
+
+    private void clearTestData() {
+        try {
+            Connection connection = DatabaseHelper.getConnection();
+            PreparedStatement stmt1 = connection.prepareStatement("DELETE FROM food_nutrients");
+            stmt1.executeUpdate();
+            stmt1.close();
+            PreparedStatement stmt2 = connection.prepareStatement("DELETE FROM foods");
+            stmt2.executeUpdate();
+            stmt2.close();
+        } catch (SQLException e) {
+            // ignore
         }
     }
 

@@ -79,19 +79,18 @@ public class DietappApp {
      * @param args The command-line arguments passed to the application.
      */
     public static void main(String[] args) {
-        
         DatabaseHelper.initializeDatabase();
-        
         try {
-            // Modify this section to check testMode
-            if (!testMode) {
+            // Headless kontrolü ekle
+            if (!testMode && !java.awt.GraphicsEnvironment.isHeadless()) {
                 SwingUtilities.invokeLater(() -> {
                     MainFrame frame = new MainFrame();
                     frame.setVisible(true);
                 });
+            } else if (java.awt.GraphicsEnvironment.isHeadless()) {
+                System.out.println("Headless ortam: GUI başlatılmayacak, sadece konsol işlemleri yapılacak.");
             }
         } finally {
-            
             DatabaseHelper.closeConnection();
         }
     }

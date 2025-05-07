@@ -53,6 +53,18 @@ public class DatabaseHelper {
                 releaseConnection(conn);
                 System.out.println("Database connection successful");
             }
+            // Ekstra: Kullanılan DB yolunu ve foods tablosu şemasını yazdır
+            System.out.println("DB_PATH: " + DB_URL);
+            try (Connection checkConn = getConnection();
+                 Statement stmt = checkConn.createStatement();
+                 ResultSet rs = stmt.executeQuery("PRAGMA table_info(foods);")) {
+                System.out.println("FOODS TABLE SCHEMA:");
+                while (rs.next()) {
+                    System.out.println(rs.getString("name") + " - " + rs.getString("type"));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             System.out.println("Database connection failed: " + e.getMessage());
         }
@@ -146,25 +158,24 @@ public class DatabaseHelper {
      */
     private static void createTables(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
-            // Users table
-            statement.execute(
-                "CREATE TABLE IF NOT EXISTS users (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "username TEXT UNIQUE NOT NULL," +
-                "password TEXT NOT NULL," +
-                "email TEXT NOT NULL," +
-                "name TEXT NOT NULL," +
-                "is_logged_in INTEGER DEFAULT 0" +
-                ");"
-            );
+            // Tüm eski tabloları sil
+            statement.execute("DROP TABLE IF EXISTS foods;");
+            statement.execute("DROP TABLE IF EXISTS meal_plans;");
+            statement.execute("DROP TABLE IF EXISTS meals;");
             
-            // Foods table
+            // Foods tablosunu en güncel şemayla oluştur
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS foods (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT NOT NULL," +
                 "grams REAL NOT NULL," +
                 "calories INTEGER NOT NULL," +
+                "protein REAL DEFAULT 0," +
+                "carbs REAL DEFAULT 0," +
+                "fat REAL DEFAULT 0," +
+                "fiber REAL DEFAULT 0," +
+                "sugar REAL DEFAULT 0," +
+                "sodium REAL DEFAULT 0," +
                 "meal_type TEXT" +
                 ");"
             );
@@ -197,12 +208,27 @@ public class DatabaseHelper {
                 ");"
             );
             
-            // MealPlans table
+            // MealPlans table (day sütunu ile)
             statement.execute(
                 "CREATE TABLE IF NOT EXISTS meal_plans (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "user_id INTEGER NOT NULL," +
                 "date TEXT NOT NULL," +
+                "day TEXT," +
+                "meal_type TEXT NOT NULL," +
+                "food_id INTEGER NOT NULL," +
+                "FOREIGN KEY(user_id) REFERENCES users(id)," +
+                "FOREIGN KEY(food_id) REFERENCES foods(id)" +
+                ");"
+            );
+            
+            // Meals table (alias for meal_plans for compatibility, day sütunu ile)
+            statement.execute(
+                "CREATE TABLE IF NOT EXISTS meals (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "user_id INTEGER NOT NULL," +
+                "date TEXT NOT NULL," +
+                "day TEXT," +
                 "meal_type TEXT NOT NULL," +
                 "food_id INTEGER NOT NULL," +
                 "FOREIGN KEY(user_id) REFERENCES users(id)," +
@@ -355,54 +381,66 @@ public class DatabaseHelper {
             if (conn == null) {
                 return -1;
             }
-            
             // Check if this food already exists
             String checkSql = "SELECT id FROM foods WHERE name = ? AND grams = ? AND calories = ?";
             try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
                 checkStmt.setString(1, food.getName());
                 checkStmt.setDouble(2, food.getGrams());
                 checkStmt.setInt(3, food.getCalories());
-                
                 ResultSet rs = checkStmt.executeQuery();
                 if (rs.next()) {
-                    // Food already exists, return its ID
                     int foodId = rs.getInt("id");
-                    
-                    // If this is a FoodNutrient, update the nutrients
                     if (food instanceof FoodNutrient) {
                         FoodNutrient fn = (FoodNutrient) food;
                         updateFoodNutrients(conn, foodId, fn);
                     }
-                    
                     return foodId;
                 }
             }
-            
             // Insert new food
-            String insertSql = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                insertStmt.setString(1, food.getName());
-                insertStmt.setDouble(2, food.getGrams());
-                insertStmt.setInt(3, food.getCalories());
-                
-                int rowsAffected = insertStmt.executeUpdate();
-                if (rowsAffected > 0) {
-                    // Get the generated ID
-                    ResultSet generatedKeys = insertStmt.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        int foodId = generatedKeys.getInt(1);
-                        
-                        // If this is a FoodNutrient, save the nutrients
-                        if (food instanceof FoodNutrient) {
-                            FoodNutrient fn = (FoodNutrient) food;
-                            saveFoodNutrients(conn, foodId, fn);
+            if (food instanceof FoodNutrient) {
+                FoodNutrient fn = (FoodNutrient) food;
+                String insertSql = "INSERT INTO foods (name, grams, calories, protein, carbs, fat, fiber, sugar, sodium) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setString(1, fn.getName());
+                    insertStmt.setDouble(2, fn.getGrams());
+                    insertStmt.setInt(3, fn.getCalories());
+                    insertStmt.setDouble(4, fn.getProtein());
+                    insertStmt.setDouble(5, fn.getCarbs());
+                    insertStmt.setDouble(6, fn.getFat());
+                    insertStmt.setDouble(7, fn.getFiber());
+                    insertStmt.setDouble(8, fn.getSugar());
+                    insertStmt.setDouble(9, fn.getSodium());
+                    int rowsAffected = insertStmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        try (Statement idStmt = conn.createStatement()) {
+                            ResultSet rs = idStmt.executeQuery("SELECT last_insert_rowid()");
+                            if (rs.next()) {
+                                int foodId = rs.getInt(1);
+                                saveFoodNutrients(conn, foodId, fn);
+                                return foodId;
+                            }
                         }
-                        
-                        return foodId;
+                    }
+                }
+            } else {
+                String insertSql = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setString(1, food.getName());
+                    insertStmt.setDouble(2, food.getGrams());
+                    insertStmt.setInt(3, food.getCalories());
+                    int rowsAffected = insertStmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        try (Statement idStmt = conn.createStatement()) {
+                            ResultSet rs = idStmt.executeQuery("SELECT last_insert_rowid()");
+                            if (rs.next()) {
+                                int foodId = rs.getInt(1);
+                                return foodId;
+                            }
+                        }
                     }
                 }
             }
-            
             return -1; // Error
         } finally {
             releaseConnection(conn);
@@ -460,10 +498,15 @@ public class DatabaseHelper {
      */
     private static boolean saveFoodNutrients(Connection conn, int foodId, FoodNutrient foodNutrient) {
         try {
+            // Önce aynı food_id varsa sil
+            try (PreparedStatement delStmt = conn.prepareStatement("DELETE FROM food_nutrients WHERE food_id = ?")) {
+                delStmt.setInt(1, foodId);
+                delStmt.executeUpdate();
+            }
+            // Sonra ekle
             try (PreparedStatement pstmt = conn.prepareStatement(
                 "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-                
                 pstmt.setInt(1, foodId);
                 pstmt.setDouble(2, foodNutrient.getProtein());
                 pstmt.setDouble(3, foodNutrient.getCarbs());
@@ -471,7 +514,6 @@ public class DatabaseHelper {
                 pstmt.setDouble(5, foodNutrient.getFiber());
                 pstmt.setDouble(6, foodNutrient.getSugar());
                 pstmt.setDouble(7, foodNutrient.getSodium());
-               
                 return pstmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
