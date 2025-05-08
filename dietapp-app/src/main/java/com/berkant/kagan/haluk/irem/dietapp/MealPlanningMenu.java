@@ -20,13 +20,13 @@ public class MealPlanningMenu {
     /** Scanner for reading user input */
     private Scanner scanner;
      
-    /** Test için flag - bu alanı eklemeniz gerekir */
+    
     protected boolean useUIComponents = true;
     
-    /** Swing UI bileşenleri - bunları eklemeniz gerekir */
+    
     private JFrame frame;
     private JPanel mainPanel;
-    // Diğer Swing bileşenlerini burada tanımlayın
+    
     
     /**
      * Constructor for MealPlanningMenu class.
@@ -40,16 +40,13 @@ public class MealPlanningMenu {
         this.authService = authService;
         this.scanner = scanner;
         
-        // Eğer UI bileşenleri kullanılacaksa, UI'ı başlat
+        
         if (useUIComponents) {
             initializeUI();
         }
     }
     
-    /**
-     * Swing UI bileşenlerini başlatma metodu - bu metodu eklemeniz gerekir.
-     * Kendi Swing UI tasarımınıza göre doldurun.
-     */
+ 
     private void initializeUI() {
         frame = new JFrame("Meal Planning and Logging");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -58,25 +55,25 @@ public class MealPlanningMenu {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         
-        // Ana menü butonları
+        
         JButton planMealsButton = new JButton("Plan Meals");
         JButton logFoodsButton = new JButton("Log Foods");
         JButton viewHistoryButton = new JButton("View Meal History");
         JButton returnButton = new JButton("Return to Main Menu");
         
-        // Buton olayları
+        
         planMealsButton.addActionListener(e -> handlePlanMeals());
         logFoodsButton.addActionListener(e -> handleLogFoods());
         viewHistoryButton.addActionListener(e -> handleViewMealHistory());
         returnButton.addActionListener(e -> frame.dispose());
         
-        // Butonları panele ekle
+        
         mainPanel.add(planMealsButton);
         mainPanel.add(logFoodsButton);
         mainPanel.add(viewHistoryButton);
         mainPanel.add(returnButton);
         
-        // Frame'i ayarla
+        
         frame.add(mainPanel);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -87,12 +84,12 @@ public class MealPlanningMenu {
      */
     public void displayMenu() {
         if (useUIComponents) {
-            // Swing UI ile göster
+            
             if (frame == null || !frame.isVisible()) {
                 initializeUI();
             }
         } else {
-            // Konsol arayüzü ile göster (test için)
+            
             boolean running = true;
             
             while (running) {
@@ -149,9 +146,7 @@ public class MealPlanningMenu {
         }
     }
     
-    /**
-     * Konsol tabanlı yemek planlama metodu - orijinal kodu buraya taşıyın
-     */
+    
     protected void handlePlanMealsConsole() {
         System.out.println("\n===== Plan Meals =====");
         
@@ -221,20 +216,18 @@ public class MealPlanningMenu {
         }
     }
     
-    /**
-     * UI tabanlı yemek planlama metodu - bu metodu eklemeniz gerekir
-     */
+   
     private void handlePlanMealsUI() {
-        // Yemek planlama için UI oluştur
+        
         JFrame planFrame = new JFrame("Plan Meals");
         planFrame.setSize(500, 400);
         planFrame.setLayout(new BorderLayout());
         
-        // Tarih seçimi için panel
+        
         JPanel datePanel = new JPanel();
         datePanel.setLayout(new GridLayout(4, 2));
         
-        // Yıl, ay, gün için alanlar
+        
         JLabel yearLabel = new JLabel("Year (2025-2100):");
         JTextField yearField = new JTextField();
         JLabel monthLabel = new JLabel("Month (1-12):");
@@ -249,20 +242,20 @@ public class MealPlanningMenu {
         datePanel.add(dayLabel);
         datePanel.add(dayField);
         
-        // Öğün tipi seçimi için panel
+        
         JPanel mealTypePanel = new JPanel();
         String[] mealTypes = {"Breakfast", "Lunch", "Snack", "Dinner"};
         JComboBox<String> mealTypeCombo = new JComboBox<>(mealTypes);
         mealTypePanel.add(new JLabel("Meal Type:"));
         mealTypePanel.add(mealTypeCombo);
         
-        // Tarih ve öğün seçimi için ana panel
+        
         JPanel selectionPanel = new JPanel();
         selectionPanel.setLayout(new BorderLayout());
         selectionPanel.add(datePanel, BorderLayout.NORTH);
         selectionPanel.add(mealTypePanel, BorderLayout.CENTER);
         
-        // Devam ve iptal butonları
+       
         JButton continueButton = new JButton("Continue");
         JButton cancelButton = new JButton("Cancel");
         
@@ -297,7 +290,7 @@ public class MealPlanningMenu {
                 
                 planFrame.dispose();
                 
-                // Yiyecek seçim ekranını göster
+                
                 showFoodSelectionUI(date, mealTypeStr);
                 
             } catch (NumberFormatException ex) {
@@ -309,16 +302,14 @@ public class MealPlanningMenu {
         planFrame.setVisible(true);
     }
     
-    /**
-     * Yiyecek seçimi için UI metodu
-     */
+   
     private void showFoodSelectionUI(String date, String mealType) {
-        // Yiyecek seçimi için ekran
+        
         JFrame foodFrame = new JFrame("Select Food for " + capitalize(mealType));
         foodFrame.setSize(500, 400);
         foodFrame.setLayout(new BorderLayout());
         
-        // Yiyecek seçim listesi
+        
         Food[] foodOptions;
         switch (mealType) {
             case "breakfast":
@@ -339,7 +330,7 @@ public class MealPlanningMenu {
                 return;
         }
         
-        // Yiyecek liste modeli
+        
         DefaultListModel<Food> listModel = new DefaultListModel<>();
         for (Food food : foodOptions) {
             listModel.addElement(food);
@@ -348,7 +339,7 @@ public class MealPlanningMenu {
         JList<Food> foodList = new JList<>(listModel);
         JScrollPane scrollPane = new JScrollPane(foodList);
         
-        // Seç ve iptal butonu
+        
         JButton selectButton = new JButton("Select");
         JButton cancelButton = new JButton("Cancel");
         
@@ -395,9 +386,7 @@ public class MealPlanningMenu {
         }
     }
     
-    /**
-     * Konsol tabanlı yiyecek kaydetme metodu - orijinal kodu buraya taşıyın
-     */
+    
     private void handleLogFoodsConsole() {
         System.out.println("\n===== Log Foods =====");
         
@@ -423,20 +412,18 @@ public class MealPlanningMenu {
         }
     }
     
-    /**
-     * UI tabanlı yiyecek kaydetme metodu - bu metodu eklemeniz gerekir
-     */
+    
     private void handleLogFoodsUI() {
-        // Yiyecek kaydetme için UI oluştur
+        
         JFrame logFrame = new JFrame("Log Foods");
         logFrame.setSize(500, 400);
         logFrame.setLayout(new BorderLayout());
         
-        // Tarih seçimi için panel
+        
         JPanel datePanel = new JPanel();
         datePanel.setLayout(new GridLayout(4, 2));
         
-        // Yıl, ay, gün için alanlar
+        
         JLabel yearLabel = new JLabel("Year (2025-2100):");
         JTextField yearField = new JTextField();
         JLabel monthLabel = new JLabel("Month (1-12):");
@@ -451,7 +438,7 @@ public class MealPlanningMenu {
         datePanel.add(dayLabel);
         datePanel.add(dayField);
         
-        // Yiyecek bilgileri için panel
+        
         JPanel foodPanel = new JPanel();
         foodPanel.setLayout(new GridLayout(3, 2));
         
@@ -469,13 +456,13 @@ public class MealPlanningMenu {
         foodPanel.add(caloriesLabel);
         foodPanel.add(caloriesField);
         
-        // Giriş paneli
+        
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BorderLayout());
         inputPanel.add(datePanel, BorderLayout.NORTH);
         inputPanel.add(foodPanel, BorderLayout.CENTER);
         
-        // Kaydet ve İptal butonları
+        
         JButton saveButton = new JButton("Save");
         JButton cancelButton = new JButton("Cancel");
         
@@ -490,7 +477,7 @@ public class MealPlanningMenu {
         
         saveButton.addActionListener(e -> {
             try {
-                // Tarih bilgilerini al ve doğrula
+                
                 int year = Integer.parseInt(yearField.getText());
                 int month = Integer.parseInt(monthField.getText());
                 int day = Integer.parseInt(dayField.getText());
@@ -505,7 +492,7 @@ public class MealPlanningMenu {
                     return;
                 }
                 
-                // Yiyecek bilgilerini al ve doğrula
+                
                 String name = nameField.getText().trim();
                 if (name.isEmpty()) {
                     JOptionPane.showMessageDialog(logFrame, "Food name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -536,11 +523,11 @@ public class MealPlanningMenu {
                     return;
                 }
                 
-                // Tarih ve yiyecek nesnelerini oluştur
+                
                 String date = mealPlanningService.formatDate(year, month, day);
                 Food food = new Food(name, amount, calories);
                 
-                // Yiyeceği kaydet
+                
                 String username = authService.getCurrentUser().getUsername();
                 boolean success = mealPlanningService.logFood(username, date, food);
                 
@@ -571,9 +558,7 @@ public class MealPlanningMenu {
         }
     }
     
-    /**
-     * Konsol tabanlı yemek geçmişi görüntüleme metodu - orijinal kodu buraya taşıyın
-     */
+   
     private void handleViewMealHistoryConsole() {
         System.out.println("\n===== View Meal History =====");
         
@@ -632,16 +617,14 @@ public class MealPlanningMenu {
         scanner.nextLine();
     }
     
-    /**
-     * UI tabanlı yemek geçmişi görüntüleme metodu - bu metodu eklemeniz gerekir
-     */
+    
     private void handleViewMealHistoryUI() {
-        // Tarih seçim ekranı
+        
         JFrame dateFrame = new JFrame("Select Date for Meal History");
         dateFrame.setSize(450, 200);
         dateFrame.setLayout(new BorderLayout());
         
-        // Tarih seçimi için panel
+        
         JPanel datePanel = new JPanel();
         datePanel.setLayout(new GridLayout(3, 2));
         
@@ -659,7 +642,7 @@ public class MealPlanningMenu {
         datePanel.add(dayLabel);
         datePanel.add(dayField);
         
-        // Butonlar
+        
         JButton viewButton = new JButton("View History");
         JButton cancelButton = new JButton("Cancel");
         
@@ -674,7 +657,7 @@ public class MealPlanningMenu {
         
         viewButton.addActionListener(e -> {
             try {
-                // Tarih bilgilerini al ve doğrula
+                
                 int year = Integer.parseInt(yearField.getText());
                 int month = Integer.parseInt(monthField.getText());
                 int day = Integer.parseInt(dayField.getText());
@@ -692,7 +675,7 @@ public class MealPlanningMenu {
                 String date = mealPlanningService.formatDate(year, month, day);
                 dateFrame.dispose();
                 
-                // Veriyi alıp göster
+                
                 displayMealHistoryUI(date);
                 
             } catch (NumberFormatException ex) {
@@ -704,9 +687,7 @@ public class MealPlanningMenu {
         dateFrame.setVisible(true);
     }
     
-    /**
-     * Yemek geçmişi ekranını gösteren metot
-     */
+   
     private void displayMealHistoryUI(String date) {
         JFrame historyFrame = new JFrame("Meal History for " + date);
         historyFrame.setSize(600, 500);
@@ -715,11 +696,11 @@ public class MealPlanningMenu {
         String username = authService.getCurrentUser().getUsername();
         boolean hasContent = false;
         
-        // Tüm içerik için ana panel
+        
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         
-        // Planlanan yemekler
+        
         JPanel plannedPanel = new JPanel();
         plannedPanel.setLayout(new BoxLayout(plannedPanel, BoxLayout.Y_AXIS));
         plannedPanel.setBorder(BorderFactory.createTitledBorder("Planned Meals"));
@@ -744,7 +725,7 @@ public class MealPlanningMenu {
                 }
                 
                 plannedPanel.add(mealPanel);
-                plannedPanel.add(Box.createVerticalStrut(10)); // Boşluk ekle
+                plannedPanel.add(Box.createVerticalStrut(10)); 
             }
         }
         
@@ -754,7 +735,7 @@ public class MealPlanningMenu {
         
         contentPanel.add(plannedPanel);
         
-        // Yiyecek günlüğü
+        
         JPanel logPanel = new JPanel();
         logPanel.setLayout(new BoxLayout(logPanel, BoxLayout.Y_AXIS));
         logPanel.setBorder(BorderFactory.createTitledBorder("Food Log"));
@@ -788,7 +769,7 @@ public class MealPlanningMenu {
         // Scroll panel
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         
-        // Geri dönüş butonu
+        
         JButton backButton = new JButton("Back");
         backButton.addActionListener(e -> historyFrame.dispose());
         
