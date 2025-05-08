@@ -43,7 +43,7 @@ public class MainFrame extends JFrame {
         CalorieNutrientTrackingService calorieService = new CalorieNutrientTrackingService(mealService);
         PersonalizedDietRecommendationService dietService = new PersonalizedDietRecommendationService(calorieService, mealService);
         ShoppingListService shoppingService = new ShoppingListService(mealService);
-//
+//	
         // Create panels
         authPanel = new UserAuthenticationPanel(authService);
         authPanel.setLoginSuccessCallback(this::showMainMenu);
@@ -56,12 +56,12 @@ public class MainFrame extends JFrame {
         // Create navigation buttons
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setBackground(new Color(236, 240, 241));
-
+//
         JButton calorieButton = createNavButton("Calorie Tracking");
         JButton mealButton = createNavButton("Meal Planning");
         JButton dietButton = createNavButton("Personalized Diet");
         JButton shoppingButton = createNavButton("Shopping List");
-
+//
         buttonPanel.add(calorieButton);
         buttonPanel.add(mealButton);
         buttonPanel.add(dietButton);
