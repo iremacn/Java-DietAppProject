@@ -162,6 +162,19 @@ public class DatabaseHelper {
             statement.execute("DROP TABLE IF EXISTS foods;");
             statement.execute("DROP TABLE IF EXISTS meal_plans;");
             statement.execute("DROP TABLE IF EXISTS meals;");
+            statement.execute("DROP TABLE IF EXISTS users;");
+            
+            // Users table
+            statement.execute(
+                "CREATE TABLE IF NOT EXISTS users (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "username TEXT UNIQUE NOT NULL," +
+                "password TEXT NOT NULL," +
+                "email TEXT NOT NULL," +
+                "name TEXT NOT NULL," +
+                "is_logged_in INTEGER DEFAULT 0" +
+                ");"
+            );
             
             // Foods tablosunu en güncel şemayla oluştur
             statement.execute(
