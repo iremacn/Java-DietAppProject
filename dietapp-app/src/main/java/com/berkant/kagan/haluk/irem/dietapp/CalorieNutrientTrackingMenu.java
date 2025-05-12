@@ -408,18 +408,22 @@ public class CalorieNutrientTrackingMenu {
         
         FoodNutrient[] commonFoods = calorieNutrientService.getCommonFoodsWithNutrients();
         
-        for (int i = 0; i < commonFoods.length; i++) {
-            FoodNutrient food = commonFoods[i];
-            System.out.println("\n" + (i + 1) + ". " + food.getName() + " (" + food.getGrams() + "g)");
-            System.out.println("   Calories: " + food.getCalories());
-            System.out.println("   Protein: " + food.getProtein() + "g");
-            System.out.println("   Carbs: " + food.getCarbs() + "g");
-            System.out.println("   Fat: " + food.getFat() + "g");
-            System.out.println("   Fiber: " + food.getFiber() + "g");
-            System.out.println("   Sugar: " + food.getSugar() + "g");
-            System.out.println("   Sodium: " + food.getSodium() + "mg");
+        if (commonFoods != null) {
+            int displayIndex = 1;
+            for (int i = 0; i < commonFoods.length; i++) {
+                FoodNutrient food = commonFoods[i];
+                if (food == null) continue; // null ise atla
+                System.out.println("\n" + displayIndex + ". " + food.getName() + " (" + food.getGrams() + "g)");
+                System.out.println("   Calories: " + food.getCalories());
+                System.out.println("   Protein: " + food.getProtein() + "g");
+                System.out.println("   Carbs: " + food.getCarbs() + "g");
+                System.out.println("   Fat: " + food.getFat() + "g");
+                System.out.println("   Fiber: " + food.getFiber() + "g");
+                System.out.println("   Sugar: " + food.getSugar() + "g");
+                System.out.println("   Sodium: " + food.getSodium() + "mg");
+                displayIndex++;
+            }
         }
-        
         // Pause before returning to menu
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();

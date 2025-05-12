@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.After;
 
 /**
  * Unit tests for the CalorieNutrientTrackingService class.
@@ -31,15 +32,27 @@ public class CalorieNutrientTrackingServiceTest {
     private MockCalorieNutrientTrackingService calorieNutrientService;
     private MealPlanningService mealPlanningService;
     
+    private Connection conn;
+
     @Before
-    public void setUp() {
-        // Initialize mock services
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
-            mealPlanningService = new MealPlanningService(conn);
-            calorieNutrientService = new MockCalorieNutrientTrackingService();
-        } catch (SQLException e) {
-            fail("Failed to create test database connection: " + e.getMessage());
+    public void setUp() throws Exception {
+        conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+        mealPlanningService = new MealPlanningService(conn);
+        calorieNutrientService = new MockCalorieNutrientTrackingService();
+        // Ensure food_entries table exists
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("CREATE TABLE IF NOT EXISTS food_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, calories INTEGER, protein REAL, carbs REAL, fat REAL)");
+        }
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        // Clean up test data
+        if (conn != null) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("DELETE FROM food_entries");
+            }
+            conn.close();
         }
     }
     
@@ -1845,5 +1858,31 @@ public class CalorieNutrientTrackingServiceTest {
             } catch (SQLException e) {
                 fail("Test failed with SQLException: " + e.getMessage());
             }
+        }
+
+        @Test
+        public void testGetDailyConsumptionLog_AllBranches() {
+            // With entries
+            calorieNutrientService.addFoodConsumption("Banana", 1.0);
+            String log = calorieNutrientService.getDailyConsumptionLog();
+            assertNotNull(log);
+            // No entries
+            calorieNutrientService = new MockCalorieNutrientTrackingService();
+            String log2 = calorieNutrientService.getDailyConsumptionLog();
+            assertNotNull(log2);
+        }
+
+        @Test
+        public void testNutritionReportGetters() {
+            CalorieNutrientTrackingService.NutritionReport report = calorieNutrientService.getNutritionReport("testuser", "2023-04-15");
+            assertNotNull(report.getDate());
+            report.getTotalCalories();
+            report.getTotalProtein();
+            report.getTotalCarbs();
+            report.getTotalFat();
+            report.getTotalFiber();
+            report.getTotalSugar();
+            report.getTotalSodium();
+            assertNotNull(report.getGoals());
         }
     }

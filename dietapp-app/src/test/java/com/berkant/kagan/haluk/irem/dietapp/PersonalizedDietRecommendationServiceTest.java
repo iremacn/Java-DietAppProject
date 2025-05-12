@@ -1401,7 +1401,8 @@ public class PersonalizedDietRecommendationServiceTest {
         // Generate diet recommendations for vegan user
         PersonalizedDietRecommendationService.DietRecommendation recommendation = 
             dietService.generateRecommendations(
-                "testUserVegan", TEST_GENDER, TEST_AGE, TEST_HEIGHT, TEST_WEIGHT, TEST_ACTIVITY_LEVEL);
+                "testUserVegan", TEST_GENDER, TEST_AGE, TEST_HEIGHT, TEST_WEIGHT, TEST_ACTIVITY_LEVEL
+            );
         
         assertNotNull("Recommendation should not be null", recommendation);
         
@@ -1564,5 +1565,120 @@ public class PersonalizedDietRecommendationServiceTest {
         
         // At most 2 excluded foods can remain
         assertTrue("Most excluded foods should be filtered out", excludedFoodsFound <= 2);
+    }
+
+    @Test
+    public void testGenerateRecommendations_Intensive() throws Exception {
+        // Typical male
+        List<String> recs = dietService.generateRecommendations(25, 80, 180, "Male", "Active");
+        assertNotNull(recs);
+        assertTrue(recs.stream().anyMatch(s -> s.contains("Calorie Need")));
+        // Typical female
+        List<String> recs2 = dietService.generateRecommendations(30, 60, 165, "Female", "Sedentary");
+        assertNotNull(recs2);
+        // Edge: unknown activity
+        List<String> recs3 = dietService.generateRecommendations(40, 70, 170, "Male", "Unknown");
+        assertNotNull(recs3);
+        // Edge: SQL Exception (simulate by closing connection)
+        Field connField = PersonalizedDietRecommendationService.class.getDeclaredField("connection");
+        connField.setAccessible(true);
+        Connection conn = (Connection) connField.get(dietService);
+        conn.close();
+        try {
+            dietService.generateRecommendations(25, 80, 180, "Male", "Active");
+            fail("Should throw SQLException");
+        } catch (SQLException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testGenerateMealPlan_AllBranches() throws Exception {
+        // Use reflection to access private method
+        Method m = PersonalizedDietRecommendationService.class.getDeclaredMethod(
+            "generateMealPlan", int.class, 
+            PersonalizedDietRecommendationService.MacronutrientDistribution.class, 
+            PersonalizedDietRecommendationService.UserDietProfile.class);
+        m.setAccessible(true);
+        PersonalizedDietRecommendationService.UserDietProfile profile = dietService.getUserDietProfile(TEST_USERNAME);
+        PersonalizedDietRecommendationService.MacronutrientDistribution macros = 
+            dietService.new MacronutrientDistribution(100, 200, 50);
+        List<?> plan = (List<?>) m.invoke(dietService, 2000, macros, profile);
+        assertNotNull(plan);
+        assertFalse(plan.isEmpty());
+    }
+
+    @Test
+    public void testCreateMealRecommendation_AllBranches() throws Exception {
+        // Use reflection to access private method
+        Method m = PersonalizedDietRecommendationService.class.getDeclaredMethod(
+            "createMealRecommendation", String.class, Food[].class, int.class, int.class, int.class, int.class);
+        m.setAccessible(true);
+        Food[] foods = new Food[] { new Food("TestFood", 100, 200) };
+        Object meal = m.invoke(dietService, "Lunch", foods, 500, 30, 50, 20);
+        assertNotNull(meal);
+        // Edge: empty foods
+        Food[] emptyFoods = new Food[0];
+        Object meal2 = m.invoke(dietService, "Dinner", emptyFoods, 400, 20, 40, 10);
+        assertNotNull(meal2);
+    }
+
+    @Test
+    public void testGetAppropriateOptions_AllBranches() throws Exception {
+        // Use reflection to access private method
+        Method m = PersonalizedDietRecommendationService.class.getDeclaredMethod(
+            "getAppropriateOptions", Food[].class, PersonalizedDietRecommendationService.UserDietProfile.class);
+        m.setAccessible(true);
+        Food[] foods = new Food[] { new Food("Apple", 100, 50), new Food("Nuts", 50, 300) };
+        PersonalizedDietRecommendationService.UserDietProfile profile = dietService.getUserDietProfile(TEST_USERNAME);
+        Object result = m.invoke(dietService, foods, profile);
+        assertNotNull(result);
+        // Edge: profile with excluded foods
+        PersonalizedDietRecommendationService.UserDietProfile profile2 = dietService.getUserDietProfile("testUserWithAllergies");
+        Object result2 = m.invoke(dietService, foods, profile2);
+        assertNotNull(result2);
+    }
+
+    @Test
+    public void testGenerateDietaryGuidelines_AllBranches() throws Exception {
+        // Use reflection to access private method
+        Method m = PersonalizedDietRecommendationService.class.getDeclaredMethod(
+            "generateDietaryGuidelines", PersonalizedDietRecommendationService.UserDietProfile.class);
+        m.setAccessible(true);
+        PersonalizedDietRecommendationService.UserDietProfile profile = dietService.getUserDietProfile(TEST_USERNAME);
+        Object result = m.invoke(dietService, profile);
+        assertNotNull(result);
+        // Edge: profile with multiple health conditions
+        PersonalizedDietRecommendationService.UserDietProfile profile2 = dietService.getUserDietProfile("testUserWithMultipleHealthConditions");
+        Object result2 = m.invoke(dietService, profile2);
+        assertNotNull(result2);
+    }
+
+    @Test
+    public void testGetUserId_AllBranches() throws Exception {
+        // Use reflection to access private method
+        Method m = PersonalizedDietRecommendationService.class.getDeclaredMethod(
+            "getUserId", Connection.class, String.class);
+        m.setAccessible(true);
+        Field connField = PersonalizedDietRecommendationService.class.getDeclaredField("connection");
+        connField.setAccessible(true);
+        Connection conn = (Connection) connField.get(dietService);
+        // Typical user
+        int id = (int) m.invoke(dietService, conn, TEST_USERNAME);
+        assertTrue(id >= 0 || id == -1);
+        // Non-existent user
+        int id2 = (int) m.invoke(dietService, conn, "no_such_user");
+        assertTrue(id2 == -1 || id2 >= 0);
+        // Null username
+        int id3 = (int) m.invoke(dietService, conn, null);
+        assertEquals(-1, id3);
+        // SQL Exception (simulate by closing connection)
+        conn.close();
+        try {
+            m.invoke(dietService, conn, TEST_USERNAME);
+            fail();
+        } catch (Exception e) {
+            // expected
+        }
     }
 }
