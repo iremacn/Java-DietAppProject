@@ -801,7 +801,16 @@ public class MealPlanningService {
     }
 
     public boolean addMealToPlan(int userId, String day, String mealType, String foodName) {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        if (day == null || day.trim().isEmpty() || mealType == null || mealType.trim().isEmpty() || 
+            foodName == null || foodName.trim().isEmpty()) {
+            return false;
+        }
+
         try {
+            // First check if the food exists
             int foodId = -1;
             String foodQuery = "SELECT id FROM foods WHERE name = ?";
             try (PreparedStatement foodStmt = connection.prepareStatement(foodQuery)) {
@@ -810,14 +819,15 @@ public class MealPlanningService {
                 if (rs.next()) {
                     foodId = rs.getInt("id");
                 } else {
-                    String insertFood = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, 0)";
-                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood)) {
+                    // If food doesn't exist, create it
+                    String insertFood = "INSERT INTO foods (name, grams, calories, meal_type) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood, Statement.RETURN_GENERATED_KEYS)) {
                         insertStmt.setString(1, foodName);
-                        insertStmt.setDouble(2, 0);
-                        insertStmt.setInt(3, 0);
+                        insertStmt.setDouble(2, 100.0); // Default values
+                        insertStmt.setInt(3, 500);
+                        insertStmt.setString(4, mealType);
                         insertStmt.executeUpdate();
-                        try (Statement stmt = connection.createStatement();
-                             ResultSet keys = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                        try (ResultSet keys = insertStmt.getGeneratedKeys()) {
                             if (keys.next()) {
                                 foodId = keys.getInt(1);
                             }
@@ -825,14 +835,20 @@ public class MealPlanningService {
                     }
                 }
             }
+
+            if (foodId == -1) {
+                return false;
+            }
+
+            // Now add the meal to the plan
             String date = LocalDate.now().toString();
-            String sql = "INSERT INTO meal_plans (user_id, day, date, meal_type, food_id) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO meal_plans (user_id, date, meal_type, food_id, day) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
-                pstmt.setString(2, day);
-                pstmt.setString(3, date);
-                pstmt.setString(4, mealType);
-                pstmt.setInt(5, foodId);
+                pstmt.setString(2, date);
+                pstmt.setString(3, mealType);
+                pstmt.setInt(4, foodId);
+                pstmt.setString(5, day);
                 int affectedRows = pstmt.executeUpdate();
                 return affectedRows > 0;
             }
@@ -855,6 +871,14 @@ public class MealPlanningService {
      */
     public void addMeal(int userId, String day, String mealType, String foodName, int calories, 
                        double protein, double carbs, double fat, String ingredients) {
+        if (userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        if (day == null || day.trim().isEmpty() || mealType == null || mealType.trim().isEmpty() || 
+            foodName == null || foodName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid meal parameters");
+        }
+
         try {
             int foodId = -1;
             String foodQuery = "SELECT id FROM foods WHERE name = ?";
@@ -864,17 +888,13 @@ public class MealPlanningService {
                 if (rs.next()) {
                     foodId = rs.getInt("id");
                 } else {
-                    String insertFood = "INSERT INTO foods (name, grams, calories, protein, carbs, fat) VALUES (?, ?, ?, ?, ?, ?)";
-                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood)) {
+                    String insertFood = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
+                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood, Statement.RETURN_GENERATED_KEYS)) {
                         insertStmt.setString(1, foodName);
                         insertStmt.setDouble(2, 0);
                         insertStmt.setInt(3, calories);
-                        insertStmt.setDouble(4, protein);
-                        insertStmt.setDouble(5, carbs);
-                        insertStmt.setDouble(6, fat);
                         insertStmt.executeUpdate();
-                        try (Statement stmt = connection.createStatement();
-                             ResultSet keys = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                        try (ResultSet keys = insertStmt.getGeneratedKeys()) {
                             if (keys.next()) {
                                 foodId = keys.getInt(1);
                             }
@@ -882,14 +902,31 @@ public class MealPlanningService {
                     }
                 }
             }
+
+            if (foodId == -1) {
+                throw new RuntimeException("Failed to create or find food");
+            }
+
+            // Save nutrients
+            String nutrientSql = "INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement nutrientStmt = connection.prepareStatement(nutrientSql)) {
+                nutrientStmt.setInt(1, foodId);
+                nutrientStmt.setDouble(2, protein);
+                nutrientStmt.setDouble(3, carbs);
+                nutrientStmt.setDouble(4, fat);
+                nutrientStmt.setDouble(5, 0); // fiber
+                nutrientStmt.setDouble(6, 0); // sugar
+                nutrientStmt.setDouble(7, 0); // sodium
+                nutrientStmt.executeUpdate();
+            }
+
             String date = LocalDate.now().toString();
-            String sql = "INSERT INTO meal_plans (user_id, day, date, meal_type, food_id) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO meal_plans (user_id, date, meal_type, food_id) VALUES (?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
-                stmt.setString(2, day);
-                stmt.setString(3, date);
-                stmt.setString(4, mealType);
-                stmt.setInt(5, foodId);
+                stmt.setString(2, date);
+                stmt.setString(3, mealType);
+                stmt.setInt(4, foodId);
                 stmt.executeUpdate();
             }
         } catch (SQLException e) {
@@ -920,9 +957,14 @@ public class MealPlanningService {
      */
     public String getWeeklyMealPlan() {
         StringBuilder plan = new StringBuilder();
-        String sql = "SELECT mp.day, mp.meal_type, f.name AS food_name, f.calories, f.protein, f.carbs, f.fat " +
+        String sql = "SELECT mp.day, mp.meal_type, f.name AS food_name, f.calories, " +
+                    "COALESCE(fn.protein, 0) as protein, " +
+                    "COALESCE(fn.carbs, 0) as carbs, " +
+                    "COALESCE(fn.fat, 0) as fat " +
                     "FROM meal_plans mp " +
                     "JOIN foods f ON mp.food_id = f.id " +
+                    "LEFT JOIN food_nutrients fn ON f.id = fn.food_id " +
+                    "WHERE mp.day IS NOT NULL " +
                     "ORDER BY CASE mp.day " +
                     "WHEN 'Monday' THEN 1 " +
                     "WHEN 'Tuesday' THEN 2 " +
@@ -938,10 +980,10 @@ public class MealPlanningService {
                     "WHEN 'Dinner' THEN 4 END";
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-            String currentDay = "";
+            String currentDay = null;
             while (rs.next()) {
                 String day = rs.getString("day");
-                if (!day.equals(currentDay)) {
+                if (day != null && (currentDay == null || !day.equals(currentDay))) {
                     plan.append("\n").append(day).append(":\n");
                     currentDay = day;
                 }
@@ -966,11 +1008,24 @@ public class MealPlanningService {
      */
     public List<String> getMealsForDay(String day) {
         List<String> meals = new ArrayList<>();
+        if (day == null || day.trim().isEmpty()) {
+            return meals;
+        }
+        
         try {
-            String sql = "SELECT mp.meal_type, f.name AS food_name, f.calories, f.protein, f.carbs, f.fat " +
+            String sql = "SELECT mp.meal_type, f.name AS food_name, f.calories, " +
+                        "COALESCE(fn.protein, 0) as protein, " +
+                        "COALESCE(fn.carbs, 0) as carbs, " +
+                        "COALESCE(fn.fat, 0) as fat " +
                         "FROM meal_plans mp " +
                         "JOIN foods f ON mp.food_id = f.id " +
-                        "WHERE mp.day = ? ORDER BY mp.meal_type";
+                        "LEFT JOIN food_nutrients fn ON f.id = fn.food_id " +
+                        "WHERE mp.day = ? " +
+                        "ORDER BY CASE mp.meal_type " +
+                        "WHEN 'Breakfast' THEN 1 " +
+                        "WHEN 'Lunch' THEN 2 " +
+                        "WHEN 'Snack' THEN 3 " +
+                        "WHEN 'Dinner' THEN 4 END";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, day);
                 try (ResultSet rs = pstmt.executeQuery()) {
