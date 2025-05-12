@@ -1431,4 +1431,265 @@ public class MealPlanningServiceTest {
         testConnection = DatabaseHelper.getConnection();
         mealPlanningService = new MealPlanningService(testConnection);
     }
+
+    @Test
+    public void testSaveFoodAndGetId_NullFood() throws Exception {
+        int result = invokeSaveFoodAndGetId(null);
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testSaveFoodAndGetId_ExistingFoodWithNutrients() throws Exception {
+        FoodNutrient fn = new FoodNutrient("TestFood", 100, 200, 10, 20, 5, 2, 1, 0.5);
+        int id1 = invokeSaveFoodAndGetId(fn);
+        int id2 = invokeSaveFoodAndGetId(fn);
+        assertTrue(id1 > 0 && id2 > 0);
+        assertEquals(id1, id2);
+    }
+
+    @Test
+    public void testUpdateFoodNutrients_NewInsert() throws Exception {
+        // Insert a food
+        FoodNutrient fn = new FoodNutrient("NutrientFood", 100, 200, 10, 20, 5, 2, 1, 0.5);
+        int foodId = invokeSaveFoodAndGetId(fn);
+        // Remove nutrients if exist
+        try (PreparedStatement ps = testConnection.prepareStatement("DELETE FROM food_nutrients WHERE food_id = ?")) {
+            ps.setInt(1, foodId);
+            ps.executeUpdate();
+        }
+        // Now update nutrients (should insert)
+        invokeUpdateFoodNutrients(foodId, fn);
+        // Check if inserted
+        try (PreparedStatement ps = testConnection.prepareStatement("SELECT * FROM food_nutrients WHERE food_id = ?")) {
+            ps.setInt(1, foodId);
+            ResultSet rs = ps.executeQuery();
+            assertTrue(rs.next());
+        }
+    }
+
+    @Test
+    public void testGetUserId_NullAndEmpty() throws Exception {
+        int nullResult = invokeGetUserId(null);
+        int emptyResult = invokeGetUserId("");
+        assertEquals(-1, nullResult);
+        assertEquals(-1, emptyResult);
+    }
+
+    @Test
+    public void testGetUserId_NonExistent() throws Exception {
+        int result = invokeGetUserId("nonexistentuser123");
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testSaveFoodWithMealType_NullFood() throws Exception {
+        int result = invokeSaveFoodWithMealType(null, "breakfast");
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testGetBreakfastOptions_EmptyTable() throws Exception {
+        clearFoodsTable();
+        Food[] options = mealPlanningService.getBreakfastOptions();
+        assertNotNull(options);
+    }
+
+    @Test
+    public void testGetFoodOptionsByType_InvalidType() throws Exception {
+        List<Food> options = invokeGetFoodOptionsByType("invalidtype");
+        assertNotNull(options);
+        assertTrue(options.isEmpty());
+    }
+
+    @Test
+    public void testSaveFoodWithMealType_NullMealType() throws Exception {
+        Food food = new Food("NullMealTypeFood", 100, 100);
+        int result = invokeSaveFoodWithMealType(food, null);
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testSaveFoodWithMealType_SQLException() throws Exception {
+        Food food = new Food("SQLExceptionFood", 100, 100);
+        testConnection.close();
+        try {
+            int result = invokeSaveFoodWithMealType(food, "breakfast");
+            assertEquals(-1, result);
+        } catch (Exception e) {
+            assertTrue(e.getCause() instanceof SQLException);
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testGetBreakfastOptions_SQLException() throws Exception {
+        testConnection.close();
+        try {
+            Food[] options = mealPlanningService.getBreakfastOptions();
+            assertNotNull(options);
+            assertTrue(options.length > 0); // Should return default options
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testGetFoodOptionsByType_NullType() throws Exception {
+        List<Food> options = invokeGetFoodOptionsByType(null);
+        assertNotNull(options);
+        assertTrue(options.isEmpty());
+    }
+
+    @Test
+    public void testGetFoodOptionsByType_SQLException() throws Exception {
+        testConnection.close();
+        try {
+            List<Food> options = invokeGetFoodOptionsByType("breakfast");
+            assertNotNull(options);
+            assertTrue(options.isEmpty());
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testAddMealToPlan_WhitespaceParams() {
+        boolean result = mealPlanningService.addMealToPlan(testUserId, "   ", "breakfast", "Eggs");
+        assertFalse(result);
+        result = mealPlanningService.addMealToPlan(testUserId, "Monday", "   ", "Eggs");
+        assertFalse(result);
+        result = mealPlanningService.addMealToPlan(testUserId, "Monday", "breakfast", "   ");
+        assertFalse(result);
+    }
+
+    @Test
+    public void testAddMealToPlan_SQLException() throws Exception {
+        testConnection.close();
+        try {
+            boolean result = mealPlanningService.addMealToPlan(testUserId, "Monday", "breakfast", "Eggs");
+            assertFalse(result);
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testAddMeal_SQLException() throws Exception {
+        testConnection.close();
+        try {
+            mealPlanningService.addMeal(testUserId, "Monday", "breakfast", "Eggs", 100, 10, 10, 5, "");
+            fail("Should throw RuntimeException");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("Error adding meal to plan"));
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testSaveFoodNutrients_SQLException() throws Exception {
+        // Simulate SQLException by passing a closed connection
+        FoodNutrient fn = new FoodNutrient("SQLNutrient", 100, 100, 10, 10, 10, 2, 2, 2);
+        testConnection.close();
+        try {
+            invokeSaveFoodNutrients(testConnection, 1, fn);
+            fail("Should throw SQLException");
+        } catch (Exception e) {
+            assertTrue(e.getCause() instanceof SQLException);
+        } finally {
+            testConnection = DatabaseHelper.getConnection();
+            mealPlanningService = new MealPlanningService(testConnection);
+        }
+    }
+
+    @Test
+    public void testUpdateFoodNutrients_UpdateAndInsertBranches() throws Exception {
+        // Insert a food and nutrients
+        FoodNutrient fn = new FoodNutrient("BranchNutrient", 100, 100, 10, 10, 10, 2, 2, 2);
+        int foodId = invokeSaveFoodAndGetId(fn);
+        // Update branch
+        fn.setProtein(20);
+        invokeUpdateFoodNutrients(foodId, fn);
+        // Remove nutrients and test insert branch
+        try (PreparedStatement ps = testConnection.prepareStatement("DELETE FROM food_nutrients WHERE food_id = ?")) {
+            ps.setInt(1, foodId);
+            ps.executeUpdate();
+        }
+        invokeUpdateFoodNutrients(foodId, fn);
+        // Check if inserted
+        try (PreparedStatement ps = testConnection.prepareStatement("SELECT * FROM food_nutrients WHERE food_id = ?")) {
+            ps.setInt(1, foodId);
+            ResultSet rs = ps.executeQuery();
+            assertTrue(rs.next());
+        }
+    }
+
+    @Test
+    public void testFoodNutrient_InvalidValues() {
+        FoodNutrient fn = new FoodNutrient("Invalid", 100, 100, 200, 200, 200, 50, 50, 50); // excessive macros
+        assertFalse(fn.isValid());
+        fn = new FoodNutrient("Negative", 100, 100, -10, -10, -10, -5, -5, -5);
+        assertTrue(fn.getProtein() == 0 && fn.getCarbs() == 0 && fn.getFat() == 0 && fn.getFiber() == 0 && fn.getSugar() == 0 && fn.getSodium() == 0);
+    }
+
+    @Test
+    public void testDuplicateFoodInsertion() throws Exception {
+        Food food = new Food("DuplicateFood", 100, 100);
+        int id1 = invokeSaveFoodAndGetId(food);
+        int id2 = invokeSaveFoodAndGetId(food);
+        assertEquals(id1, id2);
+    }
+
+    @Test
+    public void testPartialNutrientInfo() throws Exception {
+        FoodNutrient fn = new FoodNutrient("PartialNutrient", 100, 100);
+        fn.setProtein(10);
+        int id = invokeSaveFoodAndGetId(fn);
+        assertTrue(id > 0);
+    }
+
+    // Helper for saveFoodNutrients via reflection
+    private void invokeSaveFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("saveFoodNutrients", Connection.class, int.class, FoodNutrient.class);
+        m.setAccessible(true);
+        m.invoke(mealPlanningService, conn, foodId, fn);
+    }
+
+    // --- Helper methods for reflection ---
+    private int invokeSaveFoodAndGetId(Food food) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("saveFoodAndGetId", Connection.class, Food.class);
+        m.setAccessible(true);
+        return (int) m.invoke(mealPlanningService, testConnection, food);
+    }
+    private void invokeUpdateFoodNutrients(int foodId, FoodNutrient fn) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("updateFoodNutrients", Connection.class, int.class, FoodNutrient.class);
+        m.setAccessible(true);
+        m.invoke(mealPlanningService, testConnection, foodId, fn);
+    }
+    private int invokeGetUserId(String username) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("getUserId", Connection.class, String.class);
+        m.setAccessible(true);
+        return (int) m.invoke(mealPlanningService, testConnection, username);
+    }
+    private int invokeSaveFoodWithMealType(Food food, String mealType) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("saveFoodWithMealType", Connection.class, Food.class, String.class);
+        m.setAccessible(true);
+        return (int) m.invoke(mealPlanningService, testConnection, food, mealType);
+    }
+    private List<Food> invokeGetFoodOptionsByType(String mealType) throws Exception {
+        java.lang.reflect.Method m = MealPlanningService.class.getDeclaredMethod("getFoodOptionsByType", String.class);
+        m.setAccessible(true);
+        return (List<Food>) m.invoke(mealPlanningService, mealType);
+    }
+    private void clearFoodsTable() throws Exception {
+        try (Statement stmt = testConnection.createStatement()) {
+            stmt.execute("DELETE FROM foods");
+        }
+    }
 }

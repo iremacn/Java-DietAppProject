@@ -2557,4 +2557,80 @@ public class MealPlanningMenuTest {
         
         
     }
+
+    
+
+    @Test
+    public void testShowFoodSelectionUI_NoSelection() {
+        // Simulate UI mode but no selection made
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
+        menu.enableUIMode();
+        menu.initializeUIForTest();
+        // Call showFoodSelectionUI with valid params but simulate no selection
+        menu.accessShowFoodSelectionUI("2023-05-12", "breakfast");
+        // No assertion needed, just ensure no exception
+    }
+
+    @Test
+    public void testCapitalizeBranches() {
+        assertEquals("", mealPlanningMenu.accessCapitalize(""));
+        assertNull(mealPlanningMenu.accessCapitalize(null));
+        assertEquals("Hello", mealPlanningMenu.accessCapitalize("hello"));
+        assertEquals("Hello", mealPlanningMenu.accessCapitalize("Hello"));
+        assertEquals("A", mealPlanningMenu.accessCapitalize("a"));
+        assertEquals("HELLO", mealPlanningMenu.accessCapitalize("HELLO"));
+    }
+
+    @Test
+    public void testDisplayMenu_InvalidChoice() {
+        String input = "9\n0\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
+        menu.displayMenu();
+        System.setIn(originalIn);
+    }
+
+    @Test
+    public void testHandlePlanMealsConsole_InvalidMealType() {
+        String input = "2025\n5\n15\n9\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
+        menu.accessHandlePlanMealsConsole();
+        System.setIn(originalIn);
+    }
+
+    @Test
+    public void testHandlePlanMealsConsole_ValidMealTypeInvalidFoodChoice() {
+        String input = "2025\n5\n15\n1\n9\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
+        menu.accessHandlePlanMealsConsole();
+        System.setIn(originalIn);
+    }
+
+    @Test
+    public void testGetFoodDetailsFromUser_InvalidCalories() throws Exception {
+        // Simulate invalid calories input
+        String input = "Apple\n100\ninvalid\n";
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(input));
+        Method m = MealPlanningMenu.class.getDeclaredMethod("getFoodDetailsFromUser");
+        m.setAccessible(true);
+        Food result = (Food) m.invoke(menu);
+        assertNull(result);
+    }
+
+ 
+
+    @Test
+    public void testHandlePlanMealsConsole_InvalidFoodChoice() throws Exception {
+        // Valid meal type, invalid food choice (out of range)
+        String input = "2025\n5\n15\n1\n99\n";
+        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(input));
+        menu.accessHandlePlanMealsConsole();
+        String output = outputStream.toString();
+        assertTrue(output.contains("Invalid food choice"));
+    }
+ 
+  
+
 }
