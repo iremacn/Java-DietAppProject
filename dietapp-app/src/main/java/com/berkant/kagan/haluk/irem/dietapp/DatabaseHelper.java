@@ -1,9 +1,14 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import java.sql.*;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.File;
 
 /**
  * This class handles database operations for the Diet Planner application.
@@ -158,11 +163,11 @@ public class DatabaseHelper {
      */
     private static void createTables(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
-            // Tüm eski tabloları sil
-            statement.execute("DROP TABLE IF EXISTS foods;");
-            statement.execute("DROP TABLE IF EXISTS meal_plans;");
-            statement.execute("DROP TABLE IF EXISTS meals;");
-            statement.execute("DROP TABLE IF EXISTS users;");
+            // Tabloları silme işlemini kaldırıyoruz
+            // statement.execute("DROP TABLE IF EXISTS foods;");
+            // statement.execute("DROP TABLE IF EXISTS meal_plans;");
+            // statement.execute("DROP TABLE IF EXISTS meals;");
+            // statement.execute("DROP TABLE IF EXISTS users;");
             
             // Users table
             statement.execute(
