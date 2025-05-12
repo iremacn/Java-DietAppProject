@@ -175,6 +175,7 @@
 						<include>**/UserAuthenticationPanelTest</include>
 						<include>**/MainFrameTest</include>
 						<include>**/MainnFrameTest</include>
+						<include>**/MainTest</include>
 						
                     
                      

@@ -3,6 +3,7 @@ package com.berkant.kagan.haluk.irem.dietapp;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,9 @@ import org.junit.Test;
 /**
  * Unit tests for the CalorieNutrientTrackingService class.
  * @author irem
+ * @author haluk
+ * @author berkant
+ * @author kagan
 **
  */
 public class CalorieNutrientTrackingServiceTest {
@@ -334,7 +338,7 @@ public class CalorieNutrientTrackingServiceTest {
             
         CalorieNutrientTrackingService.NutritionReport mockReport =
             calorieNutrientService.new NutritionReport(
-                "2023-04-15", 417, 31.3, 14.0, 3.8, 2.4, 10.3, 75.0, mockGoal);
+                "2023-04-15", 417, 31.3, 14.0, 3.8, 2.4, 10.3, 1500, mockGoal);
                 
         // Set this as the mock response
         calorieNutrientService.setMockNutritionReport(mockReport);
@@ -1613,6 +1617,233 @@ public class CalorieNutrientTrackingServiceTest {
             } catch (SQLException e) {
                 // Log error but don't fail test
                 System.out.println("Error in test: " + e.getMessage());
+            }
+        }
+
+        @Test
+        public void testGetNutritionGoalsWithSQLException() {
+            try {
+                // Create a valid connection to test database
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                
+                // Create a statement to drop the users table to force SQLException
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.execute("DROP TABLE IF EXISTS users");
+                }
+                
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Call the method - should return default goals due to missing table
+                CalorieNutrientTrackingService.NutritionGoal goals = service.getNutritionGoals("testuser");
+                
+                // Verify default goals are returned
+                assertNotNull("Should return default goals on SQLException", goals);
+                assertEquals(2000, goals.getCalorieGoal());
+                assertEquals(50.0, goals.getProteinGoal(), 0.001);
+                assertEquals(250.0, goals.getCarbGoal(), 0.001);
+                assertEquals(70.0, goals.getFatGoal(), 0.001);
+                
+            } catch (SQLException e) {
+                fail("Test failed with SQLException: " + e.getMessage());
+            }
+        }
+
+        @Test
+        public void testGetNutritionReportWithEmptyFoodList() {
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn) {
+                    @Override
+                    public List<Food> getFoodLog(String username, String date) {
+                        return new ArrayList<>(); // Return empty list
+                    }
+                };
+                
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Call the method
+                CalorieNutrientTrackingService.NutritionReport report = 
+                    service.getNutritionReport("testuser", "2023-04-15");
+                
+                // Verify report has zero values
+                assertNotNull("Report should not be null", report);
+                assertEquals("2023-04-15", report.getDate());
+                assertEquals(0, report.getTotalCalories());
+                assertEquals(0.0, report.getTotalProtein(), 0.001);
+                assertEquals(0.0, report.getTotalCarbs(), 0.001);
+                assertEquals(0.0, report.getTotalFat(), 0.001);
+            } catch (SQLException e) {
+                fail("Test failed with SQLException: " + e.getMessage());
+            }
+        }
+
+        @Test
+        public void testGetWeeklyReportWithInvalidDates() {
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Test with array containing invalid dates
+                String[] dates = {"2023-04-15", "invalid-date", "2023-04-16"};
+                List<CalorieNutrientTrackingService.NutritionReport> reports = 
+                    service.getWeeklyReport("testuser", dates);
+                
+                // Should still return reports for valid dates
+                assertNotNull("Reports should not be null", reports);
+                assertTrue("Should process valid dates", reports.size() > 0);
+            } catch (SQLException e) {
+                fail("Test failed with SQLException: " + e.getMessage());
+            }
+        }
+
+        @Test
+        public void testCalculateSuggestedCaloriesWithEdgeCases() {
+            CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(null);
+            
+            // Test with minimum valid values
+            int result1 = service.calculateSuggestedCalories('M', 1, 1.0, 1.0, 1);
+            assertTrue("Should calculate calories for minimum valid values", result1 > 0);
+            
+            // Test with maximum valid values
+            int result2 = service.calculateSuggestedCalories('F', 120, 300.0, 500.0, 5);
+            assertTrue("Should calculate calories for maximum valid values", result2 > 0);
+            
+            // Test with invalid gender
+            int result3 = service.calculateSuggestedCalories('X', 30, 180.0, 75.0, 2);
+            assertEquals("Should return 0 for invalid gender", 0, result3);
+            
+            // Test with invalid age
+            int result4 = service.calculateSuggestedCalories('M', 0, 180.0, 75.0, 2);
+            assertEquals("Should return 0 for invalid age", 0, result4);
+            
+            // Test with invalid height
+            int result5 = service.calculateSuggestedCalories('M', 30, 0.0, 75.0, 2);
+            assertEquals("Should return 0 for invalid height", 0, result5);
+            
+            // Test with invalid weight
+            int result6 = service.calculateSuggestedCalories('M', 30, 180.0, 0.0, 2);
+            assertEquals("Should return 0 for invalid weight", 0, result6);
+            
+            // Test with invalid activity level
+            int result7 = service.calculateSuggestedCalories('M', 30, 180.0, 75.0, 0);
+            assertEquals("Should return 0 for invalid activity level", 0, result7);
+            
+            int result8 = service.calculateSuggestedCalories('M', 30, 180.0, 75.0, 6);
+            assertEquals("Should return 0 for invalid activity level", 0, result8);
+        }
+
+        @Test
+        public void testGetCommonFoodsWithNutrientsWithEmptyDatabase() {
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Call the method
+                FoodNutrient[] foods = service.getCommonFoodsWithNutrients();
+                
+                // Should return default foods array
+                assertNotNull("Should return default foods array", foods);
+                assertTrue("Should return at least one food", foods.length > 0);
+                
+                // Verify first food is Apple (from default array)
+                assertEquals("First food should be Apple", "Apple", foods[0].getName());
+                assertEquals(52, foods[0].getCalories());
+            } catch (SQLException e) {
+                fail("Test failed with SQLException: " + e.getMessage());
+            }
+        }
+
+        @Test
+        public void testNutritionGoalWithEdgeCases() {
+            // Test with zero values
+            CalorieNutrientTrackingService.NutritionGoal goal1 = 
+                calorieNutrientService.new NutritionGoal(0, 0, 0, 0);
+            assertEquals(0, goal1.getCalorieGoal());
+            assertEquals(0.0, goal1.getProteinGoal(), 0.001);
+            assertEquals(0.0, goal1.getCarbGoal(), 0.001);
+            assertEquals(0.0, goal1.getFatGoal(), 0.001);
+            
+            // Test with negative values (should be converted to 0)
+            CalorieNutrientTrackingService.NutritionGoal goal2 = 
+                calorieNutrientService.new NutritionGoal(-100, -50, -200, -70);
+            assertEquals(0, goal2.getCalorieGoal());
+            assertEquals(0.0, goal2.getProteinGoal(), 0.001);
+            assertEquals(0.0, goal2.getCarbGoal(), 0.001);
+            assertEquals(0.0, goal2.getFatGoal(), 0.001);
+            
+            // Test with maximum values
+            CalorieNutrientTrackingService.NutritionGoal goal3 = 
+                calorieNutrientService.new NutritionGoal(Integer.MAX_VALUE, Double.MAX_VALUE, 
+                                                       Double.MAX_VALUE, Double.MAX_VALUE);
+            assertEquals(Integer.MAX_VALUE, goal3.getCalorieGoal());
+            assertEquals(Double.MAX_VALUE, goal3.getProteinGoal(), 0.001);
+            assertEquals(Double.MAX_VALUE, goal3.getCarbGoal(), 0.001);
+            assertEquals(Double.MAX_VALUE, goal3.getFatGoal(), 0.001);
+        }
+
+        @Test
+        public void testNutritionReportWithEdgeCases() {
+            // Create a test goal
+            CalorieNutrientTrackingService.NutritionGoal goal = 
+                calorieNutrientService.new NutritionGoal(2000, 50, 250, 70);
+            
+            // Test with maximum values
+            CalorieNutrientTrackingService.NutritionReport report1 = 
+                calorieNutrientService.new NutritionReport(
+                    "2023-04-15", Integer.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE,
+                    Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, goal);
+            
+            assertEquals(Integer.MAX_VALUE, report1.getTotalCalories());
+            assertEquals(Double.MAX_VALUE, report1.getTotalProtein(), 0.001);
+            assertEquals(Double.MAX_VALUE, report1.getTotalCarbs(), 0.001);
+            assertEquals(Double.MAX_VALUE, report1.getTotalFat(), 0.001);
+            assertEquals(Double.MAX_VALUE, report1.getTotalFiber(), 0.001);
+            assertEquals(Double.MAX_VALUE, report1.getTotalSugar(), 0.001);
+            assertEquals(Double.MAX_VALUE, report1.getTotalSodium(), 0.001);
+            
+            
+        }
+
+        @Test
+        public void testGetNutritionGoalsWithInvalidUser() {
+            try {
+                // Create a valid connection to test database
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                
+                // Create a statement to ensure the users table exists but is empty
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT)");
+                    stmt.execute("DELETE FROM users"); // Clear any existing users
+                }
+                
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+                
+                // Test with non-existent user
+                CalorieNutrientTrackingService.NutritionGoal goals = service.getNutritionGoals("nonexistentuser");
+                
+                // Verify default goals are returned for non-existent user
+                assertNotNull("Should return default goals for non-existent user", goals);
+                assertEquals(2000, goals.getCalorieGoal());
+                assertEquals(50.0, goals.getProteinGoal(), 0.001);
+                assertEquals(250.0, goals.getCarbGoal(), 0.001);
+                assertEquals(70.0, goals.getFatGoal(), 0.001);
+                
+                // Test with null username
+                goals = service.getNutritionGoals(null);
+                assertNotNull("Should return default goals for null username", goals);
+                assertEquals(2000, goals.getCalorieGoal());
+                
+                // Test with empty username
+                goals = service.getNutritionGoals("");
+                assertNotNull("Should return default goals for empty username", goals);
+                assertEquals(2000, goals.getCalorieGoal());
+                
+            } catch (SQLException e) {
+                fail("Test failed with SQLException: " + e.getMessage());
             }
         }
     }

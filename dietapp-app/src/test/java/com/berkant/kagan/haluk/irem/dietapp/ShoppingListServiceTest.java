@@ -39,6 +39,9 @@ import java.util.concurrent.Executor;
 /**
  * Unit tests for the ShoppingListService class.
  * @author haluk
+ * @author irem
+ * @author kagan
+ * @author berkant
  */
 public class ShoppingListServiceTest {
 
@@ -3185,6 +3188,79 @@ public class ShoppingListServiceTest {
                 	                service.getIngredientsForFood(recipeInfo[0], recipeInfo[1]);
                 	            
                 	            assertNotNull("Ingredient list should not be null", ingredients);
+                	        }
+                	    }
+
+                	    @Test
+                	    public void testGenerateShoppingList() {
+                	        // Create a test service with a simple connection override
+                	        ShoppingListService testService = new ShoppingListService(mealPlanningService) {
+                	            @Override
+                	            protected Connection getConnection() {
+                	                try {
+                	                    Connection conn = DatabaseHelper.getConnection();
+                	                    
+                	                    // Create necessary tables
+                	                    try (Statement stmt = conn.createStatement()) {
+                	                        // Create tables if they don't exist
+                	                        stmt.execute("CREATE TABLE IF NOT EXISTS ingredients (" +
+                	                            "id INTEGER PRIMARY KEY, " +
+                	                            "name TEXT NOT NULL, " +
+                	                            "price REAL NOT NULL)");
+                	                            
+                	                        stmt.execute("CREATE TABLE IF NOT EXISTS recipes (" +
+                	                            "id INTEGER PRIMARY KEY, " +
+                	                            "name TEXT NOT NULL)");
+                	                            
+                	                        stmt.execute("CREATE TABLE IF NOT EXISTS recipe_ingredients (" +
+                	                            "recipe_id INTEGER, " +
+                	                            "ingredient_id INTEGER, " +
+                	                            "amount REAL NOT NULL, " +
+                	                            "unit TEXT NOT NULL, " +
+                	                            "FOREIGN KEY (recipe_id) REFERENCES recipes(id), " +
+                	                            "FOREIGN KEY (ingredient_id) REFERENCES ingredients(id))");
+                	                            
+                	                        stmt.execute("CREATE TABLE IF NOT EXISTS foods (" +
+                	                            "id INTEGER PRIMARY KEY, " +
+                	                            "name TEXT NOT NULL)");
+                	                            
+                	                        stmt.execute("CREATE TABLE IF NOT EXISTS meal_plans (" +
+                	                            "id INTEGER PRIMARY KEY, " +
+                	                            "food_id INTEGER, " +
+                	                            "FOREIGN KEY (food_id) REFERENCES foods(id))");
+                	                    }
+                	                    
+                	                    return conn;
+                	                } catch (Exception e) {
+                	                    return null;
+                	                }
+                	            }
+                	        };
+                	        
+                	        // Test the method
+                	        List<String> shoppingList = testService.generateShoppingList();
+                	        
+                	        // Basic assertions
+                	        assertNotNull("Shopping list should not be null", shoppingList);
+                	    }
+
+                	    @Test
+                	    public void testGenerateShoppingListWithNullConnection() {
+                	        // Create a test service that returns null connection
+                	        ShoppingListService testService = new ShoppingListService(mealPlanningService) {
+                	            @Override
+                	            protected Connection getConnection() {
+                	                return null;
+                	            }
+                	        };
+                	        
+                	        // Test that it throws the expected exception
+                	        try {
+                	            testService.generateShoppingList();
+                	            fail("Should throw RuntimeException when connection is null");
+                	        } catch (RuntimeException e) {
+                	            assertTrue("Exception message should mention database connection", 
+                	                e.getMessage().contains("Failed to generate shopping list"));
                 	        }
                 	    }
                 	 

@@ -306,58 +306,81 @@ public class ShoppingListService {
     public List<String> generateShoppingList() {
         List<String> shoppingList = new ArrayList<>();
         Map<String, Double> ingredientAmounts = new HashMap<>();
+        Connection conn = null;
         
-        try (Connection conn = getConnection()) {
-            // Haftalık yemek planından malzemeleri topla
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(
-                     "SELECT ri.ingredient_id, i.name, SUM(ri.amount) as total_amount, ri.unit " +
-                     "FROM recipe_ingredients ri " +
-                     "JOIN ingredients i ON ri.ingredient_id = i.id " +
-                     "JOIN recipes r ON ri.recipe_id = r.id " +
-                     "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
-                     "GROUP BY ri.ingredient_id, i.name, ri.unit")) {
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                throw new SQLException("Failed to obtain database connection");
+            }
+            
+            // Collect ingredients from weekly meal plan
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "SELECT ri.ingredient_id, i.name, SUM(ri.amount) as total_amount, ri.unit " +
+                    "FROM recipe_ingredients ri " +
+                    "JOIN ingredients i ON ri.ingredient_id = i.id " +
+                    "JOIN recipes r ON ri.recipe_id = r.id " +
+                    "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
+                    "GROUP BY ri.ingredient_id, i.name, ri.unit")) {
                 
-                while (rs.next()) {
-                    String ingredientName = rs.getString("name");
-                    double amount = rs.getDouble("total_amount");
-                    String unit = rs.getString("unit");
-                    
-                    // Malzeme miktarlarını birleştir
-                    if (ingredientAmounts.containsKey(ingredientName)) {
-                        amount += ingredientAmounts.get(ingredientName);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        String ingredientName = rs.getString("name");
+                        Double amount = rs.getDouble("total_amount");
+                        String unit = rs.getString("unit");
+                        
+                        if (ingredientName != null && amount != null && unit != null) {
+                            // Combine ingredient amounts
+                            if (ingredientAmounts.containsKey(ingredientName)) {
+                                amount += ingredientAmounts.get(ingredientName);
+                            }
+                            ingredientAmounts.put(ingredientName, amount);
+                            
+                            // Add to shopping list
+                            shoppingList.add(String.format("%s - %.2f %s", 
+                                ingredientName, amount, unit));
+                        }
                     }
-                    ingredientAmounts.put(ingredientName, amount);
-                    
-                    // Alışveriş listesine ekle
-                    shoppingList.add(String.format("%s - %.2f %s", 
-                        ingredientName, amount, unit));
                 }
             }
             
-            // Toplam maliyeti hesapla
+            // Calculate total cost
             double totalCost = 0.0;
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(
-                     "SELECT i.name, i.price, SUM(ri.amount) as total_amount " +
-                     "FROM recipe_ingredients ri " +
-                     "JOIN ingredients i ON ri.ingredient_id = i.id " +
-                     "JOIN recipes r ON ri.recipe_id = r.id " +
-                     "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
-                     "GROUP BY i.name, i.price")) {
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "SELECT i.name, i.price, SUM(ri.amount) as total_amount " +
+                    "FROM recipe_ingredients ri " +
+                    "JOIN ingredients i ON ri.ingredient_id = i.id " +
+                    "JOIN recipes r ON ri.recipe_id = r.id " +
+                    "JOIN meal_plans mp ON mp.food_id = (SELECT f.id FROM foods f WHERE f.name = r.name) " +
+                    "GROUP BY i.name, i.price")) {
                 
-                while (rs.next()) {
-                    double price = rs.getDouble("price");
-                    double amount = rs.getDouble("total_amount");
-                    totalCost += price * amount;
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        Double price = rs.getDouble("price");
+                        Double amount = rs.getDouble("total_amount");
+                        
+                        if (price != null && amount != null) {
+                            totalCost += price * amount;
+                        }
+                    }
                 }
             }
             
-            // Toplam maliyeti listeye ekle
+            // Add total cost to list
             shoppingList.add(String.format("\nToplam Tahmini Maliyet: %.2f TL", totalCost));
             
         } catch (SQLException e) {
-            System.out.println("Shopping list could not be generated: " + e.getMessage());
+            System.err.println("Error generating shopping list: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to generate shopping list", e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
         }
         
         return shoppingList;
