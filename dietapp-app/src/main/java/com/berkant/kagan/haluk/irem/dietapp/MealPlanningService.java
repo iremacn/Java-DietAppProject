@@ -148,9 +148,9 @@ public class MealPlanningService {
             if (rowsAffected > 0) {
                 
                 try (Statement stmt = conn.createStatement();
-                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-                    if (rs.next()) {
-                        int foodId = rs.getInt(1);
+                     ResultSet rs2 = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs2.next()) {
+                        int foodId = rs2.getInt(1);
 
                         
                         if (food instanceof FoodNutrient) {
@@ -820,16 +820,16 @@ public class MealPlanningService {
                     foodId = rs.getInt("id");
                 } else {
                     // If food doesn't exist, create it
-                    String insertFood = "INSERT INTO foods (name, grams, calories, meal_type) VALUES (?, ?, ?, ?)";
-                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood, Statement.RETURN_GENERATED_KEYS)) {
+                    String insertFood = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
+                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood)) {
                         insertStmt.setString(1, foodName);
-                        insertStmt.setDouble(2, 100.0); // Default values
+                        insertStmt.setDouble(2, 0);
                         insertStmt.setInt(3, 500);
-                        insertStmt.setString(4, mealType);
                         insertStmt.executeUpdate();
-                        try (ResultSet keys = insertStmt.getGeneratedKeys()) {
-                            if (keys.next()) {
-                                foodId = keys.getInt(1);
+                        try (Statement stmt = connection.createStatement();
+                             ResultSet rs2 = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                            if (rs2.next()) {
+                                foodId = rs2.getInt(1);
                             }
                         }
                     }
@@ -889,14 +889,15 @@ public class MealPlanningService {
                     foodId = rs.getInt("id");
                 } else {
                     String insertFood = "INSERT INTO foods (name, grams, calories) VALUES (?, ?, ?)";
-                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood, Statement.RETURN_GENERATED_KEYS)) {
+                    try (PreparedStatement insertStmt = connection.prepareStatement(insertFood)) {
                         insertStmt.setString(1, foodName);
                         insertStmt.setDouble(2, 0);
                         insertStmt.setInt(3, calories);
                         insertStmt.executeUpdate();
-                        try (ResultSet keys = insertStmt.getGeneratedKeys()) {
-                            if (keys.next()) {
-                                foodId = keys.getInt(1);
+                        try (Statement stmt = connection.createStatement();
+                             ResultSet rs2 = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                            if (rs2.next()) {
+                                foodId = rs2.getInt(1);
                             }
                         }
                     }
