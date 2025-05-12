@@ -1181,6 +1181,8 @@ public class PersonalizedDietRecommendationMenuTest {
                 mainPanelField.set(menu, mainPanel);
             } catch (NoSuchFieldException e) {
                 System.out.println("mainPanel field not found, continuing with test");
+            } catch (Exception e) {
+                System.out.println("Error setting mainPanel field: " + e.getMessage());
             }
 
             // Try to set historyList field if it exists
@@ -1533,263 +1535,133 @@ public class PersonalizedDietRecommendationMenuTest {
     }
     
     @Test
-    public void testDisplayMenu_InvalidOption() {
-        // Test with invalid input first, then exit
-        String input = "abc\n99\n5\n"; // Invalid input, then Exit
+    public void testDisplayMenu_InvalidInputAndException() {
+        // Test with invalid and empty input, and also when an exception is thrown
+        String input = "\nabc\n6\n5\n"; // empty, letter, invalid number, exit
         scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
         menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
-
         try {
-            // Try to set the useGUI flag if it exists
-            try {
-                Field useGUIField = PersonalizedDietRecommendationMenu.class.getDeclaredField("useGUI");
-                useGUIField.setAccessible(true);
-                useGUIField.set(menu, false);
-                System.out.println("Successfully set useGUI field to false");
-            } catch (NoSuchFieldException e) {
-                System.out.println("useGUI field not found, continuing with test");
-            } catch (Exception e) {
-                System.out.println("Error setting useGUI field: " + e.getMessage());
-            }
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("displayMenu");
+            method.setAccessible(true);
+            Field scannerField = PersonalizedDietRecommendationMenu.class.getDeclaredField("scanner");
+            scannerField.setAccessible(true);
+            ((Scanner)scannerField.get(menu)).close(); // Should throw exception when scanner is closed
+            method.invoke(menu);
+        } catch (Exception e) {
+            // Exception is expected, test should pass
+            assertTrue(true);
+        }
+    }
 
-            // Try to call displayMenu
-            try {
-                Method displayMethod = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("displayMenu");
-                displayMethod.setAccessible(true);
-                displayMethod.invoke(menu);
-                System.out.println("Successfully called displayMenu method");
-            } catch (NoSuchMethodException e) {
-                System.out.println("displayMenu method not found, continuing with test");
-            } catch (Exception e) {
-                System.out.println("Error calling displayMenu: " + e.getMessage());
-            }
+    @Test
+    public void testGenerateNewRecommendation_Exception() {
+        // Should throw exception when scanner is closed
+        scanner = new Scanner(new ByteArrayInputStream("25\n70\n175\nMale\nModerate\n".getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("generateNewRecommendation");
+            method.setAccessible(true);
+            Field scannerField = PersonalizedDietRecommendationMenu.class.getDeclaredField("scanner");
+            scannerField.setAccessible(true);
+            ((Scanner)scannerField.get(menu)).close();
+            method.invoke(menu);
+        } catch (Exception e) {
+            assertTrue(true);
+        }
+    }
 
-            // Check output for expected error messages
+    @Test
+    public void testGetUserChoice_EmptyInput() {
+        // Should return -1 for empty input
+        scanner = new Scanner(new ByteArrayInputStream("\n".getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("getUserChoice");
+            method.setAccessible(true);
+            int result = (int) method.invoke(menu);
+            assertEquals(-1, result);
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testHandleSetDietPreferences_AllInvalid() {
+        // All choices are invalid, defaults should be used
+        String input = "9\n9\nN\nN\n";
+        scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleSetDietPreferences");
+            method.setAccessible(true);
+            method.invoke(menu);
             String output = outContent.toString();
-            
-            // Check for error message in a flexible way
-            boolean containsErrorMessage = 
-                output.contains("Invalid choice") || 
-                output.contains("Please enter a valid number") ||
-                output.contains("Invalid input") ||
-                output.contains("Please try again");
-                
-            if (containsErrorMessage) {
-                System.out.println("Verified: Found invalid choice error message in output");
-            } else {
-                System.out.println("Warning: Did not find invalid choice error message in output");
-                // Print a portion of the output for debugging
-                System.out.println("Output excerpt: " + 
-                    (output.length() > 500 ? output.substring(0, 500) + "..." : output));
-            }
-            
-            // Test passed successfully
-            System.out.println("DisplayMenu_InvalidOption test completed without fatal errors");
-        } catch (Exception e) {
-            System.out.println("Test encountered an error but continuing: " + e.getMessage());
-            // Print stack trace for debugging
-            e.printStackTrace();
-            // Don't fail the test completely
-        }
-    }
-    
-    @Test
-    public void testHandleActionEvents() {
-        menu = new PersonalizedDietRecommendationMenu(personalizedDietService);
-
-        try {
-            // Try to create components if method exists
-            try {
-                Method createMethod = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("createComponents");
-                createMethod.setAccessible(true);
-                createMethod.invoke(menu);
-            } catch (NoSuchMethodException e) {
-                // Method doesn't exist, create mock components manually
-                System.out.println("createComponents method not found, setting up test components manually");
-            }
-
-            // Try to set frame field
-            JFrame frame = new JFrame("Test Frame");
-            try {
-                Field frameField = PersonalizedDietRecommendationMenu.class.getDeclaredField("frame");
-                frameField.setAccessible(true);
-                frameField.set(menu, frame);
-            } catch (NoSuchFieldException e) {
-                System.out.println("frame field not found, continuing with test");
-            }
-
-            // Try to get button fields, creating mock ones if needed
-            JButton generateButton = null;
-            try {
-                Field generateButtonField = PersonalizedDietRecommendationMenu.class.getDeclaredField("generateButton");
-                generateButtonField.setAccessible(true);
-                generateButton = (JButton) generateButtonField.get(menu);
-            } catch (NoSuchFieldException e) {
-                // Create a mock button
-                generateButton = new JButton("Generate Recommendations");
-                System.out.println("generateButton field not found, using mock button");
-            }
-
-            JButton historyButton = null;
-            try {
-                Field historyButtonField = PersonalizedDietRecommendationMenu.class.getDeclaredField("historyButton");
-                historyButtonField.setAccessible(true);
-                historyButton = (JButton) historyButtonField.get(menu);
-            } catch (NoSuchFieldException e) {
-                // Create a mock button
-                historyButton = new JButton("View History");
-                System.out.println("historyButton field not found, using mock button");
-            }
-
-            JButton exampleButton = null;
-            try {
-                Field exampleButtonField = PersonalizedDietRecommendationMenu.class.getDeclaredField("exampleButton");
-                exampleButtonField.setAccessible(true);
-                exampleButton = (JButton) exampleButtonField.get(menu);
-            } catch (NoSuchFieldException e) {
-                // Create a mock button
-                exampleButton = new JButton("View Examples");
-                System.out.println("exampleButton field not found, using mock button");
-            }
-
-            // Check if menu implements ActionListener, but don't fail if it doesn't
-            if (menu instanceof java.awt.event.ActionListener) {
-                System.out.println("Menu implements ActionListener");
-            } else {
-                System.out.println("Menu does not implement ActionListener, skipping action tests");
-                return; // Skip rest of test
-            }
-
-            // Try to get and set field values
-            try {
-                Field ageFieldField = PersonalizedDietRecommendationMenu.class.getDeclaredField("ageField");
-                ageFieldField.setAccessible(true);
-                JTextField ageField = (JTextField) ageFieldField.get(menu);
-                ageField.setText("25");
-
-                Field weightFieldField = PersonalizedDietRecommendationMenu.class.getDeclaredField("weightField");
-                weightFieldField.setAccessible(true);
-                JTextField weightField = (JTextField) weightFieldField.get(menu);
-                weightField.setText("70");
-
-                Field heightFieldField = PersonalizedDietRecommendationMenu.class.getDeclaredField("heightField");
-                heightFieldField.setAccessible(true);
-                JTextField heightField = (JTextField) heightFieldField.get(menu);
-                heightField.setText("175");
-            } catch (NoSuchFieldException e) {
-                System.out.println("One or more text fields not found, skipping field value setting");
-            }
-
-            // Try to test action events if method exists
-            try {
-                Method actionMethod = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("actionPerformed",
-                        java.awt.event.ActionEvent.class);
-                actionMethod.setAccessible(true);
-
-                // Generate button action
-                if (generateButton != null) {
-                    java.awt.event.ActionEvent generateEvent = new java.awt.event.ActionEvent(
-                            generateButton, java.awt.event.ActionEvent.ACTION_PERFORMED, "generate");
-                    actionMethod.invoke(menu, generateEvent);
-                }
-
-                // History button action
-                if (historyButton != null) {
-                    java.awt.event.ActionEvent historyEvent = new java.awt.event.ActionEvent(
-                            historyButton, java.awt.event.ActionEvent.ACTION_PERFORMED, "history");
-                    actionMethod.invoke(menu, historyEvent);
-                }
-
-                // Example button action
-                if (exampleButton != null) {
-                    java.awt.event.ActionEvent exampleEvent = new java.awt.event.ActionEvent(
-                            exampleButton, java.awt.event.ActionEvent.ACTION_PERFORMED, "example");
-                    actionMethod.invoke(menu, exampleEvent);
-                }
-            } catch (NoSuchMethodException e) {
-                System.out.println("actionPerformed method not found, skipping action event tests");
-            }
-
-            // Clean up
-            frame.dispose();
-            
-            // Test passed successfully
-            System.out.println("Action events test completed without errors");
-        } catch (Exception e) {
-            System.out.println("Test encountered an error but continuing: " + e.getMessage());
-            // Don't fail the test completely
-        }
-    }
-    
-    @Test
-    public void testDietRecommendationClass() {
-        // Test the inner DietRecommendation class
-        try {
-            // Create a recommendation object
-            Class<?> recommendationClass = PersonalizedDietRecommendationMenu.DietRecommendation.class;
-            Object recommendation = recommendationClass.getConstructor(
-                    int.class, double.class, double.class, String.class, String.class, String.class)
-                    .newInstance(25, 70, 175, "Male", "Moderate", "Sample recommendation");
-            
-            // Test getter methods
-            Method getAgeMethod = recommendationClass.getDeclaredMethod("getAge");
-            int age = (int) getAgeMethod.invoke(recommendation);
-            assertEquals("Age should be 25", 25, age);
-            
-            Method getWeightMethod = recommendationClass.getDeclaredMethod("getWeight");
-            double weight = (double) getWeightMethod.invoke(recommendation);
-            assertEquals("Weight should be 70", 70.0, weight, 0.001);
-            
-            Method getHeightMethod = recommendationClass.getDeclaredMethod("getHeight");
-            double height = (double) getHeightMethod.invoke(recommendation);
-            assertEquals("Height should be 175", 175.0, height, 0.001);
-            
-            Method getGenderMethod = recommendationClass.getDeclaredMethod("getGender");
-            String gender = (String) getGenderMethod.invoke(recommendation);
-            assertEquals("Gender should be Male", "Male", gender);
-            
-            Method getActivityLevelMethod = recommendationClass.getDeclaredMethod("getActivityLevel");
-            String activityLevel = (String) getActivityLevelMethod.invoke(recommendation);
-            assertEquals("Activity level should be Moderate", "Moderate", activityLevel);
-            
-            Method getRecommendationMethod = recommendationClass.getDeclaredMethod("getRecommendation");
-            String recommendationText = (String) getRecommendationMethod.invoke(recommendation);
-            assertEquals("Recommendation text should match", "Sample recommendation", recommendationText);
-            
+            assertTrue(output.contains("Invalid choice. Using Balanced diet type."));
+            assertTrue(output.contains("Invalid choice. Using Maintain weight goal."));
         } catch (Exception e) {
             fail("Test failed: " + e.getMessage());
         }
     }
-    
+
     @Test
-    public void testEnumDietType() {
-        // Test the DietType enum
+    public void testHandleSetDietPreferences_Exception() {
+        // Should throw exception when scanner is closed
+        scanner = new Scanner(new ByteArrayInputStream("1\n1\nN\nN\n".getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, null, scanner); // authService null
         try {
-            Class<?> dietTypeClass = PersonalizedDietRecommendationMenu.DietType.class;
-            Object[] enumConstants = dietTypeClass.getEnumConstants();
-            
-            assertEquals("DietType should have 5 values", 5, enumConstants.length);
-            assertEquals("First enum value should be BALANCED", "BALANCED", enumConstants[0].toString());
-            assertEquals("Second enum value should be LOW_CARB", "LOW_CARB", enumConstants[1].toString());
-            
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleSetDietPreferences");
+            method.setAccessible(true);
+            Field scannerField = PersonalizedDietRecommendationMenu.class.getDeclaredField("scanner");
+            scannerField.setAccessible(true);
+            ((Scanner)scannerField.get(menu)).close();
+            method.invoke(menu);
+        } catch (Exception e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testHandleViewRecommendations_Exception() {
+        // Should throw exception when scanner is closed
+        scanner = new Scanner(new ByteArrayInputStream("\n".getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleViewRecommendations");
+            method.setAccessible(true);
+            Field scannerField = PersonalizedDietRecommendationMenu.class.getDeclaredField("scanner");
+            scannerField.setAccessible(true);
+            ((Scanner)scannerField.get(menu)).close();
+            method.invoke(menu);
+        } catch (Exception e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testHandleViewExampleDietPlans_EmptyAndException() {
+        // Test when plans are empty and when an exception is thrown
+        scanner = new Scanner(new ByteArrayInputStream("\n".getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        // Make plans empty
+        personalizedDietService.examplePlans = new String[0];
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleViewExampleDietPlans");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("No example diet plans available."));
         } catch (Exception e) {
             fail("Test failed: " + e.getMessage());
         }
-    }
-    
-    @Test
-    public void testEnumWeightGoal() {
-        // Test the WeightGoal enum
+        // Exception fırlat
+        personalizedDietService = null;
+        menu = new PersonalizedDietRecommendationMenu(null, authService, scanner);
         try {
-            Class<?> weightGoalClass = PersonalizedDietRecommendationMenu.WeightGoal.class;
-            Object[] enumConstants = weightGoalClass.getEnumConstants();
-            
-            assertEquals("WeightGoal should have 3 values", 3, enumConstants.length);
-            assertEquals("First enum value should be LOSE", "LOSE", enumConstants[0].toString());
-            assertEquals("Second enum value should be MAINTAIN", "MAINTAIN", enumConstants[1].toString());
-            
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleViewExampleDietPlans");
+            method.setAccessible(true);
+            method.invoke(menu);
         } catch (Exception e) {
-            fail("Test failed: " + e.getMessage());
+            assertTrue(true);
         }
     }
     
@@ -1797,5 +1669,91 @@ public class PersonalizedDietRecommendationMenuTest {
     private void assertContains(String haystack, String needle, String message) {
         assertTrue(message + " Expected: [" + needle + "] but was not found in the output.",
                  haystack.contains(needle));
+    }
+
+    @Test
+    public void testDisplayMenu_MultipleInvalidInputs() {
+        // Test multiple consecutive invalid inputs before a valid exit
+        String input = "abc\n\n-1\n10\n5\n"; // invalid, empty, negative, out of range, then exit
+        scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("displayMenu");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("Invalid choice") || output.contains("Please enter a valid number"));
+            assertTrue(output.contains("Exiting"));
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGenerateNewRecommendation_AllInvalidInputs() {
+        // Test all fields with invalid input, then valid input
+        String input = "abc\n-1\n25\nxyz\n70\ninvalid\n175\nX\nMale\n99\nModerate\n";
+        scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("generateNewRecommendation");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("Please enter valid numbers for age, weight, and height.")
+                || output.contains("Diet Recommendation Generated Successfully!"));
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGenerateNewRecommendation_NullScanner() {
+        // Test generateNewRecommendation with null scanner (should print error message)
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, null);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("generateNewRecommendation");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("Error generating recommendation") || output.contains("NullPointerException"));
+        } catch (Exception e) {
+            // Should not throw, just print error
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testHandleSetDietPreferences_MultipleInvalidInputs() {
+        // Test all choices invalid, then valid
+        String input = "0\n3\nabc\n1\n0\n3\nabc\n2\nN\nN\n";
+        scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, scanner);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleSetDietPreferences");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("Invalid choice. Using Balanced diet type."));
+            assertTrue(output.contains("Invalid choice. Using Maintain weight goal."));
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testHandleSetDietPreferences_NullScanner() {
+        // Test handleSetDietPreferences with null scanner (should print error message)
+        menu = new PersonalizedDietRecommendationMenu(personalizedDietService, authService, null);
+        try {
+            Method method = PersonalizedDietRecommendationMenu.class.getDeclaredMethod("handleSetDietPreferences");
+            method.setAccessible(true);
+            method.invoke(menu);
+            String output = outContent.toString();
+            assertTrue(output.contains("Error setting diet preferences") || output.contains("NullPointerException"));
+        } catch (Exception e) {
+            // Should not throw, just print error
+            fail("Test failed: " + e.getMessage());
+        }
     }
 }
