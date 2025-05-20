@@ -23,4 +23,12 @@ public class Main {
             menu.displayMenu();
         }
     }
+    
+    public static void main(String[] args, PersonalizedDietRecommendationMenu testMenu) {
+        PersonalizedDietRecommendationMenu menu = testMenu != null ? testMenu
+            : new PersonalizedDietRecommendationMenu(new PersonalizedDietRecommendationService(null, null));
+        if (!testMode) {
+            menu.displayMenu();
+        }
+    }
 } 

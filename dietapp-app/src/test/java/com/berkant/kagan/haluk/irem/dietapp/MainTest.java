@@ -16,6 +16,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for the MainFrame class.
@@ -158,6 +161,14 @@ public class MainTest {
         
         // Test modunu kapat
         Main.setTestMode(false);
+    }
+
+    @Test
+    public void testMainMethodWithMenuMock() {
+        Main.setTestMode(false);
+        PersonalizedDietRecommendationMenu menuMock = mock(PersonalizedDietRecommendationMenu.class);
+        Main.main(new String[]{}, menuMock);
+        verify(menuMock, times(1)).displayMenu();
     }
 
     private Object getPrivateField(Object obj, String fieldName) {
