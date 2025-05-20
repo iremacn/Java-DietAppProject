@@ -1,14 +1,21 @@
 package com.berkant.kagan.haluk.irem.dietapp;
 
-import static org.junit.Assert.*;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.lang.reflect.Field;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.lang.reflect.Field;
 
 /**
  * Unit tests for the MainFrame class.
@@ -121,31 +128,36 @@ public class MainTest {
     }
 
     @Test
-    public void testMainMethod() {
-        try {
-            // Create a thread to run the main method
-            Thread mainThread = new Thread(() -> {
-                try {
-                    String[] args = new String[0];
-                    MainFrame.main(args);
-                } catch (Exception e) {
-                    fail("Main method threw an exception: " + e.getMessage());
-                }
-            });
-
-            mainThread.start();
-            Thread.sleep(100); // Give it time to initialize
-            mainThread.interrupt(); // Clean up
-        } catch (InterruptedException e) {
-            fail("Test interrupted: " + e.getMessage());
-        }
-    }
-
-    @Test
     public void testShowMainMenu() {
         mainFrame.showMainMenu();
         assertTrue("Button panel should be visible after showing main menu", buttonPanel.isVisible());
         assertTrue("Calorie tracking panel should be visible after showing main menu", calorieTrackingPanel.isVisible());
+    }
+
+    @Test
+    public void testSetAndGetTestMode() {
+        // Test başlangıçta test modunun false olduğunu kontrol et
+        assertFalse(Main.isTestMode());
+        
+        // Test modunu true olarak ayarla
+        Main.setTestMode(true);
+        assertTrue(Main.isTestMode());
+        
+        // Test modunu false olarak ayarla
+        Main.setTestMode(false);
+        assertFalse(Main.isTestMode());
+    }
+    
+    @Test
+    public void testMainMethod() {
+        // Test modunu aktif et
+        Main.setTestMode(true);
+        
+        // main metodunu çağır
+        Main.main(new String[]{});
+        
+        // Test modunu kapat
+        Main.setTestMode(false);
     }
 
     private Object getPrivateField(Object obj, String fieldName) {
