@@ -34,8 +34,15 @@ public class DatabaseHelper {
                 System.out.println("Data directory created: " + dockerDataDir.getAbsolutePath());
             }
         } else {
-            DB_URL = "jdbc:sqlite:dietplanner.db";
+            DB_URL = "jdbc:sqlite:data/dietplanner.db";
             System.out.println("Local environment detected, using local data path");
+            
+            // Veri dizininin var olduğundan emin ol
+            File dataDir = new File("data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+                System.out.println("Data directory created: " + dataDir.getAbsolutePath());
+            }
         }
         
         try {

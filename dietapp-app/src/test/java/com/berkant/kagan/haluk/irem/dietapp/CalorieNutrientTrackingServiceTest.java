@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -16,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.After;
 
 /**
  * Unit tests for the CalorieNutrientTrackingService class.
@@ -50,7 +50,11 @@ public class CalorieNutrientTrackingServiceTest {
         // Clean up test data
         if (conn != null) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("DELETE FROM food_entries");
+                // Check if the table exists before deleting
+                stmt.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='food_entries'");
+                if (stmt.getResultSet().next()) {
+                    stmt.execute("DELETE FROM food_entries");
+                }
             }
             conn.close();
         }
@@ -1884,5 +1888,30 @@ public class CalorieNutrientTrackingServiceTest {
             report.getTotalSugar();
             report.getTotalSodium();
             assertNotNull(report.getGoals());
+        }
+
+        @Test
+        public void testAddFoodEntryWithSQLException() {
+            try {
+                Connection conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                MealPlanningService testMealPlanningService = new MealPlanningService(conn);
+                CalorieNutrientTrackingService service = new CalorieNutrientTrackingService(testMealPlanningService);
+
+                // Tabloyu silerek hata oluştur
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.execute("DROP TABLE IF EXISTS food_entries");
+                }
+
+                boolean exceptionThrown = false;
+                try {
+                    service.addFoodEntry("Test Food", 100, 10, 20, 5);
+                } catch (SQLException e) {
+                    exceptionThrown = true;
+                }
+                assertTrue("SQLException fırlatılmalı", exceptionThrown);
+            } catch (SQLException e) {
+                // Test setup sırasında hata olursa logla
+                System.out.println("Test kurulumu sırasında hata: " + e.getMessage());
+            }
         }
     }
