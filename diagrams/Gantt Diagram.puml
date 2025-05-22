@@ -1,0 +1,16 @@
+@startgantt "Gantt Diagram"
+Project starts 2023-01-01
+printscale daily
+
+[System Design] lasts 14 days
+[Database Implementation] starts at [System Design]'s end and lasts 14 days
+[Core Models Implementation] starts at [System Design]'s end and lasts 21 days
+[Authentication Service] starts at [Core Models Implementation]'s end and lasts 14 days
+[Meal Planning Service] starts at [Authentication Service]'s end and lasts 14 days
+[Calorie Tracking Service] starts at [Meal Planning Service]'s end and lasts 14 days
+[Shopping List Service] starts at [Calorie Tracking Service]'s start and lasts 14 days
+[Diet Recommendation Service] starts at [Shopping List Service]'s end and lasts 14 days
+[GUI Implementation] starts at [Diet Recommendation Service]'s end and lasts 28 days
+[Testing & Bug Fixing] starts at [GUI Implementation]'s end and lasts 14 days
+[Documentation] starts at [Testing & Bug Fixing]'s end and lasts 7 days
+@endgantt

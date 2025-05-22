@@ -1,0 +1,29 @@
+@startmindmap "Mindmap Diagram"
+* Diet Planner App
+** User Management
+*** Authentication
+**** Login
+**** Register
+**** Guest Mode
+*** User Profiles
+** Meal Planning
+*** Create Meal Plan
+*** Record Food Intake
+*** View Meal History
+** Nutrition Tracking
+*** Daily Calories
+*** Nutrient Breakdown
+*** Progress Charts
+** Diet Recommendations
+*** Personalized Suggestions
+*** Dietary Pattern Analysis
+*** Health Goal Tracking
+** Shopping List
+*** Generate from Meal Plan
+*** Custom Items
+*** Save & Share
+** Technical Components
+*** Frontend (Java Swing)
+*** Business Logic
+*** Data Storage (SQLite)
+@endmindmap

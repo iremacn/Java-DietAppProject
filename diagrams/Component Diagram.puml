@@ -1,0 +1,90 @@
+@startuml
+!theme plain
+title Diet Planner Application
+
+package "All Layers" {
+  package "GUI Layer" {
+    component [MainFrame]
+  }
+  
+  package "User Interface Components" {
+    component [UserAuthenticationPanel]
+    component [PersonalizedDietPanel]
+    component [CalorieTrackingPanel]
+    component [ShoppingListPanel]
+    component [MealPlanningPanel]
+    
+    [MainFrame] --> [UserAuthenticationPanel] : contains
+    [MainFrame] --> [PersonalizedDietPanel] : contains
+    [MainFrame] --> [CalorieTrackingPanel] : contains
+    [MainFrame] --> [ShoppingListPanel] : contains
+    [MainFrame] --> [MealPlanningPanel] : contains
+  }
+  
+  package "Business Logic Layer" {
+    package "Service Components" {
+      component [AuthenticationService]
+      component [PersonalizedDietRecommendationService]
+      component [CalorieNutrientTrackingService]
+      component [ShoppingListService]
+      component [MealPlanningService]
+    }
+  }
+  
+  package "Data Access Layer" {
+    component [Database]
+    
+    package "Data Access Components" {
+      component [DatabaseHelper]
+      component [User DAO]
+      component [Food DAO]
+      component [Meal DAO]
+      component [ShoppingList DAO]
+    }
+  }
+  
+  package "Model Components" {
+    component [User]
+    component [Food]
+    component [FoodNutrient]
+  }
+}
+
+' GUI Layer relationships
+[GUI Layer] ..> [Business Logic Layer] : uses
+[GUI Layer] ..> [User Interface Components] : implements
+
+' UI Components to Service relationships
+[UserAuthenticationPanel] --> [AuthenticationService] : uses
+[PersonalizedDietPanel] --> [PersonalizedDietRecommendationService] : uses
+[CalorieTrackingPanel] --> [CalorieNutrientTrackingService] : uses
+[ShoppingListPanel] --> [ShoppingListService] : uses
+[MealPlanningPanel] --> [MealPlanningService] : uses
+
+' Business Logic Layer relationships
+[Business Logic Layer] ..> [Data Access Layer] : uses
+[Business Logic Layer] ..> [Service Components] : implements
+
+' Service to Service relationships
+[PersonalizedDietRecommendationService] --> [CalorieNutrientTrackingService] : uses
+[PersonalizedDietRecommendationService] --> [ShoppingListService] : uses
+[CalorieNutrientTrackingService] --> [MealPlanningService] : uses
+[ShoppingListService] --> [MealPlanningService] : uses
+
+' Data Access Layer relationships
+[Data Access Layer] ..> [Database] : uses
+[Data Access Layer] ..> [Data Access Components] : implements
+
+' Service to DAO relationships
+[MealPlanningService] --> [DatabaseHelper] : uses
+
+' DatabaseHelper to DAO relationships
+[DatabaseHelper] --> [User DAO] : implements
+[DatabaseHelper] --> [Food DAO] : implements
+[DatabaseHelper] --> [Meal DAO] : implements
+[DatabaseHelper] --> [ShoppingList DAO] : implements
+
+' Model relationships
+[All Layers] ..> [Model Components] : used by
+
+@enduml

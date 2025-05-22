@@ -1,0 +1,21 @@
+@startuml "Container Diagram"
+!include <c4/C4_Container>
+
+Person(user, "Application User", "A user of the Diet Planner application")
+
+System_Boundary(dietPlanner, "Diet Planner System") {
+    Container(webApp, "Web Application", "Future Development", "Web-based access to the Diet Planner")
+    Container(mobileApp, "Mobile Application", "Future Development", "Mobile access to the Diet Planner")
+    Container(api, "API Server", "Future Development", "Provides diet planning functionality via REST API")
+    Container(desktop, "Desktop Application", "Java Swing", "Provides diet planning functionality to users")
+    ContainerDb(db, "Database", "SQLite", "Stores user accounts, meals, foods, and nutritional data")
+}
+
+Rel(user, webApp, "Will use", "HTTP/HTTPS")
+Rel(user, mobileApp, "Will use", "HTTP/HTTPS")
+Rel(user, desktop, "Uses")
+Rel(webApp, api, "Will use", "JSON/HTTPS")
+Rel(mobileApp, api, "Will use", "JSON/HTTPS")
+Rel(api, db, "Will read from and write to", "JDBC")
+Rel(desktop, db, "Reads from and writes to", "JDBC")
+@enduml

@@ -1,0 +1,56 @@
+@startuml "Diet Planner Context Diagram"
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam ArrowColor black
+skinparam RectangleBorderColor gray
+
+' Actor
+actor "User" as user
+
+' External systems
+rectangle "Client Computer" as client #white {
+}
+
+rectangle "Diet Planner Application" as app #white {
+}
+
+database "Diet Planner DB" as db
+
+rectangle "Mobile Device\n(Future)" as mobile #white {
+}
+
+' Relationships
+user -down-> app : Uses
+client -down-> app : Hosts
+app -down-> db : Reads/Writes
+app -right--> mobile : <color:blue>Future Extension</color>
+
+' Note
+note right of app
+  The Diet Planner application helps users
+  track their meals, calories, and nutrients,
+  generate personalized diet recommendations,
+  and create shopping lists.
+end note
+
+' Styling tweaks
+skinparam rectangle {
+  BorderThickness 1
+  Shadowing false
+}
+
+skinparam database {
+  BorderColor gray
+  BackgroundColor white
+}
+
+skinparam note {
+  BackgroundColor #FFFFAA
+  BorderColor #DDDDAA
+}
+
+skinparam actor {
+  BackgroundColor white
+  BorderColor gray
+}
+@enduml

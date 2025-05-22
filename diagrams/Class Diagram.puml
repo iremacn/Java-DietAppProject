@@ -1,0 +1,236 @@
+@startuml "Class Diagram"
+
+' Main Application Classes
+class MainApp <<MainApplication>> {
+}
+
+' Helpers
+class DatabaseHelper {
+  + connect() : void
+  + executeQuery(sql: String) : ResultSet
+  + getConnection() : Connection
+  + close() : void
+}
+
+' Services
+class MealPlanningService {
+  - userMeals: Map<String, List<Meal>>
+  + MealPlanningService(authService: AuthenticationService)
+  + getAvailableFoods() : List<FoodNutrient>
+  + getMealsForUser(user: String) : List<Meal>
+  + addMeal(user: String, date: String, mealType: String, foods: List<Food>) : boolean
+  + getMealsForDate(user: String, date: String) : List<Meal>
+  + createMealWithFoods(user: String, date: String, mealType: String, foods: List<FoodDetails>) : Meal
+  + saveMeal(meal: Meal) : boolean
+}
+
+class CalorieNutrientTrackingService {
+  - mealService: MealPlanningService
+  + calculateCaloriesForDay(user: String, date: String) : Double
+  + getCalorieBreakdownByMeal(user: String, date: String) : Map<String, Double>
+  + getNutrientBreakdown(user: String, date: String) : NutrientSummary
+  + getCaloriesByDateRange(user: String, startDate: String, endDate: String) : Map<String, Double>
+  + generateFoodReport(user: String, startDate: String, endDate: String) : Report
+}
+
+class ShoppingListService {
+  - mealService: MealPlanningService
+  + getShoppingListsForUser(user: String) : List<ShoppingList>
+  + createShoppingList(name: String, user: String) : ShoppingList
+  + addItemToShoppingList(list_id: int, name: String, quantity: double, unit: String) : boolean
+  + generateShoppingListFromMeal(meal: Meal, listName: String, user: String) : ShoppingList
+  + removeItemFromShoppingList(list_id: int, item_id: int) : boolean
+}
+
+class PersonalizedDietRecommendationService {
+  - calorieService: CalorieNutrientTrackingService 
+  - mealService: MealPlanningService
+  + generateDietRecommendation(user: String, calorieTarget: int) : DietPlan
+  + analyzeCurrentDiet(user: String, dateRange: DateRange) : DietAnalysis
+  + suggestMealImprovements(meal: Meal, nutritionGoals: NutritionGoals) : List<String>
+  + calculateRecommendedCalories(user: String, weight: double, height: double, age: int, activityLevel: String) : int
+}
+
+class AuthenticationService {
+  - currentUser: User
+  + login(username: String, password: String): boolean
+  + logout(): void
+  + isLoggedIn(): boolean
+  + getUser(): User
+  + register(username: String, password: String, email: String): boolean
+  + changePassword(oldPassword: String, newPassword: String): boolean
+}
+
+' Model Classes
+class User {
+  - String username
+  - String password
+  - String email
+  - String name
+  - boolean isLoggedIn
+  + getUsername(): String
+  + setPassword(password: String): void
+  + getEmail(): String
+  + setEmail(email: String): void
+  + getName(): String
+  + setName(name: String): void
+  + isLoggedIn(): boolean
+  + setLoggedIn(status: boolean): void
+}
+
+class Food {
+  - id: int
+  - name: String
+  - grams: double
+  - calories: int
+  + Food(id: int, name: String, grams: double, calories: int)
+  + getId(): int
+  + getName(): String
+  + getGrams(): double
+  + getCalories(): int
+}
+
+class FoodNutrient {
+  - double protein
+  - double fat
+  - double carbs
+  - double fiber
+  - double sugar
+  - double sodium
+  + FoodNutrient(double protein, double fat, double carbs, double fiber, double sugar, double sodium)
+  + getProtein(): double
+  + getFat(): double
+  + getCarbs(): double
+  + getFiber(): double
+  + getSugar(): double
+  + getSodium(): double
+}
+
+class Meal {
+  - id: int
+  - user: String
+  - date: String
+  - mealType: String
+  - foods: List<Food>
+  + Meal(id: int, user: String, date: String, mealType: String, foods: List<Food>)
+  + getId(): int
+  + getUser(): String
+  + getDate(): String
+  + getMealType(): String
+  + getFoods(): List<Food>
+}
+
+class ShoppingList {
+  - list_id: int
+  - username: String
+  - name: String
+  - created_date: String
+  - items: List<ShoppingItem>
+  + getListId(): int
+  + getUsername(): String
+  + getName(): String
+  + getCreatedDate(): String
+  + getItems(): List<ShoppingItem>
+  + addItem(item: ShoppingItem): void
+  + removeItem(item_id: int): boolean
+}
+
+class ShoppingItem {
+  - item_id: int
+  - list_id: int
+  - name: String
+  - quantity: double
+  - unit: String
+  - is_purchased: boolean
+  + getItemId(): int
+  + getListId(): int
+  + getName(): String
+  + getQuantity(): double
+  + getUnit(): String
+  + isPurchased(): boolean
+  + setPurchased(status: boolean): void
+}
+
+' UI Components
+class MainFrame {
+  - authPanel: UserAuthenticationPanel
+  - mealPlanningPanel: MealPlanningPanel
+  - calorieTrackingPanel: CalorieTrackingPanel 
+  - dietRecommendPanel: PersonalizedDietPanel
+  - shoppingListPanel: ShoppingListPanel
+  + showPanel(panelName: String): void
+  + getAuthService(): AuthenticationService
+  + getMealService(): MealPlanningService
+  + getCalorieService(): CalorieNutrientTrackingService
+}
+
+class UserAuthenticationPanel {
+  - authService: AuthenticationService
+  + showLoginForm(): void
+  + showRegistrationForm(): void
+  + handleLogin(username: String, password: String): void 
+  + handleRegistration(username: String, password: String, email: String): void
+}
+
+class MealPlanningPanel {
+  - mealService: MealPlanningService
+  + showMealForm(): void
+  + showFoodSelection(): void
+  + addSelectedFoodToMeal(food: Food): void
+  + saveMeal(date: String, mealType: String): void
+}
+
+class CalorieTrackingPanel {
+  - calorieService: CalorieNutrientTrackingService
+  + showDailyCalories(date: String): void
+  + showWeeklyReport(): void
+  + showNutrientBreakdown(date: String): void
+}
+
+class PersonalizedDietPanel {
+  - recommendationService: PersonalizedDietRecommendationService
+  + showDietRecommendations(): void
+  + showNutritionGoalsForm(): void
+  + generateNewRecommendation(): void
+}
+
+class ShoppingListPanel {
+  - shoppingService: ShoppingListService
+  + showShoppingLists(): void
+  + createNewList(): void
+  + addItemToList(listId: int): void
+  + markItemAsPurchased(listId: int, itemId: int): void
+}
+
+' Relationships
+DatabaseHelper <-- MealPlanningService
+DatabaseHelper <-- AuthenticationService
+DatabaseHelper <-- ShoppingListService
+DatabaseHelper <-- CalorieNutrientTrackingService
+
+AuthenticationService "1" -- "1" User : currentUser >
+MealPlanningService "1" -- "0..*" Meal : manages >
+ShoppingListService "1" -- "0..*" ShoppingList : manages >
+
+Food "1" -- "0..1" FoodNutrient : has >
+ShoppingList "1" *-- "0..*" ShoppingItem : contains >
+Meal "1" *-- "0..*" Food : contains >
+
+MealPlanningService <-- CalorieNutrientTrackingService : uses >
+MealPlanningService <-- ShoppingListService : uses >
+CalorieNutrientTrackingService <-- PersonalizedDietRecommendationService : uses >
+AuthenticationService <-- MealPlanningService : uses >
+
+MainFrame *-- UserAuthenticationPanel
+MainFrame *-- MealPlanningPanel
+MainFrame *-- CalorieTrackingPanel
+MainFrame *-- PersonalizedDietPanel
+MainFrame *-- ShoppingListPanel
+
+UserAuthenticationPanel --> AuthenticationService : uses
+MealPlanningPanel --> MealPlanningService : uses
+CalorieTrackingPanel --> CalorieNutrientTrackingService : uses
+PersonalizedDietPanel --> PersonalizedDietRecommendationService : uses
+ShoppingListPanel --> ShoppingListService : uses
+
+@enduml

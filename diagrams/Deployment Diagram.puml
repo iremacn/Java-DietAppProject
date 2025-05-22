@@ -1,0 +1,72 @@
+@startuml "Diet Planner Deployment Diagram"
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam linetype ortho
+skinparam ArrowColor black
+
+' Node styling
+skinparam node {
+  BorderColor black
+  BackgroundColor white
+}
+
+' Component styling
+skinparam component {
+  BorderColor black
+  BackgroundColor white
+}
+
+' Database styling
+skinparam database {
+  BorderColor black
+  BackgroundColor white
+}
+
+' Mobile Device Node
+node "Mobile Device" as mobileDevice {
+  component "Diet Planner Mobile App" as mobileApp <<component>> {
+    component "Mobile UI" as mobileUI
+    component "Mobile Logic" as mobileLogic
+    component "API Client" as apiClient
+  }
+}
+
+' Optional Server Deployment Node
+node "Optional Server Deployment" as serverNode {
+  component "Diet Planner Server" as serverApp <<component>> {
+    component "Server Logic" as serverLogic
+    component "API Endpoints" as apiEndpoints
+    component "Database Access" as serverDbAccess
+  }
+}
+note right of serverApp : Future expansion could\ninclude server component
+
+' Client Machine Node
+node "Client Machine" as clientNode {
+  component "Diet Planner Application" as clientApp <<component>> {
+    component "User Interface" as userInterface
+    component "Business Logic" as businessLogic
+    component "Data Access" as dataAccess
+    
+    userInterface --> businessLogic
+    businessLogic --> dataAccess
+  }
+}
+
+' SQLite Database Node
+node "SQLite Database" as dbNode {
+  database "Diet Planner DB" as db {
+    component "Users Table" as usersTable
+    component "Foods Table" as foodsTable
+    component "Meals Table" as mealsTable
+    component "ShoppingLists Table" as shoppingListsTable
+  }
+}
+note right of db : Current implementation uses\nlocal SQLite database
+
+' Connections between nodes
+mobileApp ..> serverApp : <<optional>> HTTP/REST
+serverApp ..> clientApp : <<optional>> HTTP/REST
+dataAccess --> db : <<JDBC connection>>
+
+@enduml

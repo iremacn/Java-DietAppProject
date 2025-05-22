@@ -1,0 +1,35 @@
+@startwbs
+* Diet Planner Project
+** Analysis & Design
+*** Requirements Gathering
+*** System Architecture
+*** Database Design
+*** UI/UX Design
+** Development
+*** Core Components
+**** User Model
+**** Food Model
+**** Database Helper
+*** Services
+**** Authentication Service
+**** Meal Planning Service
+**** Calorie Tracking Service
+**** Shopping List Service
+**** Diet Recommendation Service
+*** User Interface
+**** Main Application Frame
+**** Authentication Panel
+**** Meal Planning Panel
+**** Calorie Tracking Panel
+**** Diet Recommendation Panel
+**** Shopping List Panel
+** Testing
+*** Unit Testing
+*** Integration Testing
+*** System Testing
+*** User Acceptance Testing
+** Deployment
+*** Documentation
+*** Final Build
+*** Installation Guide
+@endwbs

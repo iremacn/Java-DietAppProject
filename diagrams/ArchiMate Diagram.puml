@@ -1,0 +1,70 @@
+@startuml "Diet Planner ArchiMate Diagram"
+!include <archimate/Archimate>
+
+' Styling
+skinparam defaultTextAlignment center
+skinparam wrapWidth 400
+skinparam ArrowColor black
+skinparam shadowing false
+
+' Business Layer Elements
+archimate #Business "Diet App User" <<business-actor>> as user
+archimate #Business "Diet Planner" <<business-role>> as planner
+archimate #Business "Meal Planning" <<business-process>> as mealPlanning
+archimate #Business "Calorie Tracking" <<business-process>> as calorieTracking
+archimate #Business "Recommendation Generation" <<business-process>> as recommendationGeneration
+archimate #Business "Shopping List Generation" <<business-process>> as shoppingListGeneration
+
+' Application Layer Elements
+archimate #Application "Diet Planner Application" <<application-component>> as dietPlannerApp
+archimate #Application "Meal Planning Module" <<application-component>> as mealPlanningModule
+archimate #Application "Calorie Tracking Module" <<application-component>> as calorieTrackingModule
+archimate #Application "Recommendation Module" <<application-component>> as recommendationModule
+archimate #Application "Shopping List Module" <<application-component>> as shoppingListModule
+archimate #Application "Authentication Module" <<application-component>> as authenticationModule
+archimate #Application "Database Helper" <<application-component>> as databaseHelper
+
+' Technology Layer Elements
+archimate #Technology "Client Computer" <<technology-node>> as clientComputer
+archimate #Technology "Java Virtual Machine" <<technology-system>> as jvm
+archimate #Technology "Java Swing" <<technology-system>> as javaSwing
+archimate #Technology "SQLite" <<technology-system>> as sqlite
+archimate #Technology "DietPlanner.jar" <<artifact>> as jarFile
+archimate #Technology "dietplanner.db" <<artifact>> as dbFile
+
+' Relationships
+Rel_Assignment(user, planner, "assignment")
+
+' Business Process Realizations
+Rel_Realization(mealPlanningModule, mealPlanning, "realization")
+Rel_Realization(calorieTrackingModule, calorieTracking, "realization")
+Rel_Realization(recommendationModule, recommendationGeneration, "realization")
+Rel_Realization(shoppingListModule, shoppingListGeneration, "realization")
+
+' App Component Aggregations
+Rel_Aggregation(dietPlannerApp, mealPlanningModule, "aggregation")
+Rel_Aggregation(dietPlannerApp, calorieTrackingModule, "aggregation")
+Rel_Aggregation(dietPlannerApp, recommendationModule, "aggregation")
+Rel_Aggregation(dietPlannerApp, shoppingListModule, "aggregation")
+Rel_Aggregation(dietPlannerApp, authenticationModule, "aggregation")
+Rel_Aggregation(dietPlannerApp, databaseHelper, "aggregation")
+
+' Serving Relationships
+Rel_Serving(planner, user, "serving")
+Rel_Serving(dietPlannerApp, planner, "serving")
+Rel_Serving(jvm, dietPlannerApp, "serving")
+Rel_Serving(javaSwing, dietPlannerApp, "serving")
+Rel_Serving(sqlite, databaseHelper, "serving")
+
+' Artifact Realization
+Rel_Realization(jarFile, dietPlannerApp, "realization")
+
+' Technology Associations
+Rel_Association(clientComputer, jvm, "association")
+Rel_Association(clientComputer, javaSwing, "association")
+Rel_Association(clientComputer, jarFile, "association")
+Rel_Association(clientComputer, dbFile, "association")
+Rel_Association(clientComputer, sqlite, "association")
+Rel_Association(dbFile, sqlite, "association")
+
+@enduml

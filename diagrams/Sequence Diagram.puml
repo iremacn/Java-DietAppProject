@@ -1,0 +1,43 @@
+@startuml "Sequence Diagram"
+actor User
+participant MainFrame
+participant UserAuthenticationPanel
+participant AuthenticationService
+participant DatabaseHelper
+participant MealPlanningPanel
+participant MealPlanningService
+database Database
+
+title MealPlanningPanel: Create and show
+
+User -> MainFrame: Start application
+MainFrame --> UserAuthenticationPanel: Panel created
+
+User -> UserAuthenticationPanel: Enter credentials
+User -> UserAuthenticationPanel: Click login button
+
+UserAuthenticationPanel -> AuthenticationService: login(username, password)
+AuthenticationService -> DatabaseHelper: getConnection()
+DatabaseHelper -> Database: Connect
+Database --> DatabaseHelper: Connection
+DatabaseHelper --> AuthenticationService: Connection
+AuthenticationService -> Database: Query user
+Database --> AuthenticationService: User data
+AuthenticationService -> AuthenticationService: Create User object
+AuthenticationService -> Database: Update login status
+Database --> AuthenticationService: Success
+AuthenticationService --> UserAuthenticationPanel: Login successful
+UserAuthenticationPanel --> MainFrame: Show main menu
+
+User -> MainFrame: Select Meal Planning
+MainFrame -> MealPlanningPanel: getAvailableFoods()
+MealPlanningPanel -> DatabaseHelper: getConnection()
+DatabaseHelper -> Database: Connect
+Database --> DatabaseHelper: Connection
+DatabaseHelper --> MealPlanningPanel: Connection
+MealPlanningPanel -> MealPlanningService: Query foods
+MealPlanningService -> Database: Query foods
+Database --> MealPlanningService: Food data
+MealPlanningService --> MealPlanningPanel: Available foods
+MealPlanningPanel --> User: Display meal planning interface
+@enduml

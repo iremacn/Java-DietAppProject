@@ -1,0 +1,69 @@
+@startuml "Activity Diagram"
+start
+
+if (User logged in?) then (yes)
+  :Continue with existing session;
+else (no)
+  :Display Authentication Screen;
+  fork
+    :Login with existing account;
+    :Validate credentials;
+    if (Valid credentials?) then (yes)
+      :Create User session;
+    else (no)
+      :Show error message;
+      stop
+    endif
+  fork again
+    :Register new account;
+    :Validate registration info;
+    if (Valid information?) then (yes)
+      :Create new user account;
+      :Create User session;
+    else (no)
+      :Show error message;
+      stop
+    endif
+  fork again
+    :Continue as guest;
+    :Create guest session;
+  end fork
+endif
+
+:Display Main Menu;
+
+repeat
+  :User selects function;
+  
+  switch (Selected Function)
+  case (Meal Planning)
+    :Display Meal Planning Interface;
+    :User creates/edits meal plan;
+    :Save meal plan to database;
+  case (Calorie Tracking)
+    :Display Calorie Tracking Interface;
+    :Calculate nutritional data;
+    :Generate calorie reports;
+  case (Diet Recommendations)
+    :Display Diet Recommendation Interface;
+    :Analyze user dietary patterns;
+    :Generate personalized recommendations;
+  case (Shopping List)
+    :Display Shopping List Interface;
+    :Generate shopping list from meal plan;
+    :Allow user to edit shopping list;
+    :Save shopping list to database;
+  case (Logout)
+    :End user session;
+    :Return to authentication screen;
+    stop
+  case (Exit)
+    :Terminate application;
+    stop
+  endswitch
+  
+  :Return to Main Menu;
+repeat while (Continue using app?) is (yes)
+
+stop
+@enduml

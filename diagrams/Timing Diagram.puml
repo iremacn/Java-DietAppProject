@@ -1,0 +1,71 @@
+@startuml
+robust "User Interface" as UI
+robust "Authentication" as AUTH
+robust "Database" as DB
+robust "Meal Planning" as MP
+robust "Calorie Tracking" as CT
+
+@0
+UI is Startup
+AUTH is Idle
+DB is Initializing
+MP is Idle
+CT is Idle
+
+@25
+UI is "Login Screen"
+
+@50
+UI is Processing
+AUTH is Validating
+
+@75
+UI is "Main Menu"
+AUTH is "Session Active"
+DB is Ready
+
+@100
+UI is Processing
+MP is "Loading Data"
+
+@125
+UI is "Meal Planning View"
+MP is Ready
+
+@150
+UI is "Main Menu"
+
+@175
+UI is Processing
+DB is Querying
+
+@200
+UI is "Calorie View"
+DB is Ready
+CT is Calculating
+
+@225
+UI is "Main Menu"
+CT is "Displaying Results"
+
+@250
+UI is "Main Menu"
+CT is Idle
+
+@275
+UI is Shutdown
+AUTH is "Session Ended"
+DB is Closing
+
+@300
+AUTH is Idle
+DB is Ready
+MP is Idle
+CT is Idle
+
+skinparam backgroundColor white
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+@enduml

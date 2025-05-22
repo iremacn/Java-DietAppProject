@@ -1,0 +1,40 @@
+@startuml "Network Diagram"
+skinparam shadowing true
+skinparam rectangle {
+  StereotypeFontColor black
+  StereotypeFontSize 12
+}
+
+actor "End User" as user
+
+node "Desktop Computer" as desktop
+node "Diet Planner App" as app
+database "SQLite Database" as sqlite
+
+node "Mobile Device\n(Future)" as mobile
+node "Web Server\n(Future)" as web
+node "API Server\n(Future)" as api
+database "Database Server\n(Future)" as dbserver
+
+user -- desktop
+desktop -- app
+app -- sqlite
+
+' Future connections
+user .. "Local Deployment" : ..>
+app .. "Local Deployment" : ..>
+sqlite .. "Local Deployment" : ..>
+
+mobile .. app : ..>
+mobile .. api : ..>
+web .. api : ..>
+api -- dbserver
+
+dbserver .. "Future Expansion" : ..>
+user .. "Future Expansion" : ..>
+sqlite .. "Future Expansion" : ..>
+web .. "Future Expansion" : ..>
+mobile .. "Future Expansion" : ..>
+api .. "Future Expansion" : ..>
+
+@enduml

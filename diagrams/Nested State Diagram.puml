@@ -1,0 +1,48 @@
+@startuml "Nested State Diagram"
+state UserManagement {
+  [*] --> NotAuthenticated
+  
+  state NotAuthenticated {
+    [*] --> LoginForm
+    
+    LoginForm --> RegisterForm : Register button
+    RegisterForm --> LoginForm : Submit registration
+    
+    LoginForm --> GuestMode : Guest button
+  }
+  
+  NotAuthenticated --> Authenticated : Login successful
+  Authenticated --> NotAuthenticated : Logout
+  
+  state Authenticated {
+    [*] --> MainMenu
+    
+    MainMenu --> ViewingOptions
+    
+    ViewingOptions --> SelectingMealPlanning : Select option 1
+    ViewingOptions --> SelectingCalorieTracking : Select option 2
+    ViewingOptions --> SelectingDietRecommendation : Select option 3
+    ViewingOptions --> SelectingShoppingList : Select option 4
+    
+    SelectingMealPlanning --> MealPlanningModule : Navigate to meal planning
+    MealPlanningModule --> SelectingMealPlanning : Back button
+    
+    SelectingCalorieTracking --> CalorieTrackingModule : Navigate to calorie tracking
+    CalorieTrackingModule --> SelectingCalorieTracking : Back button
+    
+    SelectingDietRecommendation --> DietRecommendationModule : Navigate to diet recommendations
+    DietRecommendationModule --> SelectingDietRecommendation : Back button
+    
+    SelectingShoppingList --> ShoppingListModule : Navigate to shopping list
+    ShoppingListModule --> SelectingShoppingList : Back button
+    
+    state MealPlanningModule {
+      [*] --> ViewingMeals
+      ViewingMeals --> AddingMeal : Add meal button
+      AddingMeal --> SelectingFoods : Select foods
+      SelectingFoods --> SavingMeal : Save meal
+      SavingMeal --> ViewingMeals : Meal saved
+    }
+  }
+}
+@enduml

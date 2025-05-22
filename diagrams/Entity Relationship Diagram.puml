@@ -1,0 +1,71 @@
+@startuml "Entity Relationship Diagram"
+!define E(x) entity "x"
+
+E(User) {
+  * username : string <<PK>>
+  --
+  * password : string
+  * email : string
+  * name : string
+  * is_logged_in : boolean
+}
+
+E(ShoppingList) {
+  * list_id : integer <<PK>>
+  * username : string <<FK>>
+  --
+  * name : string
+  * created_date : date
+}
+
+E(Meal) {
+  * meal_id : integer <<PK>>
+  * username : string <<FK>>
+  --
+  * date : date
+  * meal_type : string
+}
+
+E(Food) {
+  * food_id : integer <<PK>>
+  --
+  * name : string
+  * grams : decimal
+  * calories : integer
+}
+
+E(ShoppingItem) {
+  * item_id : integer <<PK>>
+  * list_id : integer <<FK>>
+  --
+  * name : string
+  * quantity : decimal
+  * unit : string
+  * is_purchased : boolean
+}
+
+E(MealFood) {
+  * meal_id : integer <<PK, FK>>
+  * food_id : integer <<PK, FK>>
+  --
+  * quantity : decimal
+}
+
+E(FoodNutrient) {
+  * food_id : integer <<PK, FK>>
+  --
+  * protein : decimal
+  * carbs : decimal
+  * fat : decimal
+  * fiber : decimal
+  * sugar : decimal
+  * sodium : decimal
+}
+
+User "1" -down-o "0..*" ShoppingList : owns
+User "1" -down-o "0..*" Meal : creates
+Meal "1" -down-o "0..*" MealFood : contains
+Food "1" -down-o "0..*" MealFood : included in
+ShoppingList "1" -down-o "0..*" ShoppingItem : contains
+Food "1" -- "0..1" FoodNutrient : has
+@enduml

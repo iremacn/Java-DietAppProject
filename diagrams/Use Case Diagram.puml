@@ -1,0 +1,58 @@
+@startuml
+!theme plain
+title Diet Planner Application
+
+left to right direction
+
+actor "Registered User" as RegUser
+actor "Guest User" as GuestUser
+actor "Database" as DB
+
+rectangle "Diet Planner Application" {
+  usecase "Login" as UC1
+  usecase "Register Account" as UC2
+  usecase "Generate Diet Recommendations" as UC3
+  usecase "Track Calories & Nutrients" as UC4
+  usecase "Create Shopping List" as UC5
+  usecase "Manage User Profile" as UC6
+  usecase "Logout" as UC7
+  usecase "Record Food Intake" as UC8
+  usecase "Plan Meals" as UC9
+  usecase "View Dietary Reports" as UC10
+  usecase "Retrieve User Data" as UC11
+  usecase "Store User Data" as UC12
+}
+
+' Registered User connections
+RegUser --> UC1
+RegUser --> UC2
+RegUser --> UC3
+RegUser --> UC4
+RegUser --> UC5
+RegUser --> UC6
+RegUser --> UC7
+RegUser --> UC8
+
+' Guest User connections
+GuestUser --> UC9
+
+' Include relationships
+UC1 .> UC10 : <<include>>
+UC2 .> UC11 : <<include>>
+UC4 .> UC11 : <<include>>
+UC4 .> UC5 : <<include>>
+UC5 .> UC11 : <<include>>
+UC6 .> UC11 : <<include>>
+UC6 .> UC12 : <<include>>
+UC3 .> UC4 : <<include>>
+UC8 .> UC4 : <<include>>
+
+' Extend relationship
+UC3 .> UC8 : <<extend>>
+
+' Database connections
+UC10 --> DB
+UC11 --> DB
+UC12 --> DB
+
+@enduml

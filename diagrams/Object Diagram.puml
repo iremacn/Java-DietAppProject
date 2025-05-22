@@ -1,0 +1,65 @@
+@startuml "Object Diagram"
+object "user1:User" as user {
+  username = "john_doe"
+  password = "password123"
+  email = "john@example.com"
+  name = "John Doe"
+  isLoggedIn = true
+}
+
+object "dietapp:Dietapp" as app {
+  authService = authService
+}
+
+object "authService:AuthenticationService" as auth {
+  currentUser = user1
+}
+
+object "calorieService:CalorieNutrientTrackingService" as calorie {
+  mealService = mealService
+}
+
+object "mealService:MealPlanningService" as meal {
+  authService = authService
+  userMeals = {"john_doe" -> {"2023-06-10" -> [lunch]}}
+}
+
+object "lunch:Meal" as lunchMeal {
+  user = "john_doe"
+  date = "2023-06-10"
+  mealType = "Lunch"
+  foods = [chicken, apple]
+}
+
+object "apple:FoodNutrient" as apple {
+  name = "Apple"
+  grams = 100.0
+  calories = 52
+  protein = 0.3
+  carbs = 14.0
+  fat = 0.2
+  fiber = 2.4
+  sugar = 10.3
+  sodium = 1.0
+}
+
+object "chicken:FoodNutrient" as chicken {
+  name = "Chicken Breast"
+  grams = 100.0
+  calories = 165
+  protein = 31.0
+  carbs = 0.0
+  fat = 3.6
+  fiber = 0.0
+  sugar = 0.0
+  sodium = 74.0
+}
+
+user -- auth
+app -- auth
+meal -- auth
+meal -- lunchMeal
+lunchMeal -- apple
+lunchMeal -- chicken
+calorie -- meal
+@enduml
