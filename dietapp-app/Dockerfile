@@ -13,7 +13,7 @@ RUN mkdir -p /app/data /app/classes
 
 # Start.sh dosyasını kopyala ve çalıştırılabilir yap
 COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+RUN chmod +x /app/start.sh && sed -i 's/\r$//' /app/start.sh
 
 # Veritabanı dosyası için VOLUME tanımla
 VOLUME ["/app/data"]
