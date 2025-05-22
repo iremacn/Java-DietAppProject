@@ -1,3 +1,17 @@
+/**
+ * @file CalorieTrackingPanel.java
+ * @brief GUI panel for managing calorie and nutrient tracking
+ * 
+ * @details The CalorieTrackingPanel class provides a graphical user interface for
+ *          managing food entries and their nutritional information. It allows users
+ *          to add, view, and delete food entries with their associated calorie and
+ *          macronutrient values.
+ * 
+ * @author irem
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import javax.swing.*;
@@ -6,18 +20,44 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+/**
+ * @class CalorieTrackingPanel
+ * @brief GUI panel for calorie and nutrient tracking operations
+ * 
+ * @details This class implements a Swing-based GUI panel that provides functionality
+ *          for managing food entries and their nutritional information. The panel
+ *          includes input fields for food name, calories, and macronutrients, along
+ *          with buttons for adding, viewing, and deleting entries.
+ */
 public class CalorieTrackingPanel extends JPanel {
+    /** @brief Service for handling calorie and nutrient tracking operations */
     private CalorieNutrientTrackingService trackingService;
+    /** @brief Text field for entering food name */
     private JTextField foodNameField;
+    /** @brief Text field for entering calorie value */
     private JTextField caloriesField;
+    /** @brief Text field for entering protein value */
     private JTextField proteinField;
+    /** @brief Text field for entering carbohydrate value */
     private JTextField carbsField;
+    /** @brief Text field for entering fat value */
     private JTextField fatField;
+    /** @brief Text area for displaying food entries */
     private JTextArea resultArea;
+    /** @brief Button for adding new food entries */
     private JButton addButton;
+    /** @brief Button for viewing existing food entries */
     private JButton viewButton;
+    /** @brief Button for deleting food entries */
     private JButton deleteButton;
 
+    /**
+     * @brief Constructor for CalorieTrackingPanel
+     * @details Initializes the panel with the required tracking service and
+     *          sets up the GUI components and event listeners.
+     * 
+     * @param trackingService Service for handling calorie and nutrient tracking operations
+     */
     public CalorieTrackingPanel(CalorieNutrientTrackingService trackingService) {
         this.trackingService = trackingService;
         initializeComponents();
@@ -25,6 +65,11 @@ public class CalorieTrackingPanel extends JPanel {
         setupListeners();
     }
 
+    /**
+     * @brief Initializes the GUI components
+     * @details Creates and configures all the necessary Swing components
+     *          including text fields, buttons, and the result area.
+     */
     private void initializeComponents() {
         foodNameField = new JTextField(20);
         caloriesField = new JTextField(10);
@@ -38,6 +83,12 @@ public class CalorieTrackingPanel extends JPanel {
         deleteButton = new JButton("Delete");
     }
 
+    /**
+     * @brief Sets up the panel layout
+     * @details Arranges the GUI components using BorderLayout and GridBagLayout.
+     *          Creates input fields for food information and organizes buttons
+     *          in a separate panel.
+     */
     private void setupLayout() {
         setLayout(new BorderLayout(10, 10));
 
@@ -86,6 +137,14 @@ public class CalorieTrackingPanel extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * @brief Sets up event listeners for the buttons
+     * @details Configures action listeners for add, view, and delete buttons.
+     *          Handles user input validation and error cases.
+     * 
+     * @throws NumberFormatException if numeric input fields contain invalid values
+     * @throws SQLException if there is an error accessing the database
+     */
     private void setupListeners() {
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -139,6 +198,11 @@ public class CalorieTrackingPanel extends JPanel {
         });
     }
 
+    /**
+     * @brief Clears all input fields
+     * @details Resets all text fields to empty strings after successful
+     *          operations or when needed.
+     */
     private void clearFields() {
         foodNameField.setText("");
         caloriesField.setText("");

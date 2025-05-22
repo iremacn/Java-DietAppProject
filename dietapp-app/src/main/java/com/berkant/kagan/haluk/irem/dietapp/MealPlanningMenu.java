@@ -1,3 +1,19 @@
+/**
+ * @file MealPlanningMenu.java
+ * @brief Meal planning menu interface for the Diet Planner application
+ * 
+ * @details The MealPlanningMenu class provides both console-based and graphical user interface
+ *          for managing meal planning operations. It supports:
+ *          - Planning meals for different times of day
+ *          - Logging food consumption
+ *          - Viewing meal history
+ *          - Managing meal plans through an intuitive interface
+ * 
+ * @author berkant
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.util.List;
@@ -7,46 +23,62 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- * This class handles the meal planning menu operations for the Diet Planner application.
- * @details The MealPlanningMenu class provides menu interfaces for meal planning,
- *          food logging, and viewing meal history.
- * @author berkant
+ * @class MealPlanningMenu
+ * @brief Handles meal planning menu operations and user interactions
+ * 
+ * @details This class provides a comprehensive interface for meal planning operations,
+ *          supporting both console-based and GUI interactions. It manages:
+ *          - Meal planning for different times of day (breakfast, lunch, snack, dinner)
+ *          - Food logging and tracking
+ *          - Meal history viewing and management
+ *          - User interface components for both console and GUI modes
  */
 public class MealPlanningMenu {
-    /** Service for meal planning operations */
+    /** @brief Service for handling meal planning operations */
     private MealPlanningService mealPlanningService;
-    /** Service for user authentication */
+    /** @brief Service for managing user authentication */
     private AuthenticationService authService;
-    /** Scanner for reading user input */
+    /** @brief Scanner for reading console user input */
     private Scanner scanner;
-     
     
+    /** @brief Flag indicating whether to use GUI components */
     protected boolean useUIComponents = true;
     
-    
+    /** @brief Main application window for GUI mode */
     private JFrame frame;
+    /** @brief Main panel containing all GUI components */
     private JPanel mainPanel;
     
-    
     /**
-     * Constructor for MealPlanningMenu class.
+     * @brief Constructs a new MealPlanningMenu instance
+     * @details Initializes the menu with required services and input handling:
+     *          - Sets up meal planning service
+     *          - Configures authentication service
+     *          - Initializes input scanner
+     *          - Creates GUI components if enabled
      * 
-     * @param mealPlanningService The meal planning service
-     * @param authService The authentication service
-     * @param scanner The scanner for user input
+     * @param mealPlanningService Service for meal planning operations
+     * @param authService Service for user authentication
+     * @param scanner Scanner for reading user input
      */
     public MealPlanningMenu(MealPlanningService mealPlanningService, AuthenticationService authService, Scanner scanner) {
         this.mealPlanningService = mealPlanningService;
         this.authService = authService;
         this.scanner = scanner;
         
-        
         if (useUIComponents) {
             initializeUI();
         }
     }
     
- 
+    /**
+     * @brief Initializes the graphical user interface
+     * @details Sets up the main window and components:
+     *          - Creates the main frame
+     *          - Configures layout and components
+     *          - Sets up action listeners
+     *          - Arranges navigation buttons
+     */
     private void initializeUI() {
         frame = new JFrame("Meal Planning and Logging");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -55,24 +87,20 @@ public class MealPlanningMenu {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         
-        
         JButton planMealsButton = new JButton("Plan Meals");
         JButton logFoodsButton = new JButton("Log Foods");
         JButton viewHistoryButton = new JButton("View Meal History");
         JButton returnButton = new JButton("Return to Main Menu");
-        
         
         planMealsButton.addActionListener(e -> handlePlanMeals());
         logFoodsButton.addActionListener(e -> handleLogFoods());
         viewHistoryButton.addActionListener(e -> handleViewMealHistory());
         returnButton.addActionListener(e -> frame.dispose());
         
-        
         mainPanel.add(planMealsButton);
         mainPanel.add(logFoodsButton);
         mainPanel.add(viewHistoryButton);
         mainPanel.add(returnButton);
-        
         
         frame.add(mainPanel);
         frame.setLocationRelativeTo(null);
@@ -80,18 +108,19 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Displays the main meal planning menu and handles user selections.
+     * @brief Displays the main meal planning menu
+     * @details Shows either GUI or console interface based on useUIComponents flag:
+     *          - GUI mode: Displays interactive buttons
+     *          - Console mode: Shows text-based menu
+     *          Handles user input and navigation between different features
      */
     public void displayMenu() {
         if (useUIComponents) {
-            
             if (frame == null || !frame.isVisible()) {
                 initializeUI();
             }
         } else {
-            
             boolean running = true;
-            
             while (running) {
                 System.out.println("\n===== Meal Planning and Logging =====");
                 System.out.println("1. Plan Meals");
@@ -123,20 +152,26 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Gets the user's menu choice from the console.
+     * @brief Gets user input from console
+     * @details Reads and validates user input:
+     *          - Attempts to parse integer input
+     *          - Returns -1 for invalid input
      * 
-     * @return The user's choice as an integer
+     * @return The user's choice as an integer, or -1 for invalid input
      */
     private int getUserChoice() {
         try {
             return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            return -1; // Invalid input
+            return -1;
         }
     }
     
     /**
-     * Handles the meal planning process.
+     * @brief Handles meal planning process
+     * @details Routes to appropriate handler based on interface mode:
+     *          - GUI mode: Uses handlePlanMealsUI()
+     *          - Console mode: Uses handlePlanMealsConsole()
      */
     private void handlePlanMeals() {
         if (useUIComponents) {
@@ -146,17 +181,22 @@ public class MealPlanningMenu {
         }
     }
     
-    
+    /**
+     * @brief Handles meal planning in console mode
+     * @details Guides user through meal planning process:
+     *          - Gets date information
+     *          - Selects meal type
+     *          - Chooses food options
+     *          - Adds meal to plan
+     */
     protected void handlePlanMealsConsole() {
         System.out.println("\n===== Plan Meals =====");
         
-        // Get date information
         String date = getDateFromUser();
         if (date == null) {
-            return; // Invalid date entered
+            return;
         }
        
-        // Get meal type
         System.out.println("\nSelect Meal Type:");
         System.out.println("1. Breakfast");
         System.out.println("2. Lunch");
@@ -190,7 +230,6 @@ public class MealPlanningMenu {
                 return;
         }
         
-        // Display food options for the selected meal type
         System.out.println("\nSelect Food for " + capitalize(mealType) + ":");
         for (int i = 0; i < foodOptions.length; i++) {
             System.out.println((i + 1) + ". " + foodOptions[i]);
@@ -203,9 +242,7 @@ public class MealPlanningMenu {
             return;
         }
         
-        // Get selected food
         Food selectedFood = foodOptions[foodChoice - 1];
-        
         String username = authService.getCurrentUser().getUsername();
         boolean success = mealPlanningService.addMealPlan(username, date, mealType, selectedFood);
         
@@ -216,17 +253,21 @@ public class MealPlanningMenu {
         }
     }
     
-   
+    /**
+     * @brief Handles meal planning in GUI mode
+     * @details Creates a dialog for meal planning with:
+     *          - Date selection
+     *          - Meal type selection
+     *          - Food selection interface
+     *          - Confirmation dialog
+     */
     private void handlePlanMealsUI() {
-        
         JFrame planFrame = new JFrame("Plan Meals");
         planFrame.setSize(500, 400);
         planFrame.setLayout(new BorderLayout());
         
-        
         JPanel datePanel = new JPanel();
         datePanel.setLayout(new GridLayout(4, 2));
-        
         
         JLabel yearLabel = new JLabel("Year (2025-2100):");
         JTextField yearField = new JTextField();
@@ -242,20 +283,17 @@ public class MealPlanningMenu {
         datePanel.add(dayLabel);
         datePanel.add(dayField);
         
-        
         JPanel mealTypePanel = new JPanel();
         String[] mealTypes = {"Breakfast", "Lunch", "Snack", "Dinner"};
         JComboBox<String> mealTypeCombo = new JComboBox<>(mealTypes);
         mealTypePanel.add(new JLabel("Meal Type:"));
         mealTypePanel.add(mealTypeCombo);
         
-        
         JPanel selectionPanel = new JPanel();
         selectionPanel.setLayout(new BorderLayout());
         selectionPanel.add(datePanel, BorderLayout.NORTH);
         selectionPanel.add(mealTypePanel, BorderLayout.CENTER);
         
-       
         JButton continueButton = new JButton("Continue");
         JButton cancelButton = new JButton("Cancel");
         
@@ -263,7 +301,6 @@ public class MealPlanningMenu {
         buttonPanel.add(continueButton);
         buttonPanel.add(cancelButton);
         
-        // Ana panel
         planFrame.add(selectionPanel, BorderLayout.CENTER);
         planFrame.add(buttonPanel, BorderLayout.SOUTH);
         
@@ -302,7 +339,16 @@ public class MealPlanningMenu {
         planFrame.setVisible(true);
     }
     
-   
+    /**
+     * @brief Shows food selection interface in GUI mode
+     * @details Creates a dialog for selecting food items:
+     *          - Displays available food options
+     *          - Handles food selection
+     *          - Confirms meal addition
+     * 
+     * @param date The selected date for the meal
+     * @param mealType The type of meal being planned
+     */
     private void showFoodSelectionUI(String date, String mealType) {
         
         JFrame foodFrame = new JFrame("Select Food for " + capitalize(mealType));
@@ -376,7 +422,10 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Handles the food logging process.
+     * @brief Handles food logging process
+     * @details Routes to appropriate handler based on interface mode:
+     *          - GUI mode: Uses handleLogFoodsUI()
+     *          - Console mode: Uses handleLogFoodsConsole()
      */
     private void handleLogFoods() {
         if (useUIComponents) {
@@ -386,8 +435,14 @@ public class MealPlanningMenu {
         }
     }
     
-    
-    private void handleLogFoodsConsole() {
+    /**
+     * @brief Handles food logging in console mode
+     * @details Guides user through food logging process:
+     *          - Gets date information
+     *          - Collects food details
+     *          - Logs the food entry
+     */
+    protected void handleLogFoodsConsole() {
         System.out.println("\n===== Log Foods =====");
         
         // Get date information
@@ -412,7 +467,13 @@ public class MealPlanningMenu {
         }
     }
     
-    
+    /**
+     * @brief Handles food logging in GUI mode
+     * @details Creates a dialog for food logging with:
+     *          - Date selection
+     *          - Food details input
+     *          - Confirmation dialog
+     */
     private void handleLogFoodsUI() {
         
         JFrame logFrame = new JFrame("Log Foods");
@@ -548,7 +609,10 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Handles viewing the meal history.
+     * @brief Handles meal history viewing process
+     * @details Routes to appropriate handler based on interface mode:
+     *          - GUI mode: Uses handleViewMealHistoryUI()
+     *          - Console mode: Uses handleViewMealHistoryConsole()
      */
     private void handleViewMealHistory() {
         if (useUIComponents) {
@@ -558,8 +622,14 @@ public class MealPlanningMenu {
         }
     }
     
-   
-    private void handleViewMealHistoryConsole() {
+    /**
+     * @brief Handles meal history viewing in console mode
+     * @details Guides user through viewing meal history:
+     *          - Gets date information
+     *          - Displays meal history
+     *          - Shows meal details
+     */
+    protected void handleViewMealHistoryConsole() {
         System.out.println("\n===== View Meal History =====");
         
         // Get date information
@@ -617,7 +687,13 @@ public class MealPlanningMenu {
         scanner.nextLine();
     }
     
-    
+    /**
+     * @brief Handles meal history viewing in GUI mode
+     * @details Creates a dialog for viewing meal history with:
+     *          - Date selection
+     *          - Meal history display
+     *          - Detailed meal information
+     */
     private void handleViewMealHistoryUI() {
         
         JFrame dateFrame = new JFrame("Select Date for Meal History");
@@ -687,7 +763,15 @@ public class MealPlanningMenu {
         dateFrame.setVisible(true);
     }
     
-   
+    /**
+     * @brief Displays meal history in GUI mode
+     * @details Creates a dialog showing meal history for a specific date:
+     *          - Shows meal plan
+     *          - Displays logged foods
+     *          - Calculates and shows totals
+     * 
+     * @param date The date for which to display meal history
+     */
     private void displayMealHistoryUI(String date) {
         JFrame historyFrame = new JFrame("Meal History for " + date);
         historyFrame.setSize(600, 500);
@@ -784,9 +868,13 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Gets date information from the user.
+     * @brief Gets date input from user
+     * @details Prompts user for date input and validates format:
+     *          - Accepts date in YYYY-MM-DD format
+     *          - Validates date format
+     *          - Returns null for invalid input
      * 
-     * @return The formatted date string or null if invalid
+     * @return The entered date as a string, or null if invalid
      */
     private String getDateFromUser() {
         int year = 0;
@@ -849,9 +937,14 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Gets food details from the user.
+     * @brief Gets food details from user
+     * @details Prompts user for food information:
+     *          - Food name
+     *          - Calorie content
+     *          - Macronutrient values
+     *          - Creates Food object
      * 
-     * @return A Food object with the entered details or null if invalid
+     * @return A new Food object with user-provided details
      */
     private Food getFoodDetailsFromUser() {
         System.out.print("Enter food name: ");
@@ -887,10 +980,13 @@ public class MealPlanningMenu {
     }
     
     /**
-     * Capitalizes the first letter of a string.
+     * @brief Capitalizes the first letter of a string
+     * @details Converts the first character to uppercase:
+     *          - Handles empty strings
+     *          - Preserves rest of string
      * 
      * @param str The string to capitalize
-     * @return The capitalized string
+     * @return The string with first letter capitalized
      */
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) {

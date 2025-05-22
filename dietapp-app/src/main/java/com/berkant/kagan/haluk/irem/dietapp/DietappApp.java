@@ -1,51 +1,81 @@
+/**
+ * @file DietappApp.java
+ * @brief Main application class for the Diet Planner system
+ * 
+ * @details The DietappApp class serves as the main application entry point and controller
+ *          for the Diet Planner system. It manages the application lifecycle, user interface,
+ *          and coordinates between different services and menus. The class supports both
+ *          GUI and console-based interfaces.
+ * 
+ * @author ugur.coruh
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import javax.swing.SwingUtilities;
 
 /**
- * This class represents the main application class for the DietApp.
- * @details The DietAppApp class provides the entry point for the DietApp. It initializes the necessary components,
- *          performs calculations, and handles exceptions.
- * @author ugur.coruh
+ * @class DietappApp
+ * @brief Main application controller and coordinator
+ * 
+ * @details This class manages the Diet Planner application's lifecycle and coordinates
+ *          between different services and user interfaces. It handles user authentication,
+ *          menu navigation, and service initialization. The class supports both GUI and
+ *          console-based interfaces with automatic detection of the appropriate mode.
  */
 public class DietappApp {
-    /** The main DietApp instance */
+    /** @brief Main application instance for core functionality */
     private Dietapp dietApp;
-    /** Scanner for reading user input */
+    /** @brief Scanner instance for reading user input in console mode */
     private java.util.Scanner scanner;
-    /** Service for meal planning operations */
+    /** @brief Service for managing meal planning operations */
     private MealPlanningService mealPlanningService;
-    /** Menu interface for meal planning */
+    /** @brief Menu interface for meal planning functionality */
     private MealPlanningMenu mealPlanningMenu;
-    /** Service for calorie and nutrient tracking */
+    /** @brief Service for tracking calories and nutrients */
     private CalorieNutrientTrackingService calorieNutrientService;
-    /** Menu interface for calorie and nutrient tracking */
+    /** @brief Menu interface for calorie and nutrient tracking */
     private CalorieNutrientTrackingMenu calorieNutrientMenu;
-    /** Service for shopping list operations */
+    /** @brief Service for managing shopping lists */
     private ShoppingListService shoppingListService;
-    /** Menu interface for shopping list */
+    /** @brief Menu interface for shopping list operations */
     private ShoppingListMenu shoppingListMenu;
-    /** Service for personalized diet recommendations */
+    /** @brief Service for generating personalized diet recommendations */
     private PersonalizedDietRecommendationService personalizedDietService;
-    /** Menu interface for personalized diet recommendations */
+    /** @brief Menu interface for personalized diet recommendations */
     private PersonalizedDietRecommendationMenu personalizedDietMenu;
   
-    // Add this static field
+    /** @brief Flag indicating whether the application is running in test mode */
     private static boolean testMode = false;
     
-    // Add this static method
+    /**
+     * @brief Sets the test mode flag
+     * @details Enables or disables test mode, which affects application behavior
+     *          and interface initialization.
+     * 
+     * @param mode true to enable test mode, false to disable
+     */
     public static void setTestMode(boolean mode) {
         testMode = mode;
     }
     
-    // Check the test mode 
+    /**
+     * @brief Checks if the application is running in test mode
+     * @details Returns the current state of the test mode flag.
+     * 
+     * @return true if test mode is enabled, false otherwise
+     */
     public static boolean isTestMode() {
         return testMode;
     }
     
     /**
-     * Constructor for DietAppApp class.
-     * Initializes the DietApp and Scanner objects.
+     * @brief Constructor for DietappApp class
+     * @details Initializes all necessary services and menus for the application.
+     *          Creates instances of Dietapp, Scanner, and all required services
+     *          and their corresponding menu interfaces.
      */
     public DietappApp() {
         this.dietApp = new Dietapp();
@@ -70,13 +100,12 @@ public class DietappApp {
     }
    
     /**
-     * The main entry point of the DietApp App.
+     * @brief Main entry point of the application
+     * @details Initializes the database, determines the appropriate interface mode
+     *          (GUI or console), and starts the application. Handles database
+     *          connection cleanup in the finally block.
      * 
-     * @details The main method is the starting point of the DietApp App. It
-     *          initializes the logger, performs logging, displays a greeting
-     *          message, and handles user input.
-     * 
-     * @param args The command-line arguments passed to the application.
+     * @param args Command-line arguments passed to the application
      */
     public static void main(String[] args) {
         DatabaseHelper.initializeDatabase();
@@ -96,9 +125,14 @@ public class DietappApp {
     }
     
     /**
-     * Runs the main application loop.
-     * @details Handles the main application flow, including user authentication
-     *          and menu navigation. Continues running until the user chooses to exit.
+     * @brief Runs the main application loop
+     * @details Manages the application's main execution flow, including:
+     *          - User authentication
+     *          - Menu navigation
+     *          - Service coordination
+     *          - Resource cleanup
+     * 
+     * @throws RuntimeException if critical services fail to initialize
      */
     public void run() {
         boolean running = true;
@@ -140,13 +174,13 @@ public class DietappApp {
         }
     }
 
-    
     /**
-     * Handles the authentication menu choices.
+     * @brief Handles authentication menu choices
      * @details Processes user selections from the authentication menu,
      *          including login, registration, and guest mode options.
+     *          Manages the application flow based on user choices.
      * 
-     * @param choice The user's menu choice
+     * @param choice The user's menu selection
      * @return true to continue running, false to exit
      */
     private boolean handleAuthMenu(int choice) {
@@ -170,9 +204,9 @@ public class DietappApp {
     }
     
     /**
-     * Prints the authentication menu.
-     * @details Displays the available authentication options to the user,
-     *          including login, registration, and guest mode.
+     * @brief Displays the authentication menu
+     * @details Prints the available authentication options to the console,
+     *          including login, registration, guest mode, and exit options.
      */
     private void printAuthMenu() {
         System.out.println("\n===== Diet Planner Authentication =====");
@@ -184,9 +218,9 @@ public class DietappApp {
     }
     
     /**
-     * Prints the main user menu after authentication.
-     * @details Displays the main menu options available to authenticated users,
-     *          including meal planning, tracking, and recommendations.
+     * @brief Displays the main user menu
+     * @details Shows the main menu options available to authenticated users,
+     *          including their current login status and available features.
      */
     private void printUserMainMenu() {
         User currentUser = dietApp.getCurrentUser();
@@ -202,11 +236,11 @@ public class DietappApp {
     }
     
     /**
-     * Gets the user's menu choice from the console with improved validation.
-     * @details Validates user input to ensure it is a valid numeric choice.
-     *          Handles empty input and non-numeric characters.
+     * @brief Gets and validates user menu choice
+     * @details Reads and validates user input for menu selections,
+     *          ensuring it is a valid numeric choice.
      * 
-     * @return The user's choice as an integer, returns -1 for invalid input
+     * @return The validated user choice as an integer, or -1 for invalid input
      */
     private int getUserChoice() {
         String input = scanner.nextLine().trim();
@@ -232,11 +266,11 @@ public class DietappApp {
     }
     
     /**
-     * Handles the main user menu choices.
-     * @details Processes user selections from the main menu, directing to appropriate
-     *          sub-menus for different features of the application.
+     * @brief Handles main menu choices
+     * @details Processes user selections from the main menu and directs
+     *          to appropriate feature menus or actions.
      * 
-     * @param choice The user's menu choice
+     * @param choice The user's menu selection
      * @return true to continue running, false to exit
      */
     private boolean handleUserMainMenu(int choice) {
@@ -272,9 +306,12 @@ public class DietappApp {
     }
     
     /**
-     * Handles the user login process.
-     * @details Guides the user through the login process, validating input
-     *          and providing feedback on success or failure.
+     * @brief Handles user login process
+     * @details Manages the user login flow, including:
+     *          - Input validation
+     *          - Authentication attempt
+     *          - Error handling
+     *          - User feedback
      */
     private void handleLogin() {
         System.out.println("\n===== Login =====");
@@ -307,9 +344,13 @@ public class DietappApp {
     }
     
     /**
-     * Handles the user registration process with improved validation.
-     * @details Guides the user through registration, validating all inputs
-     *          including username, password, email, and name.
+     * @brief Handles user registration process
+     * @details Manages the user registration flow, including:
+     *          - Input validation
+     *          - Email format verification
+     *          - Registration attempt
+     *          - Error handling
+     *          - User feedback
      */
     void handleRegistration() {
         System.out.println("\n===== Registration =====");
@@ -364,14 +405,14 @@ public class DietappApp {
     }
     
     /**
-     * Checks if an email address is valid.
-     * @details Performs basic email validation by checking for proper format:
-     *          - Must contain @ symbol
-     *          - Must have at least one period after @
-     *          - Cannot start or end with @ or period
-     *
+     * @brief Validates email address format
+     * @details Performs comprehensive email validation checking for:
+     *          - Non-null and non-empty string
+     *          - Valid email format
+     *          - Domain and TLD presence
+     * 
      * @param email The email address to validate
-     * @return true if email is valid, false otherwise
+     * @return true if the email format is valid, false otherwise
      */
     boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -395,9 +436,11 @@ public class DietappApp {
     }
     
     /**
-     * Handles guest mode login.
-     * @details Enables guest mode access to the application with limited
-     *          functionality and informs the user of restrictions.
+     * @brief Handles guest mode activation
+     * @details Manages the process of enabling guest mode, including:
+     *          - State validation
+     *          - Mode activation
+     *          - User feedback
      */
     private void handleGuestMode() {
         dietApp.enableGuestMode();

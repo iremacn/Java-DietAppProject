@@ -1,26 +1,44 @@
+/**
+ * @file Dietapp.java
+ * @brief Main application class for the Diet Planner system
+ * 
+ * @details The Dietapp class serves as the main entry point for the Diet Planner application,
+ *          providing core functionality for user authentication, registration, and session
+ *          management. It acts as a facade for the authentication service and implements
+ *          input validation for user operations.
+ * 
+ * @author ugur.coruh
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 /**
- * This class represents a DietApp that performs diet planning operations.
- * @details The DietApp class provides methods to perform diet planning operations such as
- * meal planning, calorie tracking, and generating recommendations.
- * @author ugur.coruh
+ * @class Dietapp
+ * @brief Main application class for diet planning operations
+ * 
+ * @details This class provides the core functionality for the Diet Planner application,
+ *          including user authentication, registration, and session management. It
+ *          implements input validation and acts as a facade for the authentication service.
  */
 public class Dietapp {
-    // Private fields for encapsulation
+    /** @brief Service for handling user authentication operations */
     private AuthenticationService authService;
 
     /**
-     * Default constructor for DietApp class.
-     * Initializes the authentication service.
+     * @brief Constructor for Dietapp class
+     * @details Initializes the authentication service for user management.
+     *          Creates a new instance of AuthenticationService.
      */
     public Dietapp() {
         this.authService = new AuthenticationService();
     }
 
     /**
-     * Gets the authentication service.
-     *
+     * @brief Retrieves the authentication service instance
+     * @details Returns the AuthenticationService instance used for user management.
+     * 
      * @return The AuthenticationService instance
      */
     public AuthenticationService getAuthService() {
@@ -28,14 +46,16 @@ public class Dietapp {
     }
 
     /**
-     * Registers a new user in the system.
-     * Validates input parameters before attempting registration.
-     *
-     * @param username The username for registration
-     * @param password The password for registration
-     * @param email The email for registration
-     * @param name The name for registration
-     * @return true if registration successful, false otherwise
+     * @brief Registers a new user in the system
+     * @details Validates all input parameters and attempts to register a new user.
+     *          Performs validation for username, password, email, and name fields.
+     * 
+     * @param username The username for the new user account
+     * @param password The password for the new user account
+     * @param email The email address for the new user account
+     * @param name The full name of the new user
+     * @return true if registration is successful, false otherwise
+     * @throws IllegalArgumentException if any of the input parameters are invalid
      */
     public boolean registerUser(String username, String password, String email, String name) {
         // Validate input parameters
@@ -63,11 +83,15 @@ public class Dietapp {
     }
 
     /**
-     * Checks if an email address is valid.
-     * Simple validation that checks for @ symbol and a period after it.
-     *
+     * @brief Validates an email address format
+     * @details Performs basic email validation checking for:
+     *          - Non-null and non-empty string
+     *          - Presence of @ symbol
+     *          - Presence of domain with at least one character
+     *          - Presence of TLD with at least one character
+     * 
      * @param email The email address to validate
-     * @return true if email is valid, false otherwise
+     * @return true if the email format is valid, false otherwise
      */
     private boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -91,12 +115,14 @@ public class Dietapp {
     }
 
     /**
-     * Attempts to login a user with the provided credentials.
-     * Validates input parameters before attempting login.
-     *
-     * @param username The username for login
-     * @param password The password for login
-     * @return true if login successful, false otherwise
+     * @brief Authenticates a user with provided credentials
+     * @details Validates input parameters and attempts to log in a user.
+     *          Performs validation for username and password fields.
+     * 
+     * @param username The username for authentication
+     * @param password The password for authentication
+     * @return true if login is successful, false otherwise
+     * @throws IllegalArgumentException if username or password is invalid
      */
     public boolean loginUser(String username, String password) {
         // Validate input parameters
@@ -114,8 +140,11 @@ public class Dietapp {
     }
 
     /**
-     * Logs out the current user.
-     * Checks if a user is logged in before attempting logout.
+     * @brief Logs out the current user
+     * @details Checks if a user is currently logged in before attempting logout.
+     *          Provides feedback if no user is logged in.
+     * 
+     * @throws IllegalStateException if no user is currently logged in
      */
     public void logoutUser() {
         if (!isUserLoggedIn()) {
@@ -128,8 +157,11 @@ public class Dietapp {
     }
 
     /**
-     * Enables guest mode for the application.
-     * Checks if a user is already logged in before enabling guest mode.
+     * @brief Enables guest mode for the application
+     * @details Checks if a user is currently logged in before enabling guest mode.
+     *          Provides feedback if a user is already logged in.
+     * 
+     * @throws IllegalStateException if a user is currently logged in
      */
     public void enableGuestMode() {
         if (isUserLoggedIn()) {
@@ -142,18 +174,21 @@ public class Dietapp {
     }
 
     /**
-     * Checks if a user is currently logged in.
-     *
-     * @return true if a user is logged in, false otherwise
+     * @brief Checks if a user is currently logged in
+     * @details Queries the authentication service to determine if there is
+     *          an active user session.
+     * 
+     * @return true if a user is currently logged in, false otherwise
      */
     public boolean isUserLoggedIn() {
         return authService.isUserLoggedIn();
     }
 
     /**
-     * Gets the currently logged in user.
-     *
-     * @return The current user or null if no user is logged in
+     * @brief Retrieves the currently logged in user
+     * @details Returns the User object representing the currently logged in user.
+     * 
+     * @return The current User object, or null if no user is logged in
      */
     public User getCurrentUser() {
         return authService.getCurrentUser();

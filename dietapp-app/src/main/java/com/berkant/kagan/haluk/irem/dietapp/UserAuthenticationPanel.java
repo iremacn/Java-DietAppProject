@@ -1,3 +1,10 @@
+/**
+ * @file UserAuthenticationPanel.java
+ * @brief A Swing panel that handles user authentication (login and registration)
+ * @author Berkant Kagan Haluk Irem
+ * @date 2024
+ */
+
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.awt.Color;
@@ -19,12 +26,34 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+/**
+ * @class UserAuthenticationPanel
+ * @brief A JPanel implementation that provides user authentication functionality
+ * 
+ * This class creates a graphical user interface for user authentication,
+ * including login and registration features. It displays a logo, username
+ * and password fields, and login/register buttons with a modern design.
+ */
 public class UserAuthenticationPanel extends JPanel {
+    /** @brief Service responsible for handling authentication operations */
     private final AuthenticationService authService;
+    
+    /** @brief Text field for username input */
     private final JTextField usernameField;
+    
+    /** @brief Password field for secure password input */
     private final JPasswordField passwordField;
+    
+    /** @brief Callback function to be executed after successful login */
     private Runnable loginSuccessCallback;
 
+    /**
+     * @brief Constructs a new UserAuthenticationPanel
+     * @param authService The authentication service to be used for login/register operations
+     * 
+     * Initializes the panel with a logo, title, input fields, and buttons.
+     * Sets up the layout and styling of all components.
+     */
     public UserAuthenticationPanel(AuthenticationService authService) {
         this.authService = authService;
         setLayout(new GridBagLayout());
@@ -125,6 +154,12 @@ public class UserAuthenticationPanel extends JPanel {
         registerButton.addActionListener(e -> handleRegister());
     }
 
+    /**
+     * @brief Creates a styled button with hover effects
+     * @param text The text to display on the button
+     * @param backgroundColor The background color of the button
+     * @return A styled JButton instance
+     */
     private JButton createStyledButton(String text, Color backgroundColor) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(120, 35));
@@ -148,6 +183,13 @@ public class UserAuthenticationPanel extends JPanel {
         return button;
     }
 
+    /**
+     * @brief Handles the login button click event
+     * 
+     * Validates the input fields and attempts to authenticate the user.
+     * Shows appropriate error messages if validation fails or authentication
+     * is unsuccessful.
+     */
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
@@ -176,6 +218,13 @@ public class UserAuthenticationPanel extends JPanel {
         }
     }
 
+    /**
+     * @brief Handles the register button click event
+     * 
+     * Validates the input fields and attempts to register a new user.
+     * Shows appropriate error messages if validation fails or registration
+     * is unsuccessful.
+     */
     private void handleRegister() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
@@ -203,6 +252,10 @@ public class UserAuthenticationPanel extends JPanel {
         }
     }
 
+    /**
+     * @brief Sets the callback function to be executed after successful login
+     * @param callback The Runnable to be executed after successful login
+     */
     public void setLoginSuccessCallback(Runnable callback) {
         this.loginSuccessCallback = callback;
     }

@@ -1,33 +1,55 @@
+/**
+ * @file AuthenticationService.java
+ * @brief Service class for handling user authentication and management operations
+ * 
+ * @details The AuthenticationService class provides comprehensive functionality for user management
+ *          in the Diet Planner application. It handles user registration, authentication,
+ *          session management, and user data retrieval. The class maintains the state of
+ *          the currently logged-in user and provides methods to interact with the user database.
+ * 
+ * @author ugur.coruh
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class handles the authentication operations for the Diet Planner application.
- * @details The AuthenticationService class provides methods for user registration,
- *          login, logout, and user management.
- * @author ugur.coruh
+ * @class AuthenticationService
+ * @brief Main service class for user authentication and management
+ * 
+ * @details This class implements the core authentication functionality for the Diet Planner application.
+ *          It provides methods for user registration, login, logout, and user management operations.
+ *          The class maintains the state of the currently logged-in user and handles all database
+ *          operations related to user authentication.
  */
 public class AuthenticationService {
-	 // Reference to the currently logged in user
+    /** @brief Reference to the currently logged in user */
     private User currentUser;
     
     /**
-     * Constructor for AuthenticationService class.
+     * @brief Default constructor for AuthenticationService
+     * @details Initializes the AuthenticationService with no logged-in user
      */
     public AuthenticationService() {
         this.currentUser = null;
     }
     
     /**
-     * Registers a new user with the provided information.
+     * @brief Registers a new user in the system
+     * @details This method validates the input parameters and creates a new user account
+     *          if the username is not already taken. The user's information is stored
+     *          in the database.
      * 
-     * @param username The username for the new user
-     * @param password The password for the new user
-     * @param email    The email for the new user
-     * @param name     The name for the new user
-     * @return true if registration successful, false if username already exists
+     * @param username The username for the new user (must not be null or empty)
+     * @param password The password for the new user (must not be null or empty)
+     * @param email    The email address for the new user (must not be null or empty)
+     * @param name     The full name of the new user (must not be null or empty)
+     * @return true if registration is successful, false if username already exists or input is invalid
+     * @throws SQLException if there is an error accessing the database
      */
     public boolean register(String username, String password, String email, String name) {
         // Validate input parameters
@@ -69,11 +91,15 @@ public class AuthenticationService {
     }
     
     /**
-     * Attempts to login a user with the provided credentials.
+     * @brief Authenticates a user and creates a session
+     * @details This method verifies the user's credentials and creates a new session
+     *          if the credentials are valid. It updates the user's login status in
+     *          the database and maintains the current user state.
      * 
-     * @param username The username for login
-     * @param password The password for login
-     * @return true if login successful, false otherwise
+     * @param username The username for login (must not be null)
+     * @param password The password for login (must not be null)
+     * @return true if login is successful, false if credentials are invalid
+     * @throws SQLException if there is an error accessing the database
      */
     public boolean login(String username, String password) {
         try (Connection conn = DatabaseHelper.getConnection();
@@ -116,7 +142,12 @@ public class AuthenticationService {
     }
    
     /**
-     * Logs out the currently logged in user.
+     * @brief Terminates the current user session
+     * @details This method logs out the currently logged-in user by updating their
+     *          login status in the database and clearing the current user state.
+     *          If no user is logged in, this method does nothing.
+     * 
+     * @throws SQLException if there is an error accessing the database
      */
     public void logout() {
         if (currentUser != null) {
@@ -137,7 +168,10 @@ public class AuthenticationService {
     }
     
     /**
-     * Enables guest mode which allows limited access without registration.
+     * @brief Enables limited access mode for unregistered users
+     * @details This method creates a temporary guest user session that allows
+     *          limited access to the application without requiring registration.
+     *          The guest user is not stored in the database.
      */
     public void enableGuestMode() {
         // Create a temporary guest user (not stored in database)
@@ -146,27 +180,35 @@ public class AuthenticationService {
     }
     
     /**
-     * Gets the currently logged in user.
+     * @brief Retrieves the currently logged-in user
+     * @details Returns the User object representing the currently logged-in user,
+     *          or null if no user is logged in.
      * 
-     * @return The current user or null if no user is logged in
+     * @return The current User object, or null if no user is logged in
      */
     public User getCurrentUser() {
         return currentUser;
     }
     
     /**
-     * Checks if a user is currently logged in.
+     * @brief Checks if there is an active user session
+     * @details Verifies whether a user is currently logged in and their session
+     *          is active.
      * 
-     * @return true if a user is logged in, false otherwise
+     * @return true if a user is logged in and their session is active, false otherwise
      */
     public boolean isUserLoggedIn() {
         return currentUser != null && currentUser.isLoggedIn();
     }
     
     /**
-     * Gets all registered users.
+     * @brief Retrieves all registered users from the database
+     * @details This method fetches all user records from the database and returns
+     *          them as a list of User objects. Each User object contains the user's
+     *          complete profile information and login status.
      * 
-     * @return List of all registered users
+     * @return List<User> containing all registered users
+     * @throws SQLException if there is an error accessing the database
      */
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();

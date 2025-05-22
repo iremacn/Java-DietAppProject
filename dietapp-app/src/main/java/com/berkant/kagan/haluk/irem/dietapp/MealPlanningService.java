@@ -1,3 +1,19 @@
+/**
+ * @file MealPlanningService.java
+ * @brief Service class for managing meal planning and food logging operations
+ * 
+ * @details The MealPlanningService class provides comprehensive functionality for:
+ *          - Planning and managing meals
+ *          - Logging food consumption
+ *          - Tracking nutritional information
+ *          - Managing meal history
+ *          - Handling food options for different meal types
+ * 
+ * @author berkant
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.sql.Connection;
@@ -10,31 +26,46 @@ import java.util.List;
 import java.time.LocalDate;
 
 /**
- * This class handles meal planning and logging operations for the Diet Planner application.
- * @details The MealPlanningService class provides methods for planning meals,
- *          logging food intake, and viewing meal history.
- * @author berkant
+ * @class MealPlanningService
+ * @brief Service class for meal planning and food logging operations
+ * 
+ * @details This class provides a comprehensive set of methods for managing meal planning
+ *          and food logging operations in the Diet Planner application. It handles:
+ *          - Meal planning for different times of day
+ *          - Food logging and tracking
+ *          - Nutritional information management
+ *          - Database operations for meal and food data
+ *          - Food options management for different meal types
  */
 public class MealPlanningService {
     
+    /** @brief Database connection for performing operations */
     private Connection connection;
     
     /**
-     * Constructor for MealPlanningService class.
-     * Uses database for data storage.
+     * @brief Constructs a new MealPlanningService instance
+     * @details Initializes the service with a database connection for data storage
+     * 
+     * @param connection Database connection to use for operations
      */
     public MealPlanningService(Connection connection) {
         this.connection = connection;
     }
     
     /**
-     * Adds a meal plan for a specific date.
+     * @brief Adds a meal plan for a specific date
+     * @details Creates a meal plan entry in the database:
+     *          - Validates input parameters
+     *          - Gets user ID from username
+     *          - Saves food information
+     *          - Creates meal plan entry
      * 
      * @param username The username of the user
      * @param date The date in format YYYY-MM-DD
      * @param mealType The type of meal (breakfast, lunch, snack, dinner)
      * @param food The food to add to the meal plan
-     * @return true if added successfully
+     * @return true if meal plan was added successfully, false otherwise
+     * @throws SQLException If a database error occurs
      */
     public boolean addMealPlan(String username, String date, String mealType, Food food) {
         if (username == null || date == null || mealType == null || food == null) {
@@ -77,12 +108,16 @@ public class MealPlanningService {
     }
     
     /**
-     * Helper method to get user ID by username
+     * @brief Gets user ID from username
+     * @details Retrieves the user ID from the database:
+     *          - Validates username
+     *          - Queries users table
+     *          - Returns user ID or -1 if not found
      * 
-     * @param conn Database connection
+     * @param conn Database connection to use
      * @param username Username to look up
-     * @return User ID or -1 if not found
-     * @throws SQLException If database error occurs
+     * @return User ID if found, -1 otherwise
+     * @throws SQLException If a database error occurs
      */
     private int getUserId(Connection conn, String username) throws SQLException {
         if (username == null || username.trim().isEmpty()) {
@@ -103,13 +138,17 @@ public class MealPlanningService {
     }
     
     /**
-     * Helper method to save food and get its ID
-     * Uses a transaction to ensure data consistency
+     * @brief Saves food information and returns its ID
+     * @details Handles food data persistence:
+     *          - Checks if food already exists
+     *          - Updates or inserts food data
+     *          - Handles nutrient information if available
+     *          - Returns food ID or -1 if error occurs
      * 
-     * @param conn Database connection
-     * @param food Food to save
-     * @return Food ID or -1 if error occurs
-     * @throws SQLException If database error occurs
+     * @param conn Database connection to use
+     * @param food Food object to save
+     * @return Food ID if successful, -1 otherwise
+     * @throws SQLException If a database error occurs
      */
     private int saveFoodAndGetId(Connection conn, Food food) throws SQLException {
         if (food == null) {
@@ -169,12 +208,16 @@ public class MealPlanningService {
 
     
     /**
-     * Helper method to update food nutrients
+     * @brief Updates nutrient information for existing food
+     * @details Modifies nutrient data in the database:
+     *          - Checks if nutrient data exists
+     *          - Updates existing data or creates new entry
+     *          - Handles all nutrient fields
      * 
-     * @param conn Database connection
-     * @param foodId Food ID
-     * @param fn FoodNutrient object
-     * @throws SQLException If database error occurs
+     * @param conn Database connection to use
+     * @param foodId ID of the food to update
+     * @param fn FoodNutrient object containing new values
+     * @throws SQLException If a database error occurs
      */
     private void updateFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws SQLException {
         try (PreparedStatement checkStmt = conn.prepareStatement("SELECT id FROM food_nutrients WHERE food_id = ?")) {
@@ -205,12 +248,16 @@ public class MealPlanningService {
     }
     
     /**
-     * Helper method to save food nutrients
+     * @brief Saves nutrient information for new food
+     * @details Creates new nutrient data entry:
+     *          - Inserts all nutrient values
+     *          - Links to food ID
+     *          - Handles all nutrient fields
      * 
-     * @param conn Database connection
-     * @param foodId Food ID
-     * @param fn FoodNutrient object
-     * @throws SQLException If database error occurs
+     * @param conn Database connection to use
+     * @param foodId ID of the food to save nutrients for
+     * @param fn FoodNutrient object containing values
+     * @throws SQLException If a database error occurs
      */
     private void saveFoodNutrients(Connection conn, int foodId, FoodNutrient fn) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
@@ -230,12 +277,18 @@ public class MealPlanningService {
     }
     
     /**
-     * Logs food consumed by the user.
+     * @brief Logs food consumption for a user
+     * @details Records food intake in the database:
+     *          - Validates input parameters
+     *          - Gets user ID
+     *          - Saves food information
+     *          - Creates food log entry
      * 
      * @param username The username of the user
      * @param date The date in format YYYY-MM-DD
      * @param food The food that was consumed
-     * @return true if logged successfully
+     * @return true if food was logged successfully, false otherwise
+     * @throws SQLException If a database error occurs
      */
     public boolean logFood(String username, String date, Food food) {
         if (username == null || date == null || food == null) {
@@ -278,12 +331,17 @@ public class MealPlanningService {
     }
     
     /**
-     * Gets the meal plan for a specific date and meal type.
+     * @brief Gets meal plan for a specific date and meal type
+     * @details Retrieves planned meals from database:
+     *          - Gets user ID
+     *          - Queries meal plans table
+     *          - Returns list of planned foods
      * 
      * @param username The username of the user
      * @param date The date in format YYYY-MM-DD
      * @param mealType The type of meal (breakfast, lunch, snack, dinner)
-     * @return List of foods planned for the specified meal
+     * @return List of Food objects in the meal plan
+     * @throws SQLException If a database error occurs
      */
     public List<Food> getMealPlan(String username, String date, String mealType) {
         List<Food> mealPlan = new ArrayList<>();
@@ -343,11 +401,16 @@ public class MealPlanningService {
     }
     
     /**
-     * Gets all food logged for a specific date.
+     * @brief Gets food log for a specific date
+     * @details Retrieves consumed foods from database:
+     *          - Gets user ID
+     *          - Queries food logs table
+     *          - Returns list of consumed foods
      * 
      * @param username The username of the user
      * @param date The date in format YYYY-MM-DD
-     * @return List of foods logged for the specified date
+     * @return List of Food objects consumed
+     * @throws SQLException If a database error occurs
      */
     public List<Food> getFoodLog(String username, String date) {
         List<Food> foodLog = new ArrayList<>();
@@ -407,11 +470,16 @@ public class MealPlanningService {
     }
     
     /**
-     * Calculates the total calories consumed on a specific date.
+     * @brief Calculates total calories for a specific date
+     * @details Sums up calories from all consumed foods:
+     *          - Gets user ID
+     *          - Queries food logs table
+     *          - Calculates total calories
      * 
      * @param username The username of the user
      * @param date The date in format YYYY-MM-DD
-     * @return The total calories consumed
+     * @return Total calories consumed
+     * @throws SQLException If a database error occurs
      */
     public int getTotalCalories(String username, String date) {
         if (username == null || date == null) {
@@ -448,12 +516,17 @@ public class MealPlanningService {
     }
     
     /**
-     * Validates a date in the format YYYY-MM-DD.
+     * @brief Validates date components
+     * @details Checks if date components form a valid date:
+     *          - Validates year range
+     *          - Validates month range
+     *          - Validates day range
+     *          - Checks for leap years
      * 
-     * @param year The year (between 2025 and 2100)
-     * @param month The month (between 1 and 12)
-     * @param day The day (between 1 and 31)
-     * @return true if the date is valid, false otherwise
+     * @param year Year to validate
+     * @param month Month to validate
+     * @param day Day to validate
+     * @return true if date is valid, false otherwise
      */
     public boolean isValidDate(int year, int month, int day) {
         // Check year is within range
@@ -489,21 +562,27 @@ public class MealPlanningService {
     }
     
     /**
-     * Formats date components into a string in YYYY-MM-DD format.
+     * @brief Formats date components into string
+     * @details Creates date string in YYYY-MM-DD format:
+     *          - Pads month and day with zeros
+     *          - Combines components with hyphens
      * 
-     * @param year The year
-     * @param month The month
-     * @param day The day
-     * @return The formatted date string
+     * @param year Year component
+     * @param month Month component
+     * @param day Day component
+     * @return Formatted date string
      */
     public String formatDate(int year, int month, int day) {
         return String.format("%04d-%02d-%02d", year, month, day);
     }
     
     /**
-     * Gets predefined breakfast food options.
+     * @brief Gets breakfast food options
+     * @details Returns predefined breakfast food options:
+     *          - Includes common breakfast items
+     *          - Provides nutritional information
      * 
-     * @return Array of breakfast food options
+     * @return Array of Food objects for breakfast
      */
     public Food[] getBreakfastOptions() {
         // Try to get options from database first
@@ -547,9 +626,12 @@ public class MealPlanningService {
         return options.toArray(new Food[0]);
     }
     /**
-     * Gets predefined lunch food options.
+     * @brief Gets lunch food options
+     * @details Returns predefined lunch food options:
+     *          - Includes common lunch items
+     *          - Provides nutritional information
      * 
-     * @return Array of lunch food options
+     * @return Array of Food objects for lunch
      */
     public Food[] getLunchOptions() {
         // Try to get options from database first
@@ -594,9 +676,12 @@ public class MealPlanningService {
     }
     
     /**
-     * Gets predefined snack food options.
+     * @brief Gets snack food options
+     * @details Returns predefined snack food options:
+     *          - Includes common snack items
+     *          - Provides nutritional information
      * 
-     * @return Array of snack food options
+     * @return Array of Food objects for snacks
      */
     public Food[] getSnackOptions() {
         // Try to get options from database first
@@ -642,9 +727,12 @@ public class MealPlanningService {
     }
     
     /**
-     * Gets predefined dinner food options.
+     * @brief Gets dinner food options
+     * @details Returns predefined dinner food options:
+     *          - Includes common dinner items
+     *          - Provides nutritional information
      * 
-     * @return Array of dinner food options
+     * @return Array of Food objects for dinner
      */
     public Food[] getDinnerOptions() {
         // Try to get options from database first
@@ -690,10 +778,15 @@ public class MealPlanningService {
     }
     
     /**
-     * Gets food options by meal type from the database.
+     * @brief Gets food options by meal type
+     * @details Retrieves food options from database:
+     *          - Queries foods table
+     *          - Filters by meal type
+     *          - Returns list of foods
      * 
-     * @param mealType The type of meal (breakfast, lunch, snack, dinner)
-     * @return List of food options for the meal type
+     * @param mealType Type of meal to get options for
+     * @return List of Food objects for the meal type
+     * @throws SQLException If a database error occurs
      */
     private List<Food> getFoodOptionsByType(String mealType) {
         List<Food> options = new ArrayList<>();
@@ -745,13 +838,17 @@ public class MealPlanningService {
     }
     
     /**
-     * Saves a food with a meal type to the database.
+     * @brief Saves food with meal type
+     * @details Stores food information with meal type:
+     *          - Checks for existing food
+     *          - Updates or inserts food data
+     *          - Links to meal type
      * 
-     * @param conn The database connection
-     * @param food The food to save
-     * @param mealType The type of meal
-     * @return The ID of the saved food
-     * @throws SQLException If an error occurs
+     * @param conn Database connection to use
+     * @param food Food object to save
+     * @param mealType Type of meal
+     * @return Food ID if successful, -1 otherwise
+     * @throws SQLException If a database error occurs
      */
     private int saveFoodWithMealType(Connection conn, Food food, String mealType) throws SQLException {
         if (food == null || mealType == null) {
@@ -800,6 +897,20 @@ public class MealPlanningService {
         return foods;
     }
 
+    /**
+     * @brief Adds meal to plan
+     * @details Creates new meal plan entry:
+     *          - Validates user ID
+     *          - Checks food existence
+     *          - Creates meal plan entry
+     * 
+     * @param userId ID of the user
+     * @param day Day for the meal plan
+     * @param mealType Type of meal
+     * @param foodName Name of the food
+     * @return true if meal was added successfully, false otherwise
+     * @throws SQLException If a database error occurs
+     */
     public boolean addMealToPlan(int userId, String day, String mealType, String foodName) {
         if (userId <= 0) {
             throw new IllegalArgumentException("Invalid user ID");
@@ -859,15 +970,23 @@ public class MealPlanningService {
     }
 
     /**
-     * Adds a meal to the meal plan
-     * @param day The day of the week
-     * @param mealType The type of meal (breakfast, lunch, dinner, snack)
-     * @param foodName The name of the food
-     * @param calories The calories in the food
-     * @param protein The protein content in grams
-     * @param carbs The carbohydrate content in grams
-     * @param fat The fat content in grams
-     * @param ingredients The ingredients list
+     * @brief Adds meal with detailed information
+     * @details Creates new meal with nutritional data:
+     *          - Validates input parameters
+     *          - Saves food information
+     *          - Creates meal plan entry
+     *          - Stores nutritional data
+     * 
+     * @param userId ID of the user
+     * @param day Day for the meal
+     * @param mealType Type of meal
+     * @param foodName Name of the food
+     * @param calories Calorie content
+     * @param protein Protein content
+     * @param carbs Carbohydrate content
+     * @param fat Fat content
+     * @param ingredients List of ingredients
+     * @throws SQLException If a database error occurs
      */
     public void addMeal(int userId, String day, String mealType, String foodName, int calories, 
                        double protein, double carbs, double fat, String ingredients) {
@@ -936,9 +1055,14 @@ public class MealPlanningService {
     }
 
     /**
-     * Deletes a meal from the meal plan
-     * @param day The day of the week
-     * @param mealType The type of meal
+     * @brief Deletes meal from plan
+     * @details Removes meal plan entry:
+     *          - Validates input parameters
+     *          - Deletes meal plan entry
+     * 
+     * @param day Day of the meal
+     * @param mealType Type of meal
+     * @throws SQLException If a database error occurs
      */
     public void deleteMeal(String day, String mealType) {
         String sql = "DELETE FROM meal_plans WHERE day = ? AND meal_type = ?";
@@ -953,8 +1077,14 @@ public class MealPlanningService {
     }
 
     /**
-     * Gets the weekly meal plan
-     * @return A formatted string containing the weekly meal plan
+     * @brief Gets weekly meal plan
+     * @details Retrieves meal plan for the week:
+     *          - Gets current date
+     *          - Queries meal plans for week
+     *          - Formats plan as string
+     * 
+     * @return Formatted weekly meal plan string
+     * @throws SQLException If a database error occurs
      */
     public String getWeeklyMealPlan() {
         StringBuilder plan = new StringBuilder();
@@ -1003,9 +1133,14 @@ public class MealPlanningService {
     }
 
     /**
-     * Gets all meals for a specific day
-     * @param day The day to get meals for
-     * @return List of meal descriptions
+     * @brief Gets meals for specific day
+     * @details Retrieves all meals for a day:
+     *          - Queries meal plans table
+     *          - Returns list of meals
+     * 
+     * @param day Day to get meals for
+     * @return List of meal strings
+     * @throws SQLException If a database error occurs
      */
     public List<String> getMealsForDay(String day) {
         List<String> meals = new ArrayList<>();

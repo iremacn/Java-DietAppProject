@@ -1,3 +1,18 @@
+/**
+ * @file CalorieNutrientTrackingMenu.java
+ * @brief Menu interface for calorie and nutrient tracking functionality
+ * 
+ * @details The CalorieNutrientTrackingMenu class provides a comprehensive user interface
+ *          for managing nutrition tracking in the Diet Planner application. It handles
+ *          user interactions for setting nutrition goals, viewing daily and weekly
+ *          nutrition reports, calculating suggested calorie intake, and browsing
+ *          common foods with their nutritional information.
+ * 
+ * @author irem
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 import java.sql.*;
 import java.util.ArrayList;
@@ -5,28 +20,33 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * This class handles the calorie and nutrient tracking menu operations for the Diet Planner application.
- * @details The CalorieNutrientTrackingMenu class provides menu interfaces for tracking calories
- *          and nutrients, setting goals, and viewing nutrition reports.
- * @author irem
+ * @class CalorieNutrientTrackingMenu
+ * @brief Main menu class for calorie and nutrient tracking operations
+ * 
+ * @details This class implements the user interface for nutrition tracking functionality.
+ *          It provides methods for displaying menus, handling user input, and managing
+ *          nutrition-related operations through the CalorieNutrientTrackingService.
+ *          The class maintains references to necessary services and handles all user
+ *          interactions related to nutrition tracking.
  */
 public class CalorieNutrientTrackingMenu {
-    /** The calorie and nutrient tracking service */
+    /** @brief Service for handling calorie and nutrient tracking operations */
     private CalorieNutrientTrackingService calorieNutrientService;
-    /** The meal planning service */
+    /** @brief Service for managing meal planning operations */
     private MealPlanningService mealPlanningService;
-    /** The authentication service */
+    /** @brief Service for handling user authentication */
     private AuthenticationService authService;
-    /** Scanner for reading user input */
+    /** @brief Scanner instance for reading user input from console */
     private Scanner scanner;
     
     /**
-     * Constructor for CalorieNutrientTrackingMenu class.
+     * @brief Constructor for CalorieNutrientTrackingMenu
+     * @details Initializes the menu with required services and input scanner
      * 
-     * @param calorieNutrientService The calorie and nutrient tracking service
-     * @param mealPlanningService The meal planning service
-     * @param authService The authentication service
-     * @param scanner The scanner for user input
+     * @param calorieNutrientService Service for calorie and nutrient tracking operations
+     * @param mealPlanningService Service for meal planning operations
+     * @param authService Service for user authentication
+     * @param scanner Scanner instance for reading user input
      */
     public CalorieNutrientTrackingMenu(
             CalorieNutrientTrackingService calorieNutrientService,
@@ -40,7 +60,11 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Displays the main calorie and nutrient tracking menu and handles user selections.
+     * @brief Displays and manages the main calorie and nutrient tracking menu
+     * @details Presents a menu of options to the user and handles their selections.
+     *          The menu runs in a loop until the user chooses to return to the main menu.
+     *          Options include setting nutrition goals, viewing reports, calculating
+     *          suggested calories, and browsing common foods.
      */
     public void displayMenu() {
         boolean running = true;
@@ -83,9 +107,11 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Gets the user's menu choice from the console.
+     * @brief Reads and validates user input for menu selection
+     * @details Attempts to parse the user's input as an integer. Returns -1 if
+     *          the input is not a valid number.
      * 
-     * @return The user's choice as an integer, returns -1 if input is invalid
+     * @return The user's menu choice as an integer, or -1 if input is invalid
      */
     private int getUserChoice() {
         try {
@@ -96,9 +122,12 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Handles setting nutrition goals through user interaction.
-     * @details Guides the user through setting daily goals for calories, protein,
-     *          carbohydrates, and fat, then saves these goals to their profile.
+     * @brief Handles the process of setting nutrition goals
+     * @details Guides the user through setting daily goals for calories and macronutrients.
+     *          Validates all inputs to ensure they are positive numbers. Saves the goals
+     *          to the user's profile through the calorie tracking service.
+     * 
+     * @throws NumberFormatException if user input cannot be parsed as a number
      */
     private void handleSetNutritionGoals() {
         System.out.println("\n===== Set Nutrition Goals =====");
@@ -171,9 +200,12 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Handles viewing the daily nutrition report.
-     * @details Displays a detailed report of calories and nutrients consumed for a specific date,
-     *          including comparisons against daily goals and percentage achievements.
+     * @brief Displays and manages the daily nutrition report
+     * @details Shows a detailed breakdown of the user's nutrition intake for a specific date,
+     *          including calories, macronutrients, and comparison with daily goals.
+     *          The report includes percentage achievements for each nutrient category.
+     * 
+     * @throws SQLException if there is an error accessing the database
      */
     private void handleViewDailyReport() {
         System.out.println("\n===== Daily Nutrition Report =====");
@@ -218,9 +250,12 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Handles viewing the weekly nutrition report.
+     * @brief Displays and manages the weekly nutrition report
      * @details Shows nutrition summaries for a 7-day period, including daily totals
-     *          and weekly averages for calories and macronutrients.
+     *          and weekly averages. The report provides insights into nutrition trends
+     *          and goal achievement over the week.
+     * 
+     * @throws SQLException if there is an error accessing the database
      */
     private void handleViewWeeklyReport() {
         System.out.println("\n===== Weekly Nutrition Report =====");
@@ -282,9 +317,10 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Handles calculating suggested calories.
-     * @details Calculates recommended daily calorie intake based on user metrics
-     *          and activity level, with option to set it as a new goal.
+     * @brief Calculates and displays suggested daily calorie intake
+     * @details Uses user's personal information and activity level to calculate
+     *          recommended daily calorie intake based on standard formulas.
+     *          Provides detailed breakdown of the calculation.
      */
     private void handleCalculateSuggestedCalories() {
         System.out.println("\n===== Calculate Suggested Calories =====");
@@ -399,9 +435,10 @@ public class CalorieNutrientTrackingMenu {
     }
    
     /**
-     * Handles browsing common foods with nutrients.
-     * @details Displays a list of common foods with their nutritional information,
-     *          including calories, macronutrients, fiber, sugar, and sodium content.
+     * @brief Displays and manages browsing of common foods
+     * @details Shows a list of common foods with their nutritional information.
+     *          Allows users to search and filter foods based on various criteria.
+     *          Provides detailed nutritional breakdown for selected foods.
      */
     private void handleBrowseCommonFoods() {
         System.out.println("\n===== Common Foods with Nutrients =====");
@@ -430,11 +467,13 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Helper method to get a date input in YYYY-MM-DD format.
-     * @details Guides the user through entering a valid year, month, and day,
-     *          with validation for each component.
+     * @brief Prompts user for and validates a date input
+     * @details Guides the user through entering a date in YYYY-MM-DD format.
+     *          Validates the input to ensure it's a valid date, including
+     *          proper handling of leap years and month lengths.
      * 
-     * @return The date string in YYYY-MM-DD format, or empty string if canceled
+     * @return A string containing the validated date in YYYY-MM-DD format,
+     *         or an empty string if the user cancels
      */
     private String getDateInput() {
         // Get year
@@ -485,12 +524,13 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Helper method to get the maximum number of days in a month.
-     * @details Accounts for different month lengths and leap years.
+     * @brief Determines the maximum number of days in a given month
+     * @details Takes into account the month and year to return the correct
+     *          number of days, including handling of leap years for February.
      * 
      * @param month The month (1-12)
      * @param year The year
-     * @return The maximum number of days in the specified month
+     * @return The number of days in the specified month
      */
     private int getMaxDaysInMonth(int month, int year) {
         switch (month) {
@@ -507,26 +547,25 @@ public class CalorieNutrientTrackingMenu {
     }
     
     /**
-     * Helper method to check if a year is a leap year.
-     * @details Uses the standard leap year calculation rules:
-     *          - Years divisible by 4 are leap years
-     *          - Years divisible by 100 are not leap years
-     *          - Years divisible by 400 are leap years
+     * @brief Checks if a given year is a leap year
+     * @details Implements the standard leap year calculation rules:
+     *          - Divisible by 4
+     *          - Not divisible by 100, unless also divisible by 400
      * 
      * @param year The year to check
-     * @return true if leap year, false otherwise
+     * @return true if the year is a leap year, false otherwise
      */
     private boolean isLeapYear(int year) {
         return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
     }
     
     /**
-     * Helper method to generate an array of dates for a week starting from the given date.
-     * @details Generates 7 consecutive dates starting from the provided date,
-     *          handling month and year transitions correctly.
+     * @brief Generates an array of dates for a week starting from a given date
+     * @details Creates an array of 7 dates in YYYY-MM-DD format, starting from
+     *          the provided start date. Handles month and year transitions correctly.
      * 
-     * @param startDate The start date in format YYYY-MM-DD
-     * @return Array of 7 dates (including the start date) in YYYY-MM-DD format
+     * @param startDate The starting date in YYYY-MM-DD format
+     * @return Array of 7 dates in YYYY-MM-DD format
      */
     private String[] generateWeekDates(String startDate) {
         String[] dates = new String[7];

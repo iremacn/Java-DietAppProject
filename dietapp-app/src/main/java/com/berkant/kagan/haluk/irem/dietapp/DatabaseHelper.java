@@ -1,3 +1,17 @@
+/**
+ * @file DatabaseHelper.java
+ * @brief Database management and operations for the Diet Planner application
+ * 
+ * @details The DatabaseHelper class provides comprehensive database functionality for the Diet Planner
+ *          application, including connection management, table creation, and data operations.
+ *          It implements a connection pool for efficient database access and supports both
+ *          Docker and local environments.
+ * 
+ * @author Claude
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.io.File;
@@ -11,16 +25,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class handles database operations for the Diet Planner application.
- * @details The DatabaseHelper class provides methods for initializing and managing the SQLite database.
- * @author Claude
+ * @class DatabaseHelper
+ * @brief Database management and operations handler
+ * 
+ * @details This class manages all database operations for the Diet Planner application,
+ *          including connection pooling, table management, and data operations.
+ *          It supports both Docker and local environments with automatic path detection.
  */
 public class DatabaseHelper {
-    // Docker veya yerel ortam için veritabanı yolunu belirle
+    /** @brief Database URL for SQLite connection */
     private static final String DB_URL;
+    /** @brief Maximum number of connections in the pool */
     private static final int MAX_CONNECTIONS = 10;
+    /** @brief Pool of database connections */
     private static List<Connection> connectionPool = new ArrayList<>();
    
+    /**
+     * @brief Static initialization block
+     * @details Initializes the database URL based on the environment (Docker or local)
+     *          and ensures the data directory exists. Also loads the SQLite JDBC driver.
+     */
     static {
         // Docker ortamında mı yoksa lokal ortamda mı çalıştığımızı kontrol et
         File dockerDataDir = new File("/app/data");
@@ -54,7 +78,11 @@ public class DatabaseHelper {
     }
     
     /**
-     * Initializes the database connection and creates tables if they don't exist.
+     * @brief Initializes the database and creates necessary tables
+     * @details Creates a database connection, initializes all required tables,
+     *          and prints database path and table schema information.
+     * 
+     * @throws SQLException if database initialization fails
      */
     public static void initializeDatabase() {
         try {
@@ -83,9 +111,12 @@ public class DatabaseHelper {
     }
     
     /**
-     * Gets a database connection from the pool or creates a new one.
+     * @brief Gets a database connection from the pool
+     * @details Retrieves an existing connection from the pool or creates a new one
+     *          if the pool is empty. Implements thread-safe connection management.
      * 
-     * @return The Connection object
+     * @return Connection object for database operations
+     * @throws SQLException if connection creation fails
      */
     public static synchronized Connection getConnection() {
         try {
@@ -105,10 +136,12 @@ public class DatabaseHelper {
     }
     
     /**
-     * Creates a new database connection with optimized settings.
+     * @brief Creates a new database connection with optimized settings
+     * @details Creates a new SQLite connection with WAL journal mode, normal synchronous
+     *          settings, and increased cache size for better performance.
      * 
-     * @return A new Connection object
-     * @throws SQLException If connection creation fails
+     * @return A new Connection object with optimized settings
+     * @throws SQLException if connection creation fails
      */
     private static Connection createConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(
@@ -117,9 +150,11 @@ public class DatabaseHelper {
     }
     
     /**
-     * Releases a connection back to the connection pool.
+     * @brief Releases a connection back to the pool
+     * @details Returns a connection to the pool if it's not closed and the pool
+     *          hasn't reached its maximum size. Otherwise, closes the connection.
      * 
-     * @param conn The Connection to release
+     * @param conn The Connection object to release
      */
     public static synchronized void releaseConnection(Connection conn) {
         if (conn != null) {
@@ -140,7 +175,9 @@ public class DatabaseHelper {
     }
     
     /**
-     * Closes all connections in the pool.
+     * @brief Closes all connections in the pool
+     * @details Safely closes all active connections in the connection pool
+     *          and clears the pool.
      */
     public static void closeAllConnections() {
         for (Connection conn : connectionPool) {
@@ -156,7 +193,8 @@ public class DatabaseHelper {
     }
     
     /**
-     * Closes the database connection.
+     * @brief Closes the database connection
+     * @details Closes all connections in the pool and prints a confirmation message.
      */
     public static void closeConnection() {
         closeAllConnections();
@@ -164,9 +202,16 @@ public class DatabaseHelper {
     }
     
     /**
-     * Creates all necessary tables in the database.
+     * @brief Creates all necessary database tables
+     * @details Creates the following tables if they don't exist:
+     *          - users: User account information
+     *          - foods: Food items and their basic information
+     *          - food_nutrients: Detailed nutrient information for foods
+     *          - nutrition_goals: User-specific nutrition goals
+     *          - meal_plans: User meal planning information
      * 
-     * @param conn The database connection
+     * @param conn The database connection to use
+     * @throws SQLException if table creation fails
      */
     private static void createTables(Connection conn) throws SQLException {
         try (Statement statement = conn.createStatement()) {
@@ -345,10 +390,12 @@ public class DatabaseHelper {
     }
     
     /**
-     * Helper method to insert sample data for testing purposes.
+     * @brief Inserts sample data into the database
+     * @details Adds initial sample data to the database tables for testing
+     *          and demonstration purposes.
      * 
-     * @param statement The SQL statement
-     * @throws SQLException If there is an error executing SQL
+     * @param statement The Statement object to execute queries
+     * @throws SQLException if data insertion fails
      */
     private static void insertSampleData(Statement statement) throws SQLException {
         // Add sample user (for testing purposes only, in empty database)
@@ -364,10 +411,12 @@ public class DatabaseHelper {
     }
    
     /**
-     * Helper method to get a user's ID by username.
+     * @brief Retrieves a user's ID from the database
+     * @details Queries the database to find a user's ID based on their username.
      * 
      * @param username The username to look up
-     * @return The user ID or -1 if not found
+     * @return The user's ID if found, -1 otherwise
+     * @throws SQLException if the database query fails
      */
     public static int getUserId(String username) {
         Connection conn = null;
@@ -394,10 +443,13 @@ public class DatabaseHelper {
     }
    
     /**
-     * Helper method to save a Food object to the database and return its ID.
+     * @brief Saves a food item and returns its ID
+     * @details Saves a food item to the database and returns its generated ID.
+     *          Also saves associated nutrient information if available.
      * 
      * @param food The Food object to save
-     * @return The food ID in the database or -1 if there was an error
+     * @return The ID of the saved food item
+     * @throws SQLException if the save operation fails
      */
     public static int saveFoodAndGetId(Food food) throws SQLException {
         Connection conn = null;
@@ -473,12 +525,15 @@ public class DatabaseHelper {
     }
 
     /**
-     * Helper method to update food nutrients in the database.
+     * @brief Updates nutrient information for a food item
+     * @details Updates the nutrient information for an existing food item
+     *          in the database.
      * 
-     * @param conn The database connection
-     * @param foodId The ID of the food in the database
-     * @param foodNutrient The FoodNutrient object containing the nutrients
-     * @return true if successful, false otherwise
+     * @param conn The database connection to use
+     * @param foodId The ID of the food to update
+     * @param foodNutrient The nutrient information to update
+     * @return true if update was successful, false otherwise
+     * @throws SQLException if the update operation fails
      */
     private static boolean updateFoodNutrients(Connection conn, int foodId, FoodNutrient foodNutrient) {
         try {
@@ -514,12 +569,14 @@ public class DatabaseHelper {
     }
 
     /**
-     * Helper method to save food nutrients to the database.
+     * @brief Saves nutrient information for a food item
+     * @details Saves new nutrient information for a food item in the database.
      * 
-     * @param conn The database connection
-     * @param foodId The ID of the food in the database
-     * @param foodNutrient The FoodNutrient object containing the nutrients
-     * @return true if successful, false otherwise
+     * @param conn The database connection to use
+     * @param foodId The ID of the food to save nutrients for
+     * @param foodNutrient The nutrient information to save
+     * @return true if save was successful, false otherwise
+     * @throws SQLException if the save operation fails
      */
     private static boolean saveFoodNutrients(Connection conn, int foodId, FoodNutrient foodNutrient) {
         try {

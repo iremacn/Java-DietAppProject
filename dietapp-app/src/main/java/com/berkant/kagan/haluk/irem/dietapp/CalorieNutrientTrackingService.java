@@ -1,3 +1,17 @@
+/**
+ * @file CalorieNutrientTrackingService.java
+ * @brief Service class for managing calorie and nutrient tracking operations
+ * 
+ * @details The CalorieNutrientTrackingService class provides comprehensive functionality
+ *          for tracking and managing nutrition data in the Diet Planner application.
+ *          It handles user nutrition goals, generates nutrition reports, calculates
+ *          suggested calorie intake, and manages food nutrient information.
+ * 
+ * @author irem
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.sql.Connection;
@@ -9,33 +23,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class handles calorie and nutrient tracking operations for the Diet Planner application.
- * @details The CalorieNutrientTrackingService class provides methods for tracking calories,
- *          nutrients, setting goals, and viewing nutrition reports.
- * @author irem
+ * @class CalorieNutrientTrackingService
+ * @brief Main service class for calorie and nutrient tracking operations
+ * 
+ * @details This class implements the core functionality for nutrition tracking in the
+ *          Diet Planner application. It provides methods for managing nutrition goals,
+ *          generating reports, calculating recommended calorie intake, and handling
+ *          food nutrient data. The class works in conjunction with the MealPlanningService
+ *          to provide comprehensive nutrition tracking capabilities.
  */
 public class CalorieNutrientTrackingService {
-    /** The meal planning service for accessing food logs */
+    /** @brief Service for accessing food logs and meal planning data */
     private MealPlanningService mealPlanningService;
     
-    /** 
-     * Constructor for CalorieNutrientTrackingService class.
+    /**
+     * @brief Constructor for CalorieNutrientTrackingService
+     * @details Initializes the service with a reference to the meal planning service
+     *          which is required for accessing food logs and meal data.
      * 
-     * @param mealPlanningService The meal planning service for accessing food logs
+     * @param mealPlanningService Service for accessing food logs and meal planning data
      */
     public CalorieNutrientTrackingService(MealPlanningService mealPlanningService) {
         this.mealPlanningService = mealPlanningService;
     }
     
     /**
-     * Sets or updates nutrition goals for a user.
+     * @brief Sets or updates nutrition goals for a user
+     * @details Validates input parameters and either creates new nutrition goals
+     *          or updates existing ones in the database. Goals include daily targets
+     *          for calories and macronutrients.
      * 
      * @param username The username of the user
-     * @param calorieGoal The daily calorie goal
+     * @param calorieGoal The daily calorie goal in calories
      * @param proteinGoal The daily protein goal in grams
      * @param carbGoal The daily carbohydrate goal in grams
      * @param fatGoal The daily fat goal in grams
-     * @return true if goals set successfully
+     * @return true if goals were successfully set or updated, false otherwise
+     * @throws SQLException if there is an error accessing the database
      */
     public boolean setNutritionGoals(String username, int calorieGoal, double proteinGoal, 
                                     double carbGoal, double fatGoal) {
@@ -110,12 +134,14 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Helper method to get user ID by username
+     * @brief Retrieves the user ID associated with a username
+     * @details Helper method that queries the database to find the user ID
+     *          corresponding to the given username.
      * 
-     * @param conn Database connection
-     * @param username Username to look up
-     * @return User ID or -1 if not found
-     * @throws SQLException If database error occurs
+     * @param conn Active database connection
+     * @param username The username to look up
+     * @return The user ID if found, -1 if not found
+     * @throws SQLException if there is an error accessing the database
      */
     private int getUserId(Connection conn, String username) throws SQLException {
         String sql = "SELECT id FROM users WHERE username = ?";
@@ -132,10 +158,14 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Gets the nutrition goals for a user.
+     * @brief Retrieves nutrition goals for a user
+     * @details Fetches the user's nutrition goals from the database. If no goals
+     *          are set, returns default values. Default goals are 2000 calories,
+     *          50g protein, 250g carbs, and 70g fat.
      * 
      * @param username The username of the user
-     * @return The user's nutrition goals or default goals if none are set
+     * @return NutritionGoal object containing the user's goals or default values
+     * @throws SQLException if there is an error accessing the database
      */
     public NutritionGoal getNutritionGoals(String username) {
         try (Connection conn = DatabaseHelper.getConnection()) {
@@ -172,11 +202,15 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Generates a nutrition report for a specific date.
+     * @brief Generates a nutrition report for a specific date
+     * @details Calculates total nutrition intake for the specified date by
+     *          aggregating data from all food entries. Includes calories,
+     *          macronutrients, and other nutritional information.
      * 
      * @param username The username of the user
-     * @param date The date in format YYYY-MM-DD
-     * @return A NutritionReport object containing the nutrition summary
+     * @param date The date in YYYY-MM-DD format
+     * @return NutritionReport object containing the nutrition summary
+     * @throws SQLException if there is an error accessing the database
      */
     public NutritionReport getNutritionReport(String username, String date) {
         // Validate input parameters
@@ -233,11 +267,14 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Gets a weekly nutrition report.
+     * @brief Generates weekly nutrition reports
+     * @details Creates nutrition reports for each date in the provided array,
+     *          typically representing a week of data.
      * 
      * @param username The username of the user
-     * @param dates An array of dates to include in the report
-     * @return A list of NutritionReport objects for each date
+     * @param dates Array of dates in YYYY-MM-DD format
+     * @return List of NutritionReport objects, one for each date
+     * @throws SQLException if there is an error accessing the database
      */
     public List<NutritionReport> getWeeklyReport(String username, String[] dates) {
         List<NutritionReport> reports = new ArrayList<>();
@@ -257,14 +294,16 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Calculates a suggested daily calorie intake based on user information.
+     * @brief Calculates suggested daily calorie intake
+     * @details Uses the Harris-Benedict equation to calculate recommended daily
+     *          calorie intake based on user's personal information and activity level.
      * 
-     * @param gender The user's gender (M/F)
-     * @param age The user's age
-     * @param heightCm The user's height in centimeters
-     * @param weightKg The user's weight in kilograms
-     * @param activityLevel The user's activity level (1-5)
-     * @return The suggested daily calorie intake
+     * @param gender User's gender ('M' or 'F')
+     * @param age User's age in years
+     * @param heightCm User's height in centimeters
+     * @param weightKg User's weight in kilograms
+     * @param activityLevel Activity level (1-5, where 1 is sedentary and 5 is very active)
+     * @return Suggested daily calorie intake in calories
      */
     public int calculateSuggestedCalories(char gender, int age, double heightCm, 
                                          double weightKg, int activityLevel) {
@@ -315,9 +354,12 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Gets predefined common food items with detailed nutrient information.
+     * @brief Retrieves a list of common foods with their nutritional information
+     * @details Returns an array of FoodNutrient objects containing detailed
+     *          nutritional information for common foods in the database.
      * 
-     * @return Array of common foods with nutrient details
+     * @return Array of FoodNutrient objects
+     * @throws SQLException if there is an error accessing the database
      */
     public FoodNutrient[] getCommonFoodsWithNutrients() {
         // Try to get from database first
@@ -389,26 +431,30 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Inner class to represent a user's nutrition goals.
-     * @details Contains daily targets for calories and macronutrients.
+     * @class NutritionGoal
+     * @brief Class representing a user's nutrition goals
+     * 
+     * @details Stores daily targets for calories and macronutrients.
+     *          Used for tracking progress and generating reports.
      */
     public class NutritionGoal {
-        /** The daily calorie goal */
+        /** @brief Daily calorie goal in calories */
         private int calorieGoal;
-        /** The daily protein goal in grams */
+        /** @brief Daily protein goal in grams */
         private double proteinGoal;
-        /** The daily carbohydrate goal in grams */
+        /** @brief Daily carbohydrate goal in grams */
         private double carbGoal;
-        /** The daily fat goal in grams */
+        /** @brief Daily fat goal in grams */
         private double fatGoal;
         
         /**
-         * Constructor for NutritionGoal class.
+         * @brief Constructor for NutritionGoal
+         * @details Initializes a new NutritionGoal with specified targets
          * 
-         * @param calorieGoal The daily calorie goal
-         * @param proteinGoal The daily protein goal in grams
-         * @param carbGoal The daily carbohydrate goal in grams
-         * @param fatGoal The daily fat goal in grams
+         * @param calorieGoal Daily calorie goal in calories
+         * @param proteinGoal Daily protein goal in grams
+         * @param carbGoal Daily carbohydrate goal in grams
+         * @param fatGoal Daily fat goal in grams
          */
         public NutritionGoal(int calorieGoal, double proteinGoal, 
                             double carbGoal, double fatGoal) {
@@ -452,31 +498,36 @@ public class CalorieNutrientTrackingService {
     }
     
     /**
-     * Inner class to represent a nutrition report for a specific date.
-     * @details Contains daily totals for calories and nutrients, along with goals and progress.
+     * @class NutritionReport
+     * @brief Class representing a nutrition report for a specific date
+     * 
+     * @details Contains total nutrition intake for a day, including calories,
+     *          macronutrients, and other nutritional information. Also includes
+     *          the user's nutrition goals for comparison.
      */
     public class NutritionReport {
-        /** The date of the report in YYYY-MM-DD format */
+        /** @brief The date of the report in YYYY-MM-DD format */
         private String date;
-        /** Total calories consumed */
+        /** @brief Total calories consumed */
         private int totalCalories;
-        /** Total protein consumed in grams */
+        /** @brief Total protein consumed in grams */
         private double totalProtein;
-        /** Total carbohydrates consumed in grams */
+        /** @brief Total carbohydrates consumed in grams */
         private double totalCarbs;
-        /** Total fat consumed in grams */
+        /** @brief Total fat consumed in grams */
         private double totalFat;
-        /** Total fiber consumed in grams */
+        /** @brief Total fiber consumed in grams */
         private double totalFiber;
-        /** Total sugar consumed in grams */
+        /** @brief Total sugar consumed in grams */
         private double totalSugar;
-        /** Total sodium consumed in milligrams */
+        /** @brief Total sodium consumed in milligrams */
         private double totalSodium;
-        /** The nutrition goals for comparison */
+        /** @brief User's nutrition goals for comparison */
         private NutritionGoal goals;
         
         /**
-         * Constructor for NutritionReport class.
+         * @brief Constructor for NutritionReport
+         * @details Initializes a new NutritionReport with specified values
          * 
          * @param date The date of the report
          * @param totalCalories Total calories consumed
@@ -486,7 +537,7 @@ public class CalorieNutrientTrackingService {
          * @param totalFiber Total fiber consumed in grams
          * @param totalSugar Total sugar consumed in grams
          * @param totalSodium Total sodium consumed in milligrams
-         * @param goals The nutrition goals for comparison
+         * @param goals User's nutrition goals
          */
         public NutritionReport(String date, int totalCalories, double totalProtein,
                               double totalCarbs, double totalFat, double totalFiber,

@@ -1,27 +1,55 @@
+/**
+ * @file FoodNutrient.java
+ * @brief Extended food item representation with detailed nutrient information
+ * 
+ * @details The FoodNutrient class extends the base Food class to provide comprehensive
+ *          nutritional information tracking. It adds detailed macronutrient and
+ *          micronutrient tracking capabilities, including proteins, carbohydrates,
+ *          fats, fiber, sugar, and sodium content.
+ * 
+ * @author irem
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 /**
- * This class extends the Food class to include detailed nutrient information.
- * @details The FoodNutrient class adds nutrient tracking capabilities to the Food class
- *          by adding macronutrient information (proteins, carbs, fats).
- * @author irem
+ * @class FoodNutrient
+ * @brief Extended food item class with detailed nutrient tracking
+ * 
+ * @details This class extends the base Food class to provide comprehensive
+ *          nutritional information tracking. It adds support for detailed
+ *          macronutrient and micronutrient tracking, including:
+ *          - Proteins (g)
+ *          - Carbohydrates (g)
+ *          - Fats (g)
+ *          - Fiber (g)
+ *          - Sugar (g)
+ *          - Sodium (mg)
+ * 
+ *          The class includes built-in validation to ensure nutrient values
+ *          are within reasonable ranges and maintains data integrity by
+ *          preventing negative values.
  */
 public class FoodNutrient extends Food {
-    /** The protein content in grams */
+    /** @brief The protein content in grams */
     private double protein;
-    /** The carbohydrate content in grams */
+    /** @brief The carbohydrate content in grams */
     private double carbs;
-    /** The fat content in grams */
+    /** @brief The fat content in grams */
     private double fat;
-    /** The fiber content in grams */
+    /** @brief The fiber content in grams */
     private double fiber;
-    /** The sugar content in grams */
+    /** @brief The sugar content in grams */
     private double sugar;
-    /** The sodium content in milligrams */
+    /** @brief The sodium content in milligrams */
     private double sodium;
     
     /**
-     * Default constructor for FoodNutrient class.
+     * @brief Default constructor
+     * @details Initializes a new FoodNutrient object with all nutrient values
+     *          set to zero. Inherits base Food class initialization.
      */
     public FoodNutrient() {
         super();
@@ -35,10 +63,12 @@ public class FoodNutrient extends Food {
     }
     
     /**
-     * Constructor with basic food information.
+     * @brief Constructor with basic food information
+     * @details Creates a new FoodNutrient object with specified basic food
+     *          information and initializes all nutrient values to zero.
      * 
-     * @param name The name of the food
-     * @param grams The amount of food in grams
+     * @param name The name of the food item
+     * @param grams The weight of the food in grams
      * @param calories The calorie content of the food
      */
     public FoodNutrient(String name, double grams, int calories) {
@@ -53,10 +83,13 @@ public class FoodNutrient extends Food {
     }
     
     /**
-     * Constructor with complete nutrient information.
+     * @brief Constructor with complete nutrient information
+     * @details Creates a new FoodNutrient object with all nutritional information
+     *          specified. Ensures all nutrient values are non-negative by
+     *          converting negative values to zero.
      * 
-     * @param name The name of the food
-     * @param grams The amount of food in grams
+     * @param name The name of the food item
+     * @param grams The weight of the food in grams
      * @param calories The calorie content of the food
      * @param protein The protein content in grams
      * @param carbs The carbohydrate content in grams
@@ -77,124 +110,139 @@ public class FoodNutrient extends Food {
         this.sodium = Math.max(0.0, sodium);
     }
     
-    // Getter and setter methods for nutrients
-    
     /**
-     * Gets the protein content in grams.
+     * @brief Retrieves the protein content
+     * @details Returns the protein content of the food item in grams.
      * 
-     * @return The protein content
+     * @return The protein content in grams
      */
     public double getProtein() {
         return protein;
     }
     
     /**
-     * Sets the protein content in grams.
-     * Negative values will be converted to zero.
+     * @brief Sets the protein content
+     * @details Updates the protein content of the food item in grams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param protein The protein content to set
+     * @param protein The new protein content in grams
      */
     public void setProtein(double protein) {
         this.protein = Math.max(0.0, protein);
     }
     
     /**
-     * Gets the carbohydrate content in grams.
+     * @brief Retrieves the carbohydrate content
+     * @details Returns the carbohydrate content of the food item in grams.
      * 
-     * @return The carbohydrate content
+     * @return The carbohydrate content in grams
      */
     public double getCarbs() {
         return carbs;
     }
     
     /**
-     * Sets the carbohydrate content in grams.
-     * Negative values will be converted to zero.
+     * @brief Sets the carbohydrate content
+     * @details Updates the carbohydrate content of the food item in grams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param carbs The carbohydrate content to set
+     * @param carbs The new carbohydrate content in grams
      */
     public void setCarbs(double carbs) {
         this.carbs = Math.max(0.0, carbs);
     }
     
     /**
-     * Gets the fat content in grams.
+     * @brief Retrieves the fat content
+     * @details Returns the fat content of the food item in grams.
      * 
-     * @return The fat content
+     * @return The fat content in grams
      */
     public double getFat() {
         return fat;
     }
     
     /**
-     * Sets the fat content in grams.
-     * Negative values will be converted to zero.
+     * @brief Sets the fat content
+     * @details Updates the fat content of the food item in grams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param fat The fat content to set
+     * @param fat The new fat content in grams
      */
     public void setFat(double fat) {
         this.fat = Math.max(0.0, fat);
     }
     
     /**
-     * Gets the fiber content in grams.
+     * @brief Retrieves the fiber content
+     * @details Returns the fiber content of the food item in grams.
      * 
-     * @return The fiber content
+     * @return The fiber content in grams
      */
     public double getFiber() {
         return fiber;
     }
     
     /**
-     * Sets the fiber content in grams.
-     * Negative values will be converted to zero.
+     * @brief Sets the fiber content
+     * @details Updates the fiber content of the food item in grams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param fiber The fiber content to set
+     * @param fiber The new fiber content in grams
      */
     public void setFiber(double fiber) {
         this.fiber = Math.max(0.0, fiber);
     }
     
     /**
-     * Gets the sugar content in grams.
+     * @brief Retrieves the sugar content
+     * @details Returns the sugar content of the food item in grams.
      * 
-     * @return The sugar content
+     * @return The sugar content in grams
      */
     public double getSugar() {
         return sugar;
     }
     
     /**
-     * Sets the sugar content in grams.
-     * Negative values will be converted to zero.
+     * @brief Sets the sugar content
+     * @details Updates the sugar content of the food item in grams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param sugar The sugar content to set
+     * @param sugar The new sugar content in grams
      */
     public void setSugar(double sugar) {
         this.sugar = Math.max(0.0, sugar);
     }
     
     /**
-     * Gets the sodium content in milligrams.
+     * @brief Retrieves the sodium content
+     * @details Returns the sodium content of the food item in milligrams.
      * 
-     * @return The sodium content
+     * @return The sodium content in milligrams
      */
     public double getSodium() {
         return sodium;
     }
     
     /**
-     * Sets the sodium content in milligrams.
-     * Negative values will be converted to zero.
+     * @brief Sets the sodium content
+     * @details Updates the sodium content of the food item in milligrams.
+     *          Converts negative values to zero to maintain data integrity.
      * 
-     * @param sodium The sodium content to set
+     * @param sodium The new sodium content in milligrams
      */
     public void setSodium(double sodium) {
         this.sodium = Math.max(0.0, sodium);
     }
     
     /**
-     * Validates if all nutrient values are within acceptable ranges.
+     * @brief Validates the food item's nutrient values
+     * @details Performs comprehensive validation of all nutrient values:
+     *          - Validates base food properties using super.isValid()
+     *          - Ensures total macronutrients don't exceed food weight
+     *          - Verifies individual macronutrients don't exceed food weight
+     *          - Confirms sugar and fiber don't exceed total carbohydrates
      * 
      * @return true if all nutrient values are valid, false otherwise
      */
@@ -243,9 +291,11 @@ public class FoodNutrient extends Food {
     }
     
     /**
-     * Returns a string representation of the FoodNutrient object including nutrient details.
+     * @brief Generates a detailed string representation
+     * @details Creates a formatted string containing the food item's
+     *          basic information and all nutrient values.
      * 
-     * @return A string containing food and nutrient information
+     * @return A string containing comprehensive food and nutrient information
      */
     @Override
     public String toString() {
@@ -255,9 +305,12 @@ public class FoodNutrient extends Food {
     }
     
     /**
-     * Returns a detailed string representation of all nutrient information.
+     * @brief Generates an extended string representation
+     * @details Creates a more detailed formatted string containing the food item's
+     *          basic information and all nutrient values, with additional
+     *          nutritional context.
      * 
-     * @return A detailed string with all nutrient information
+     * @return A detailed string containing comprehensive food and nutrient information
      */
     public String toDetailedString() {
         return getName() + " (" + getGrams() + "g, " + getCalories() + " calories)" +

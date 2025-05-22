@@ -1,3 +1,10 @@
+/**
+ * @file MealPlanningPanel.java
+ * @brief GUI panel for meal planning functionality
+ * @author Berkant Kagan Haluk Irem
+ * @date 2024
+ */
+
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.awt.BorderLayout;
@@ -15,22 +22,57 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+/**
+ * @class MealPlanningPanel
+ * @brief A Swing panel that provides a user interface for meal planning
+ * 
+ * This class extends JPanel to create a graphical interface for managing meal plans.
+ * It allows users to add, view, and delete meals, and displays a weekly meal plan.
+ */
 public class MealPlanningPanel extends JPanel {
+    /** @brief Service for handling meal planning operations */
     private MealPlanningService planningService;
     
+    /** @brief Text field for entering meal name */
     private JTextField nameField;
+    
+    /** @brief Text field for entering calorie count */
     private JTextField caloriesField;
+    
+    /** @brief Text field for entering protein content */
     private JTextField proteinField;
+    
+    /** @brief Text field for entering carbohydrate content */
     private JTextField carbsField;
+    
+    /** @brief Text field for entering fat content */
     private JTextField fatField;
+    
+    /** @brief Text area for entering meal ingredients */
     private JTextArea ingredientsArea;
+    
+    /** @brief Combo box for selecting the day of the week */
     private JComboBox<String> dayComboBox;
+    
+    /** @brief Combo box for selecting the meal type */
     private JComboBox<String> mealTypeComboBox;
+    
+    /** @brief Text area for displaying the weekly meal plan */
     private JTextArea weeklyPlanArea;
+    
+    /** @brief Button for adding a new meal */
     private JButton addButton;
+    
+    /** @brief Button for viewing the weekly plan */
     private JButton viewButton;
+    
+    /** @brief Button for deleting a meal */
     private JButton deleteButton;
     
+    /**
+     * @brief Constructs a new MealPlanningPanel
+     * @param planningService The service to handle meal planning operations
+     */
     public MealPlanningPanel(MealPlanningService planningService) {
         this.planningService = planningService;
         initializeComponents();
@@ -38,6 +80,12 @@ public class MealPlanningPanel extends JPanel {
         addListeners();
     }
     
+    /**
+     * @brief Initializes all UI components
+     * 
+     * Creates and configures all text fields, combo boxes, text areas,
+     * and buttons used in the panel.
+     */
     private void initializeComponents() {
         nameField = new JTextField(20);
         caloriesField = new JTextField(10);
@@ -62,6 +110,12 @@ public class MealPlanningPanel extends JPanel {
         deleteButton = new JButton("Delete Meal");
     }
     
+    /**
+     * @brief Sets up the layout of the panel
+     * 
+     * Arranges all components in a grid layout with proper spacing and alignment.
+     * Creates separate panels for input fields, buttons, and the weekly plan display.
+     */
     private void setupLayout() {
         setLayout(new BorderLayout());
         
@@ -139,6 +193,12 @@ public class MealPlanningPanel extends JPanel {
         add(weeklyPlanPanel, BorderLayout.CENTER);
     }
     
+    /**
+     * @brief Adds action listeners to all buttons
+     * 
+     * Configures the behavior of the Add, View, and Delete buttons.
+     * Handles user input validation and error cases.
+     */
     private void addListeners() {
         // Add Meal Button
         addButton.addActionListener(e -> {
@@ -188,6 +248,11 @@ public class MealPlanningPanel extends JPanel {
         });
     }
     
+    /**
+     * @brief Clears all input fields
+     * 
+     * Resets the text in all text fields and text areas to empty strings.
+     */
     private void clearFields() {
         nameField.setText("");
         caloriesField.setText("");
@@ -197,6 +262,13 @@ public class MealPlanningPanel extends JPanel {
         ingredientsArea.setText("");
     }
     
+    /**
+     * @brief Updates the weekly meal plan display
+     * 
+     * Retrieves the current weekly meal plan from the service and
+     * updates the display area. Handles any errors that occur during
+     * the update process.
+     */
     private void updateWeeklyPlan() {
         try {
             String weeklyPlan = planningService.getWeeklyMealPlan();

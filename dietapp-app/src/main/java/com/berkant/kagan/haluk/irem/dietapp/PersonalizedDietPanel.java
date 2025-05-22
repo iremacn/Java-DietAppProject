@@ -1,3 +1,17 @@
+/**
+ * @file PersonalizedDietPanel.java
+ * @brief GUI panel for personalized diet recommendations
+ * 
+ * @details The PersonalizedDietPanel class provides a graphical user interface for:
+ *          - Collecting user information (age, weight, height, gender, activity level)
+ *          - Generating personalized diet recommendations
+ *          - Displaying diet recommendations in a scrollable text area
+ * 
+ * @author berkant
+ * @version 1.0
+ * @date 2024
+ * @copyright Diet Planner Application
+ */
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import javax.swing.*;
@@ -6,17 +20,46 @@ import javax.swing.text.Caret;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * @class PersonalizedDietPanel
+ * @brief GUI panel for collecting user information and displaying diet recommendations
+ * 
+ * @details This class extends JPanel to create a user interface for the diet recommendation system.
+ *          It provides input fields for user characteristics and displays personalized
+ *          diet recommendations based on the input data.
+ */
 public class PersonalizedDietPanel extends JPanel {
+    
+    /** @brief Service for generating diet recommendations */
     private PersonalizedDietRecommendationService dietService;
     
+    /** @brief Text field for entering age */
     private JTextField ageField;
+    
+    /** @brief Text field for entering weight in kilograms */
     private JTextField weightField;
+    
+    /** @brief Text field for entering height in centimeters */
     private JTextField heightField;
+    
+    /** @brief Combo box for selecting gender (Male/Female) */
     private JComboBox<String> genderComboBox;
+    
+    /** @brief Combo box for selecting activity level */
     private JComboBox<String> activityLevelComboBox;
+    
+    /** @brief Text area for displaying diet recommendations */
     private JTextArea recommendationsArea;
+    
+    /** @brief Button for generating recommendations */
     private JButton generateButton;
     
+    /**
+     * @brief Constructs a new PersonalizedDietPanel
+     * @details Initializes the panel with the diet recommendation service and sets up the UI components
+     * 
+     * @param dietService Service for generating diet recommendations
+     */
     public PersonalizedDietPanel(PersonalizedDietRecommendationService dietService) {
         this.dietService = dietService;
         initializeComponents();
@@ -24,6 +67,14 @@ public class PersonalizedDietPanel extends JPanel {
         addListeners();
     }
     
+    /**
+     * @brief Initializes UI components
+     * @details Creates and configures all UI elements:
+     *          - Text fields for numeric input
+     *          - Combo boxes for selection
+     *          - Text area for recommendations
+     *          - Generate button
+     */
     private void initializeComponents() {
         ageField = new JTextField(10);
         weightField = new JTextField(10);
@@ -41,6 +92,14 @@ public class PersonalizedDietPanel extends JPanel {
         generateButton = new JButton("Generate Recommendations");
     }
     
+    /**
+     * @brief Sets up the panel layout
+     * @details Arranges UI components in a structured layout:
+     *          - Input panel with form fields
+     *          - Button panel with generate button
+     *          - Recommendations panel with scrollable text area
+     *          - Uses BorderLayout for main panel organization
+     */
     private void setupLayout() {
         setLayout(new BorderLayout());
         
@@ -98,6 +157,14 @@ public class PersonalizedDietPanel extends JPanel {
         add(recommendationsPanel, BorderLayout.CENTER);
     }
     
+    /**
+     * @brief Adds event listeners to UI components
+     * @details Sets up action listeners for the generate button:
+     *          - Validates input data
+     *          - Generates recommendations
+     *          - Displays results or error messages
+     *          - Handles exceptions appropriately
+     */
     private void addListeners() {
         generateButton.addActionListener(e -> {
             try {

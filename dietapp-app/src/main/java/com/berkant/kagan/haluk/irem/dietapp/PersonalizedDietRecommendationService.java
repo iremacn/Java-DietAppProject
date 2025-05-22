@@ -1,3 +1,10 @@
+/**
+ * @file PersonalizedDietRecommendationService.java
+ * @brief Service class for generating personalized diet recommendations
+ * @author Berkant Kagan Haluk Irem
+ * @date 2024
+ */
+
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.sql.Connection;
@@ -12,70 +19,140 @@ import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationServic
 import com.berkant.kagan.haluk.irem.dietapp.PersonalizedDietRecommendationService.WeightGoal;
 
 /**
- * This class handles personalized diet recommendation operations for the Diet Planner application.
- * @details The PersonalizedDietRecommendationService class provides methods for generating
- *          personalized diet recommendations based on user profile and preferences.
- * @author haluk
+ * @class PersonalizedDietRecommendationService
+ * @brief Service class that handles personalized diet recommendation operations
+ * 
+ * This class provides comprehensive functionality for generating personalized diet
+ * recommendations based on user profiles, preferences, and health conditions.
+ * It includes methods for calculating nutritional needs, generating meal plans,
+ * and managing user diet profiles.
  */
 public class PersonalizedDietRecommendationService {
+    /** @brief Database connection for accessing food and user data */
     private Connection connection;
+    
+    /** @brief Service for tracking calories and nutrients */
     private CalorieNutrientTrackingService calorieService;
+    
+    /** @brief Service for meal planning operations */
     private MealPlanningService mealService;
     
     /**
-     * Diet types for personalized recommendations
+     * @enum DietType
+     * @brief Enumeration of available diet types for personalized recommendations
      */
     public enum DietType {
-        BALANCED, LOW_CARB, HIGH_PROTEIN, VEGETARIAN, VEGAN
+        /** @brief Standard balanced diet */
+        BALANCED,
+        /** @brief Low carbohydrate diet */
+        LOW_CARB,
+        /** @brief High protein diet */
+        HIGH_PROTEIN,
+        /** @brief Vegetarian diet */
+        VEGETARIAN,
+        /** @brief Vegan diet */
+        VEGAN
     }
     
     /**
-     * Weight goals for personalized recommendations
+     * @enum WeightGoal
+     * @brief Enumeration of weight management goals
      */
     public enum WeightGoal {
-        LOSE, MAINTAIN, GAIN
+        /** @brief Goal to lose weight */
+        LOSE,
+        /** @brief Goal to maintain current weight */
+        MAINTAIN,
+        /** @brief Goal to gain weight */
+        GAIN
     }
     
     /**
-     * User diet profile class to store user preferences
+     * @class UserDietProfile
+     * @brief Class representing a user's diet preferences and restrictions
      */
     public class UserDietProfile {
+        /** @brief The type of diet the user follows */
         private DietType dietType;
+        
+        /** @brief List of user's health conditions */
         private List<String> healthConditions;
+        
+        /** @brief User's weight management goal */
         private WeightGoal weightGoal;
+        
+        /** @brief List of foods to be excluded from recommendations */
         private List<String> excludedFoods;
         
+        /**
+         * @brief Constructs a new UserDietProfile
+         * @param dietType The type of diet
+         * @param healthConditions List of health conditions
+         * @param weightGoal Weight management goal
+         * @param excludedFoods List of excluded foods
+         */
         public UserDietProfile(DietType dietType, List<String> healthConditions, 
-                               WeightGoal weightGoal, List<String> excludedFoods) {
+                             WeightGoal weightGoal, List<String> excludedFoods) {
             this.dietType = dietType;
             this.healthConditions = healthConditions;
             this.weightGoal = weightGoal;
             this.excludedFoods = excludedFoods;
         }
         
+        /**
+         * @brief Gets the diet type
+         * @return The diet type
+         */
         public DietType getDietType() {
             return dietType;
         }
         
+        /**
+         * @brief Gets the health conditions
+         * @return List of health conditions
+         */
         public List<String> getHealthConditions() {
             return healthConditions;
         }
         
+        /**
+         * @brief Gets the weight goal
+         * @return The weight goal
+         */
         public WeightGoal getWeightGoal() {
             return weightGoal;
         }
         
+        /**
+         * @brief Gets the excluded foods
+         * @return List of excluded foods
+         */
         public List<String> getExcludedFoods() {
             return excludedFoods;
         }
     }
 
+    /**
+     * @brief Constructs a new PersonalizedDietRecommendationService
+     * @param calorieService Service for tracking calories and nutrients
+     * @param mealService Service for meal planning operations
+     */
     public PersonalizedDietRecommendationService(CalorieNutrientTrackingService calorieService, MealPlanningService mealService) {
         this.connection = DatabaseHelper.getConnection();
         this.calorieService = calorieService;
         this.mealService = mealService;
     }
 
+    /**
+     * @brief Generates personalized diet recommendations based on user characteristics
+     * @param age User's age
+     * @param weight User's weight in kg
+     * @param height User's height in cm
+     * @param gender User's gender
+     * @param activityLevel User's activity level
+     * @return List of personalized recommendations
+     * @throws SQLException if database access error occurs
+     */
     public List<String> generateRecommendations(int age, double weight, double height, String gender, String activityLevel) throws SQLException {
         List<String> recommendations = new ArrayList<>();
         
@@ -136,31 +213,59 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Macronutrient distribution class
+     * @class MacronutrientDistribution
+     * @brief Class representing the distribution of macronutrients in a diet
      */
     public class MacronutrientDistribution {
+        /** @brief Protein content in grams */
         private int proteinGrams;
+        
+        /** @brief Carbohydrate content in grams */
         private int carbGrams;
+        
+        /** @brief Fat content in grams */
         private int fatGrams;
         
+        /**
+         * @brief Constructs a new MacronutrientDistribution
+         * @param proteinGrams Protein content in grams
+         * @param carbGrams Carbohydrate content in grams
+         * @param fatGrams Fat content in grams
+         */
         public MacronutrientDistribution(int proteinGrams, int carbGrams, int fatGrams) {
             this.proteinGrams = proteinGrams;
             this.carbGrams = carbGrams;
             this.fatGrams = fatGrams;
         }
         
+        /**
+         * @brief Gets the protein content
+         * @return Protein content in grams
+         */
         public int getProteinGrams() {
             return proteinGrams;
         }
         
+        /**
+         * @brief Gets the carbohydrate content
+         * @return Carbohydrate content in grams
+         */
         public int getCarbGrams() {
             return carbGrams;
         }
         
+        /**
+         * @brief Gets the fat content
+         * @return Fat content in grams
+         */
         public int getFatGrams() {
             return fatGrams;
         }
         
+        /**
+         * @brief Returns string representation of macronutrient distribution
+         * @return Formatted string with macronutrient values
+         */
         @Override
         public String toString() {
             return "Protein: " + proteinGrams + "g, Carbs: " + carbGrams + "g, Fat: " + fatGrams + "g";
@@ -168,16 +273,37 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Recommended meal class
+     * @class RecommendedMeal
+     * @brief Class representing a recommended meal with its nutritional targets
      */
     public class RecommendedMeal {
+        /** @brief Type of meal (breakfast, lunch, dinner, etc.) */
         private String mealType;
+        
+        /** @brief List of foods in the meal */
         private List<Food> foods;
+        
+        /** @brief Target calorie content */
         private int targetCalories;
+        
+        /** @brief Target protein content */
         private int targetProtein;
+        
+        /** @brief Target carbohydrate content */
         private int targetCarbs;
+        
+        /** @brief Target fat content */
         private int targetFat;
         
+        /**
+         * @brief Constructs a new RecommendedMeal
+         * @param mealType Type of meal
+         * @param foods List of foods
+         * @param targetCalories Target calories
+         * @param targetProtein Target protein
+         * @param targetCarbs Target carbohydrates
+         * @param targetFat Target fat
+         */
         public RecommendedMeal(String mealType, List<Food> foods, int targetCalories, 
                              int targetProtein, int targetCarbs, int targetFat) {
             this.mealType = mealType;
@@ -188,30 +314,58 @@ public class PersonalizedDietRecommendationService {
             this.targetFat = targetFat;
         }
         
+        /**
+         * @brief Gets the meal type
+         * @return Type of meal
+         */
         public String getMealType() {
             return mealType;
         }
         
+        /**
+         * @brief Gets the list of foods
+         * @return List of foods in the meal
+         */
         public List<Food> getFoods() {
             return foods;
         }
         
+        /**
+         * @brief Gets the target calories
+         * @return Target calorie content
+         */
         public int getTargetCalories() {
             return targetCalories;
         }
         
+        /**
+         * @brief Gets the target protein
+         * @return Target protein content
+         */
         public int getTargetProtein() {
             return targetProtein;
         }
         
+        /**
+         * @brief Gets the target carbohydrates
+         * @return Target carbohydrate content
+         */
         public int getTargetCarbs() {
             return targetCarbs;
         }
         
+        /**
+         * @brief Gets the target fat
+         * @return Target fat content
+         */
         public int getTargetFat() {
             return targetFat;
         }
         
+        /**
+         * @brief Calculates total calories in the meal
+         * @return Total calorie content
+         */
         public int getTotalCalories() {
             int total = 0;
             for (Food food : foods) {
@@ -222,14 +376,29 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Diet recommendation class
+     * @class DietRecommendation
+     * @brief Class representing a complete diet recommendation
      */
     public class DietRecommendation {
+        /** @brief Daily calorie target */
         private int dailyCalories;
+        
+        /** @brief Macronutrient distribution */
         private MacronutrientDistribution macros;
+        
+        /** @brief List of recommended meals */
         private List<RecommendedMeal> meals;
+        
+        /** @brief List of dietary guidelines */
         private List<String> dietaryGuidelines;
         
+        /**
+         * @brief Constructs a new DietRecommendation
+         * @param dailyCalories Daily calorie target
+         * @param macros Macronutrient distribution
+         * @param meals List of recommended meals
+         * @param dietaryGuidelines List of dietary guidelines
+         */
         public DietRecommendation(int dailyCalories, MacronutrientDistribution macros, 
                                 List<RecommendedMeal> meals, List<String> dietaryGuidelines) {
             this.dailyCalories = dailyCalories;
@@ -238,32 +407,47 @@ public class PersonalizedDietRecommendationService {
             this.dietaryGuidelines = dietaryGuidelines;
         }
         
+        /**
+         * @brief Gets the daily calorie target
+         * @return Daily calorie target
+         */
         public int getDailyCalories() {
             return dailyCalories;
         }
         
+        /**
+         * @brief Gets the macronutrient distribution
+         * @return Macronutrient distribution
+         */
         public MacronutrientDistribution getMacros() {
             return macros;
         }
         
+        /**
+         * @brief Gets the list of recommended meals
+         * @return List of recommended meals
+         */
         public List<RecommendedMeal> getMeals() {
             return meals;
         }
         
+        /**
+         * @brief Gets the list of dietary guidelines
+         * @return List of dietary guidelines
+         */
         public List<String> getDietaryGuidelines() {
             return dietaryGuidelines;
         }
     }
     
     /**
-     * Set user diet profile preferences
-     * 
-     * @param username User's username
+     * @brief Sets the user's diet profile
+     * @param username Username of the user
      * @param dietType Type of diet
      * @param healthConditions List of health conditions
-     * @param weightGoal Weight goal
+     * @param weightGoal Weight management goal
      * @param excludedFoods List of excluded foods
-     * @return true if successfully set
+     * @return true if profile was set successfully, false otherwise
      */
     public boolean setUserDietProfile(String username, DietType dietType, 
                                    List<String> healthConditions,
@@ -280,10 +464,9 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Get user diet profile
-     * 
-     * @param username User's username
-     * @return UserDietProfile object or null if not found
+     * @brief Gets the user's diet profile
+     * @param username Username of the user
+     * @return User's diet profile
      */
     public UserDietProfile getUserDietProfile(String username) {
         try {
@@ -298,15 +481,14 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Generate personalized diet recommendations based on user profile and physical stats
-     * 
-     * @param username User's username
+     * @brief Generates personalized diet recommendations
+     * @param username Username of the user
      * @param gender User's gender
      * @param age User's age
-     * @param heightCm User's height in cm
-     * @param weightKg User's weight in kg
+     * @param heightCm User's height in centimeters
+     * @param weightKg User's weight in kilograms
      * @param activityLevel User's activity level
-     * @return DietRecommendation object
+     * @return Complete diet recommendation
      */
     public DietRecommendation generateRecommendations(String username, char gender, int age, 
                                                   double heightCm, double weightKg, 
@@ -340,11 +522,10 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Adjust calories based on weight goal
-     * 
-     * @param baseCalories Base calories
-     * @param weightGoal Weight goal
-     * @return Adjusted calories
+     * @brief Adjusts calories based on weight goal
+     * @param baseCalories Base calorie requirement
+     * @param weightGoal Weight management goal
+     * @return Adjusted calorie target
      */
     private int adjustCaloriesForWeightGoal(int baseCalories, WeightGoal weightGoal) {
         switch (weightGoal) {
@@ -359,11 +540,10 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Calculate macronutrient distribution based on diet type
-     * 
-     * @param calories Total calories
-     * @param dietType Diet type
-     * @return MacronutrientDistribution object
+     * @brief Calculates macronutrient distribution
+     * @param calories Total calorie target
+     * @param dietType Type of diet
+     * @return Macronutrient distribution
      */
     private MacronutrientDistribution calculateMacronutrients(int calories, DietType dietType) {
         // Calculate macronutrient distribution based on diet type
@@ -402,12 +582,11 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Generate meal plan based on calories, macros, and diet preferences
-     * 
-     * @param calories Total calories
+     * @brief Generates a meal plan
+     * @param calories Daily calorie target
      * @param macros Macronutrient distribution
-     * @param profile User diet profile
-     * @return List of RecommendedMeal objects
+     * @param profile User's diet profile
+     * @return List of recommended meals
      */
     private List<RecommendedMeal> generateMealPlan(int calories, MacronutrientDistribution macros, 
                                              UserDietProfile profile) {
@@ -456,15 +635,14 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Create a meal recommendation with appropriate foods
-     * 
-     * @param mealType Meal type (breakfast, lunch, etc.)
-     * @param options Food options
+     * @brief Creates a meal recommendation
+     * @param mealType Type of meal
+     * @param options Available food options
      * @param targetCalories Target calories
      * @param targetProtein Target protein
-     * @param targetCarbs Target carbs
+     * @param targetCarbs Target carbohydrates
      * @param targetFat Target fat
-     * @return RecommendedMeal object
+     * @return Recommended meal
      */
     private RecommendedMeal createMealRecommendation(String mealType, Food[] options, 
                                                int targetCalories, int targetProtein, 
@@ -489,10 +667,9 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Filter food options based on diet type and excluded foods
-     * 
-     * @param allOptions All food options
-     * @param profile User diet profile
+     * @brief Gets appropriate food options based on profile
+     * @param allOptions All available food options
+     * @param profile User's diet profile
      * @return Filtered food options
      */
     private Food[] getAppropriateOptions(Food[] allOptions, UserDietProfile profile) {
@@ -542,9 +719,8 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Generate dietary guidelines based on user profile
-     * 
-     * @param profile User diet profile
+     * @brief Generates dietary guidelines
+     * @param profile User's diet profile
      * @return List of dietary guidelines
      */
     private List<String> generateDietaryGuidelines(UserDietProfile profile) {
@@ -620,9 +796,8 @@ public class PersonalizedDietRecommendationService {
     }
     
     /**
-     * Get default example diet plans
-     * 
-     * @return Array of example diet plans as strings
+     * @brief Gets default example diet plans
+     * @return Array of example diet plans
      */
     public String[] getDefaultExampleDietPlans() {
         // Create example diet plans for each diet type
@@ -656,6 +831,13 @@ public class PersonalizedDietRecommendationService {
         return plans;
     }
     
+    /**
+     * @brief Gets user ID from database
+     * @param conn Database connection
+     * @param username Username
+     * @return User ID
+     * @throws SQLException if database access error occurs
+     */
     private int getUserId(Connection conn, String username) throws SQLException {
         if (username == null || username.trim().isEmpty()) {
             return -1;

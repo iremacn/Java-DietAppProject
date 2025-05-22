@@ -1,3 +1,10 @@
+/**
+ * @file PersonalizedDietRecommendationMenu.java
+ * @brief Menu interface for personalized diet recommendations
+ * @author Berkant Kagan Haluk Irem
+ * @date 2024
+ */
+
 package com.berkant.kagan.haluk.irem.dietapp;
 
 import java.util.ArrayList;
@@ -5,17 +12,30 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * This class handles the personalized diet recommendation menu operations for the Diet Planner application.
- * @details The PersonalizedDietRecommendationMenu class provides menu interfaces for setting diet preferences,
- *          generating and viewing personalized diet recommendations.
- * @author haluk
+ * @class PersonalizedDietRecommendationMenu
+ * @brief Menu interface for managing personalized diet recommendations
+ * 
+ * This class provides a command-line interface for users to interact with
+ * the diet recommendation system. It allows users to generate new recommendations,
+ * view previous recommendations, and manage their diet preferences.
  */
 public class PersonalizedDietRecommendationMenu {
+    /** @brief Scanner for reading user input */
     private Scanner scanner;
+    
+    /** @brief Service for generating diet recommendations */
     private final PersonalizedDietRecommendationService dietService;
+    
+    /** @brief Service for user authentication */
     private final AuthenticationService authService;
+    
+    /** @brief List of previously generated recommendations */
     private final List<DietRecommendation> recommendations;
 
+    /**
+     * @brief Constructs a new PersonalizedDietRecommendationMenu with default scanner
+     * @param dietService Service for generating diet recommendations
+     */
     public PersonalizedDietRecommendationMenu(PersonalizedDietRecommendationService dietService) {
         this.scanner = new Scanner(System.in);
         this.dietService = dietService;
@@ -23,6 +43,12 @@ public class PersonalizedDietRecommendationMenu {
         this.recommendations = new ArrayList<>();
     }
     
+    /**
+     * @brief Constructs a new PersonalizedDietRecommendationMenu with custom scanner
+     * @param dietService Service for generating diet recommendations
+     * @param authService Service for user authentication
+     * @param scanner Scanner for reading user input
+     */
     public PersonalizedDietRecommendationMenu(PersonalizedDietRecommendationService dietService, 
                                              AuthenticationService authService, 
                                              Scanner scanner) {
@@ -32,6 +58,12 @@ public class PersonalizedDietRecommendationMenu {
         this.recommendations = new ArrayList<>();
     }
 
+    /**
+     * @brief Displays the main menu and handles user interactions
+     * 
+     * Provides options for generating recommendations, viewing previous recommendations,
+     * and managing diet preferences.
+     */
     public void displayMenu() {
         while (true) {
             System.out.println("\n=== Personalized Diet Recommendation Menu ===");
@@ -71,6 +103,12 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
 
+    /**
+     * @brief Generates a new diet recommendation based on user input
+     * 
+     * Prompts the user for age, weight, height, gender, and activity level,
+     * then generates and displays a personalized diet recommendation.
+     */
     private void generateNewRecommendation() {
         try {
             System.out.print("Enter age: ");
@@ -109,6 +147,12 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
 
+    /**
+     * @brief Displays previously generated diet recommendations
+     * 
+     * Shows a list of all previously generated recommendations with their
+     * associated user characteristics and recommendations.
+     */
     protected void viewPreviousRecommendations() {
         if (recommendations.isEmpty()) {
             System.out.println("No previous recommendations found.");
@@ -129,7 +173,10 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
     
-    // Helper method to get user's choice, added for testing purposes
+    /**
+     * @brief Gets user's choice from input
+     * @return The user's choice as an integer, or -1 if input is invalid
+     */
     private int getUserChoice() {
         try {
             String input = scanner.nextLine().trim();
@@ -142,7 +189,12 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
     
-    // Helper method for setting user diet preferences
+    /**
+     * @brief Handles setting user diet preferences
+     * 
+     * Guides the user through setting their diet type, weight goal,
+     * health conditions, and food exclusions.
+     */
     private void handleSetDietPreferences() {
         try {
             // Get username from auth service
@@ -225,7 +277,12 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
 
-    // Helper method for viewing recommendations
+    /**
+     * @brief Handles viewing personalized diet recommendations
+     * 
+     * Retrieves and displays the user's personalized diet recommendation
+     * including daily calories and macronutrient distribution.
+     */
     private void handleViewRecommendations() {
         try {
             // Get username from auth service
@@ -269,7 +326,11 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
     
-    // Helper method for viewing example diet plans
+    /**
+     * @brief Handles viewing example diet plans
+     * 
+     * Displays a list of example diet plans for different diet types.
+     */
     private void handleViewExampleDietPlans() {
         try {
             String[] examplePlans = dietService.getDefaultExampleDietPlans();
@@ -290,16 +351,40 @@ public class PersonalizedDietRecommendationMenu {
         }
     }
 
-    // record yerine klasik iç sınıf
+    /**
+     * @class DietRecommendation
+     * @brief Class representing a diet recommendation with user characteristics
+     */
     public static class DietRecommendation {
+        /** @brief User's age */
         private final int age;
+        
+        /** @brief User's weight in kilograms */
         private final double weight;
+        
+        /** @brief User's height in centimeters */
         private final double height;
+        
+        /** @brief User's gender */
         private final String gender;
+        
+        /** @brief User's activity level */
         private final String activityLevel;
+        
+        /** @brief The diet recommendation text */
         private final String recommendation;
-
-        public DietRecommendation(int age, double weight, double height, String gender, String activityLevel, String recommendation) {
+        
+        /**
+         * @brief Constructs a new DietRecommendation
+         * @param age User's age
+         * @param weight User's weight in kilograms
+         * @param height User's height in centimeters
+         * @param gender User's gender
+         * @param activityLevel User's activity level
+         * @param recommendation The diet recommendation text
+         */
+        public DietRecommendation(int age, double weight, double height, String gender, 
+                                String activityLevel, String recommendation) {
             this.age = age;
             this.weight = weight;
             this.height = height;
@@ -307,28 +392,71 @@ public class PersonalizedDietRecommendationMenu {
             this.activityLevel = activityLevel;
             this.recommendation = recommendation;
         }
-
+        
+        /**
+         * @brief Gets the user's age
+         * @return User's age
+         */
         public int getAge() { return age; }
+        
+        /**
+         * @brief Gets the user's weight
+         * @return User's weight in kilograms
+         */
         public double getWeight() { return weight; }
+        
+        /**
+         * @brief Gets the user's height
+         * @return User's height in centimeters
+         */
         public double getHeight() { return height; }
+        
+        /**
+         * @brief Gets the user's gender
+         * @return User's gender
+         */
         public String getGender() { return gender; }
+        
+        /**
+         * @brief Gets the user's activity level
+         * @return User's activity level
+         */
         public String getActivityLevel() { return activityLevel; }
+        
+        /**
+         * @brief Gets the diet recommendation
+         * @return The diet recommendation text
+         */
         public String getRecommendation() { return recommendation; }
     }
     
-    // Enum for diet types needed by tests
+    /**
+     * @enum DietType
+     * @brief Enumeration of available diet types
+     */
     public enum DietType {
+        /** @brief Standard balanced diet */
         BALANCED,
+        /** @brief Low carbohydrate diet */
         LOW_CARB,
+        /** @brief High protein diet */
         HIGH_PROTEIN,
+        /** @brief Vegetarian diet */
         VEGETARIAN,
+        /** @brief Vegan diet */
         VEGAN
     }
     
-    // Enum for weight goals needed by tests
+    /**
+     * @enum WeightGoal
+     * @brief Enumeration of weight management goals
+     */
     public enum WeightGoal {
+        /** @brief Goal to lose weight */
         LOSE,
+        /** @brief Goal to maintain current weight */
         MAINTAIN,
+        /** @brief Goal to gain weight */
         GAIN
     }
 }
