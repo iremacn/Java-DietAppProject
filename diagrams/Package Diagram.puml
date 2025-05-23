@@ -1,0 +1,73 @@
+@startuml "Package Diagram"
+' Diet Planner Application Package Diagram
+
+title Diet Planner Application - Package Diagram
+
+skinparam backgroundColor white
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor white
+skinparam packageBorderColor black
+
+package "com.berkant.kagan.haluk.irem.dietapp" {
+  package "GUI Components" {
+    [MainFrame]
+    [MainnFrame]
+    [UserAuthenticationPanel]
+    [MealPlanningPanel]
+    [CalorieTrackingPanel]
+    [PersonalizedDietPanel]
+    [ShoppingListPanel]
+  }
+  
+  package "Service Layer" {
+    [AuthenticationService]
+    [MealPlanningService]
+    [CalorieNutrientTrackingService]
+    [PersonalizedDietRecommendationService]
+    [ShoppingListService]
+  }
+  
+  package "Data Access" {
+    [DatabaseHelper]
+  }
+  
+  package "Domain Models" {
+    [User]
+    [Food]
+    [FoodNutrient]
+    [Meal]
+    [ShoppingList]
+    [ShoppingItem]
+  }
+  
+  package "Menu Interfaces" {
+    [MealPlanningMenu]
+    [CalorieNutrientTrackingMenu]
+    [PersonalizedDietRecommendationMenu]
+    [ShoppingListMenu]
+  }
+  
+  package "Utilities" {
+    [DietappApp]
+  }
+  
+  package "Entry Points" {
+    [Main]
+    [Dietapp]
+  }
+}
+
+' Dependencies between packages
+"GUI Components" ..> "Service Layer"
+"GUI Components" ..> "Domain Models"
+"Menu Interfaces" ..> "Service Layer"
+"Menu Interfaces" ..> "Domain Models"
+"Service Layer" ..> "Data Access"
+"Service Layer" ..> "Domain Models"
+"Data Access" ..> "Domain Models"
+"Entry Points" ..> "GUI Components"
+"Entry Points" ..> "Menu Interfaces"
+"Utilities" ..> "GUI Components"
+"Utilities" ..> "Service Layer"
+
+@enduml 

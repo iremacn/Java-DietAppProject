@@ -1,0 +1,86 @@
+@startuml "Composite Structure Diagram"
+' Diet Planner Application Composite Structure Diagram
+
+title Diet Planner Application - Composite Structure Diagram
+
+skinparam backgroundColor white
+skinparam class {
+  BorderColor black
+  BackgroundColor white
+  ArrowColor black
+}
+
+' Main Application
+class "Diet Planner Application" as DietApp {
+
+  ' UI Layer
+  package "User Interface Layer" {
+    component "Authentication" as Auth
+    component "Main Navigation" as Nav
+    component "Calorie Tracking" as CalorieUI
+    component "Meal Planning" as MealUI
+    component "Diet Recommendation" as DietUI
+    component "Shopping List" as ShopUI
+  }
+  
+  ' Service Layer
+  package "Business Logic Layer" {
+    component "Authentication\nService" as AuthSvc
+    component "Calorie Tracking\nService" as CalorieSvc
+    component "Meal Planning\nService" as MealSvc
+    component "Diet Recommendation\nService" as DietSvc
+    component "Shopping List\nService" as ShopSvc
+  }
+  
+  ' Data Layer
+  package "Data Access Layer" {
+    component "Database\nHelper" as DBHelper
+    component "SQLite\nConnection" as SQLite
+  }
+  
+  ' UI to Service connections
+  Auth -(0- AuthSvc : "uses"
+  CalorieUI -(0- CalorieSvc : "uses"
+  MealUI -(0- MealSvc : "uses"
+  DietUI -(0- DietSvc : "uses"
+  ShopUI -(0- ShopSvc : "uses"
+  
+  ' Service interconnections
+  CalorieSvc -(0- MealSvc : "uses"
+  DietSvc -(0- CalorieSvc : "uses"
+  ShopSvc -(0- MealSvc : "uses"
+  
+  ' Service to Data connections
+  AuthSvc -(0- DBHelper : "uses"
+  CalorieSvc -(0- DBHelper : "uses"
+  MealSvc -(0- DBHelper : "uses"
+  DietSvc -(0- DBHelper : "uses"
+  ShopSvc -(0- DBHelper : "uses"
+  DBHelper -(0- SQLite : "uses"
+  
+  ' Navigation connections
+  Nav -(0- Auth : "navigates to"
+  Nav -(0- CalorieUI : "navigates to"
+  Nav -(0- MealUI : "navigates to"
+  Nav -(0- DietUI : "navigates to"
+  Nav -(0- ShopUI : "navigates to"
+}
+
+' External interfaces
+interface "User" as UserInterface
+interface "Database" as DBInterface
+
+' Ports
+port "GUI" as GUIPort
+port "Data" as DataPort
+
+' Connections to external interfaces
+UserInterface - GUIPort
+DataPort - DBInterface
+
+' Connecting ports to internal components
+GUIPort - Auth
+GUIPort - Nav
+DataPort - SQLite
+
+@enduml 

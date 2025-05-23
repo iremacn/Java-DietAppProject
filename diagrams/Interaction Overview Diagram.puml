@@ -1,0 +1,88 @@
+@startuml "Interaction Overview Diagram"
+' Diet Planner Application Interaction Overview Diagram
+
+title Diet Planner Application - Interaction Overview Diagram
+
+' Define style and layout
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam activityBorderColor black
+skinparam activityBackgroundColor white
+skinparam noteBorderColor gray
+skinparam noteBorderThickness 1px
+
+' Main flow
+(*) --> "Start Application"
+
+partition Authentication {
+  "Start Application" --> "Show Login Screen"
+  --> "User Login Attempt"
+  
+  if "Login Valid?" then
+    --> [Yes] "Main Menu"
+  else
+    --> [No] "Show Error Message"
+    --> "Show Login Screen"
+  endif
+}
+
+partition "Main Application Flow" {
+  "Main Menu" --> "Select Feature"
+  
+  fork
+    --> "Calorie Tracking"
+    
+    partition "Calorie Tracking Flow" {
+      "Calorie Tracking" --> "View Daily Summary"
+      note right: Includes food entries,\ncalorie totals, and\nnutrient breakdown
+      
+      "Calorie Tracking" --> "Add New Food Entry"
+      --> "Save Food Entry"
+      --> "Update Daily Summary"
+      --> "Calorie Tracking"
+    }
+    
+  fork again
+    --> "Meal Planning"
+    
+    partition "Meal Planning Flow" {
+      "Meal Planning" --> "Create New Meal"
+      --> "Select Foods"
+      --> "Save Meal"
+      --> "Meal Planning"
+      
+      "Meal Planning" --> "View Meal History"
+      --> "Meal Planning"
+    }
+    
+  fork again
+    --> "Personalized Diet"
+    
+    partition "Diet Recommendation Flow" {
+      "Personalized Diet" --> "Enter User Information"
+      --> "Generate Diet Recommendation"
+      --> "Display Recommendation"
+      --> "Personalized Diet"
+    }
+    
+  fork again
+    --> "Shopping List"
+    
+    partition "Shopping List Flow" {
+      "Shopping List" --> "Create New List"
+      --> "Add Items"
+      --> "Save List"
+      --> "Shopping List"
+      
+      "Shopping List" --> "View Existing Lists"
+      --> "Edit List"
+      --> "Save Changes"
+      --> "Shopping List"
+    }
+  end fork
+}
+
+"Select Feature" --> "Logout"
+--> "Show Login Screen"
+
+@enduml 

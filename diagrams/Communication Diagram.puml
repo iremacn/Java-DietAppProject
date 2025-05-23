@@ -1,0 +1,78 @@
+@startuml "Communication Diagram"
+' Diet Planner Application Communication Diagram
+
+title Diet Planner Application - Communication Diagram
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam sequence {
+  ArrowColor black
+  ActorBorderColor black
+  LifeLineBorderColor gray
+  ParticipantBorderColor black
+  ParticipantBackgroundColor white
+}
+
+actor User as user
+participant "MainFrame" as ui
+participant "UserAuthenticationPanel" as authPanel
+participant "AuthenticationService" as authService
+participant "MealPlanningPanel" as mealPanel
+participant "MealPlanningService" as mealService
+participant "CalorieTrackingPanel" as caloriePanel
+participant "CalorieTrackingService" as calorieService
+participant "DatabaseHelper" as dbHelper
+database "Database" as db
+
+' Login sequence
+user -> ui : 1: startApplication()
+ui -> authPanel : 2: displayLoginForm()
+user -> authPanel : 3: enterCredentials(username, password)
+authPanel -> authService : 4: login(username, password)
+authService -> dbHelper : 5: getConnection()
+dbHelper -> db : 6: connect()
+db --> dbHelper : 7: connection
+dbHelper --> authService : 8: connection
+authService -> db : 9: validateUser(username, password)
+db --> authService : 10: userData
+authService -> authService : 11: createUserObject()
+authService --> authPanel : 12: loginResult
+authPanel --> ui : 13: showMainMenu()
+
+' Meal planning sequence
+user -> ui : 14: selectMealPlanning()
+ui -> mealPanel : 15: showPanel("mealPlanning")
+mealPanel -> mealService : 16: getAvailableFoods()
+mealService -> dbHelper : 17: getConnection()
+dbHelper -> db : 18: connect()
+db --> dbHelper : 19: connection
+dbHelper --> mealService : 20: connection
+mealService -> db : 21: queryFoods()
+db --> mealService : 22: foodData
+mealService --> mealPanel : 23: availableFoods
+mealPanel --> user : 24: displayMealPlanningInterface()
+
+' Creating meal sequence
+user -> mealPanel : 25: createMeal(date, mealType)
+user -> mealPanel : 26: addFoodToMeal(food)
+user -> mealPanel : 27: saveMeal()
+mealPanel -> mealService : 28: saveMeal(meal)
+mealService -> db : 29: insertMealData(meal)
+db --> mealService : 30: saveResult
+mealService --> mealPanel : 31: saveStatus
+mealPanel --> user : 32: displaySaveConfirmation()
+
+' Calorie tracking sequence
+user -> ui : 33: selectCalorieTracking()
+ui -> caloriePanel : 34: showPanel("calorieTracking")
+caloriePanel -> calorieService : 35: calculateCaloriesForDay(date)
+calorieService -> mealService : 36: getMealsForDate(date)
+mealService -> db : 37: queryMeals(date)
+db --> mealService : 38: mealData
+mealService --> calorieService : 39: meals
+calorieService -> calorieService : 40: calculateTotals()
+calorieService --> caloriePanel : 41: calorieData
+caloriePanel --> user : 42: displayCalorieInformation()
+
+@enduml 
