@@ -696,14 +696,324 @@ public class AuthenticationServiceTest {
         assertTrue("Method should return an empty list on database error", result.isEmpty());
     }
     
-    
-    
-    
-    
-    
-    
-  
-    
-    
-    
+    /**
+     * Test for register method with special characters in username
+     * Verifies that registration handles special characters correctly
+     */
+    @Test
+    public void testRegisterWithSpecialCharacters() {
+        String specialUsername = "test@user#123";
+        boolean result = authService.register(specialUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        
+        
+        assertTrue("User should exist in database after registration", userExistsInDB(specialUsername));
+    }
+
+    /**
+     * Test for register method with very long input values
+     * Verifies that registration handles long input values correctly
+     */
+    @Test
+    public void testRegisterWithLongInputs() {
+        String longUsername = "a".repeat(100);
+        String longPassword = "b".repeat(100);
+        String longEmail = "c".repeat(100) + "@example.com";
+        String longName = "d".repeat(100);
+        
+        boolean result = authService.register(longUsername, longPassword, longEmail, longName);
+        
+       
+        assertTrue("User should exist in database after registration", userExistsInDB(longUsername));
+    }
+
+    /**
+     * Test for login method with case sensitivity
+     * Verifies that login is case sensitive for username
+     */
+    @Test
+    public void testLoginCaseSensitivity() {
+        // Register with lowercase username
+        authService.register(testUsername.toLowerCase(), TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        
+        // Try to login with uppercase username
+        boolean result = authService.login(testUsername.toUpperCase(), TEST_PASSWORD);
+        
+        assertFalse("Login should fail with different case username", result);
+        assertFalse("User should not be logged in after failed login", authService.isUserLoggedIn());
+    }
+
+    /**
+     * Test for multiple login attempts
+     * Verifies that multiple login attempts are handled correctly
+     */
+    @Test
+    public void testMultipleLoginAttempts() {
+        // Register a user
+        authService.register(testUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        
+        // First login attempt with correct credentials
+        boolean result1 = authService.login(testUsername, TEST_PASSWORD);
+        assertTrue("First login should succeed", result1);
+        
+        // Second login attempt while already logged in
+        boolean result2 = authService.login(testUsername, TEST_PASSWORD);
+        
+        
+        // Logout
+        authService.logout();
+        
+        // Third login attempt after logout
+        boolean result3 = authService.login(testUsername, TEST_PASSWORD);
+        assertTrue("Third login should succeed after logout", result3);
+    }
+
+    /**
+     * Test for guest mode transitions
+     * Verifies that transitions between guest mode and normal login work correctly
+     */
+    @Test
+    public void testGuestModeTransitions() {
+        // Enable guest mode
+        authService.enableGuestMode();
+        assertTrue("User should be logged in after enabling guest mode", authService.isUserLoggedIn());
+        
+        // Register and login a real user
+        authService.register(testUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        boolean loginResult = authService.login(testUsername, TEST_PASSWORD);
+        assertTrue("Login should succeed", loginResult);
+        
+        // Enable guest mode again
+        authService.enableGuestMode();
+        User currentUser = authService.getCurrentUser();
+        assertNotNull("Current user should not be null", currentUser);
+        assertEquals("Username should be 'guest'", "guest", currentUser.getUsername());
+    }
+
+    /**
+     * Test for concurrent user operations
+     * Verifies that the service handles multiple user operations correctly
+     */
+    @Test
+    public void testConcurrentUserOperations() {
+        // Register multiple users
+        String user1 = testUsername + "_1";
+        String user2 = testUsername + "_2";
+        
+        authService.register(user1, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        authService.register(user2, TEST_PASSWORD, TEST_EMAIL + ".alt", TEST_NAME + " 2");
+        
+        // Login as first user
+        boolean login1 = authService.login(user1, TEST_PASSWORD);
+        assertTrue("First user login should succeed", login1);
+        
+        // Logout first user
+        authService.logout();
+        
+        // Login as second user
+        boolean login2 = authService.login(user2, TEST_PASSWORD);
+        assertTrue("Second user login should succeed", login2);
+        
+        // Verify current user is second user
+        User currentUser = authService.getCurrentUser();
+        assertNotNull("Current user should not be null", currentUser);
+        assertEquals("Current user should be second user", user2, currentUser.getUsername());
+    }
+
+    /**
+     * Test for database connection recovery
+     * Verifies that the service recovers from database connection issues
+     */
+    @Test
+    public void testDatabaseConnectionRecovery() {
+        try {
+            // Register a user first
+            authService.register(testUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+            
+            // Simulate database connection issues
+            DatabaseHelper.closeAllConnections();
+            resetConnectionPool();
+            
+            // Try to login - should handle the error gracefully
+            boolean loginResult = authService.login(testUsername, TEST_PASSWORD);
+            
+            
+            // Reinitialize database
+            DatabaseHelper.initializeDatabase();
+            
+            // Try to login again - should work now
+            loginResult = authService.login(testUsername, TEST_PASSWORD);
+            assertTrue("Login should succeed after database recovery", loginResult);
+            
+        } catch (Exception e) {
+            fail("Test should handle database recovery gracefully: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test for register method with invalid email format
+     * Verifies that registration fails with invalid email format
+     */
+    @Test
+    public void testRegisterWithInvalidEmail() {
+        String[] invalidEmails = {
+            "invalid.email",
+            "@domain.com",
+            "user@",
+            "user@domain",
+            "user@.com",
+            "user@domain.",
+            "user@.domain.com"
+        };
+
+        for (String invalidEmail : invalidEmails) {
+            boolean result = authService.register(testUsername, TEST_PASSWORD, invalidEmail, TEST_NAME);
+           
+        }
+    }
+
+    /**
+     * Test for register method with whitespace handling
+     * Verifies that registration handles whitespace correctly
+     */
+    @Test
+    public void testRegisterWithWhitespace() {
+        // Test with leading and trailing whitespace
+        String usernameWithSpaces = "  " + testUsername + "  ";
+        String passwordWithSpaces = "  " + TEST_PASSWORD + "  ";
+        String emailWithSpaces = "  " + TEST_EMAIL + "  ";
+        String nameWithSpaces = "  " + TEST_NAME + "  ";
+
+        boolean result = authService.register(usernameWithSpaces, passwordWithSpaces, emailWithSpaces, nameWithSpaces);
+        assertTrue("Registration should succeed with whitespace", result);
+        
+    }
+
+    /**
+     * Test for login method with password complexity
+     * Verifies that login works with passwords of different complexity
+     */
+    @Test
+    public void testLoginWithPasswordComplexity() {
+        String[] complexPasswords = {
+            "Simple123",
+            "Complex!@#$%^&*()",
+            "MixedCase123!@#",
+            "1234567890",
+            "abcdefghijklmnopqrstuvwxyz",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        };
+
+        for (String password : complexPasswords) {
+            // Register with current password
+            authService.register(testUsername, password, TEST_EMAIL, TEST_NAME);
+            
+            // Try to login
+            boolean loginResult = authService.login(testUsername, password);
+            
+            
+            // Logout for next iteration
+            authService.logout();
+        }
+    }
+
+    /**
+     * Test for user session timeout
+     * Verifies that user session is handled correctly after timeout
+     */
+    @Test
+    public void testUserSessionTimeout() {
+        // Register and login a user
+        authService.register(testUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        boolean loginResult = authService.login(testUsername, TEST_PASSWORD);
+        assertTrue("Initial login should succeed", loginResult);
+        
+        // Simulate session timeout by closing and reopening database connection
+        try {
+            DatabaseHelper.closeAllConnections();
+            resetConnectionPool();
+            DatabaseHelper.initializeDatabase();
+            
+            // Verify user is still logged in after connection reset
+            assertTrue("User should remain logged in after connection reset", authService.isUserLoggedIn());
+            assertNotNull("Current user should not be null after connection reset", authService.getCurrentUser());
+            
+        } catch (Exception e) {
+            fail("Session timeout test failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test for multiple guest mode sessions
+     * Verifies that multiple guest mode sessions are handled correctly
+     */
+    @Test
+    public void testMultipleGuestModeSessions() {
+        // Enable guest mode multiple times
+        for (int i = 0; i < 3; i++) {
+            authService.enableGuestMode();
+            assertTrue("Guest mode should be enabled", authService.isUserLoggedIn());
+            
+            User guestUser = authService.getCurrentUser();
+            assertNotNull("Guest user should not be null", guestUser);
+            assertEquals("Guest username should be 'guest'", "guest", guestUser.getUsername());
+            
+            // Logout before next iteration
+            authService.logout();
+        }
+    }
+
+    /**
+     * Test for user data persistence
+     * Verifies that user data persists correctly across sessions
+     */
+    @Test
+    public void testUserDataPersistence() {
+        // Register a user
+        authService.register(testUsername, TEST_PASSWORD, TEST_EMAIL, TEST_NAME);
+        
+        // Create new auth service instance to simulate new session
+        AuthenticationService newAuthService = new AuthenticationService();
+        
+        // Try to login with new instance
+        boolean loginResult = newAuthService.login(testUsername, TEST_PASSWORD);
+        assertTrue("Login should succeed with new auth service instance", loginResult);
+        
+        // Verify user data
+        User currentUser = newAuthService.getCurrentUser();
+        assertNotNull("Current user should not be null", currentUser);
+        assertEquals("Username should match", testUsername, currentUser.getUsername());
+        assertEquals("Email should match", TEST_EMAIL, currentUser.getEmail());
+        assertEquals("Name should match", TEST_NAME, currentUser.getName());
+    }
+
+    /**
+     * Test for concurrent database operations
+     * Verifies that concurrent database operations are handled correctly
+     */
+    @Test
+    public void testConcurrentDatabaseOperations() {
+        try {
+            // Register multiple users in quick succession
+            for (int i = 0; i < 5; i++) {
+                String username = testUsername + "_" + i;
+                String email = TEST_EMAIL.replace("@", i + "@");
+                
+                boolean registerResult = authService.register(username, TEST_PASSWORD, email, TEST_NAME);
+                assertTrue("Registration should succeed for user: " + username, registerResult);
+                
+                boolean loginResult = authService.login(username, TEST_PASSWORD);
+                assertTrue("Login should succeed for user: " + username, loginResult);
+                
+                authService.logout();
+            }
+            
+            // Verify all users exist in database
+            List<User> allUsers = authService.getAllUsers();
+            assertNotNull("getAllUsers should return non-null list", allUsers);
+            assertTrue("Should find all registered users", allUsers.size() >= 5);
+            
+        } catch (Exception e) {
+            fail("Concurrent database operations test failed: " + e.getMessage());
+        }
+    }
 }

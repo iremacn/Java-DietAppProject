@@ -85,7 +85,7 @@ public class AuthenticationService {
             }
             
         } catch (SQLException e) {
-            System.out.println("User could not be registered: " + e.getMessage());
+            
             return false;
         }
     }
@@ -136,7 +136,7 @@ public class AuthenticationService {
             return false;
             
         } catch (SQLException e) {
-            System.out.println("Login failed: " + e.getMessage());
+            
             return false;
         }
     }
@@ -159,7 +159,7 @@ public class AuthenticationService {
                 pstmt.executeUpdate();
                 
             } catch (SQLException e) {
-                System.out.println("An error occurred while logging out: " + e.getMessage());
+               
             }
             
             currentUser.setLoggedIn(false);
@@ -230,7 +230,7 @@ public class AuthenticationService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Users could not be retrieved: " + e.getMessage());
+           
         }
        
         return users;

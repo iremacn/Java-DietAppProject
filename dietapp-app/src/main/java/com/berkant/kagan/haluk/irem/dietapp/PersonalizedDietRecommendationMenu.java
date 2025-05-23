@@ -373,7 +373,7 @@ public class PersonalizedDietRecommendationMenu {
         
         /** @brief The diet recommendation text */
         private final String recommendation;
-        
+
         /**
          * @brief Constructs a new DietRecommendation
          * @param age User's age
@@ -392,7 +392,7 @@ public class PersonalizedDietRecommendationMenu {
             this.activityLevel = activityLevel;
             this.recommendation = recommendation;
         }
-        
+
         /**
          * @brief Gets the user's age
          * @return User's age

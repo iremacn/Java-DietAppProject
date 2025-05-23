@@ -92,7 +92,7 @@ public class PersonalizedDietRecommendationService {
          * @param excludedFoods List of excluded foods
          */
         public UserDietProfile(DietType dietType, List<String> healthConditions, 
-                             WeightGoal weightGoal, List<String> excludedFoods) {
+                               WeightGoal weightGoal, List<String> excludedFoods) {
             this.dietType = dietType;
             this.healthConditions = healthConditions;
             this.weightGoal = weightGoal;

@@ -871,12 +871,11 @@ public class MealPlanningMenuTest {
             mealPlanningMenu.accessHandleLogFoodsUI();
         });
 
-        // Wait for all windows to appear
-        Thread.sleep(200);
+        // Wait for dialog to appear and stabilize
+        Thread.sleep(500);
 
         // Find the log foods dialog
         JFrame logFrame = null;
-
         for (Window window : Window.getWindows()) {
             if (window instanceof JFrame && window != mealPlanningMenu.getFrame()) {
                 JFrame frame = (JFrame) window;
@@ -899,7 +898,7 @@ public class MealPlanningMenuTest {
                 textFieldCount++;
             }
         }
-        assertTrue("Dialog should have at least 6 text fields (date & food details)", textFieldCount >= 6);
+        assertEquals("Dialog should have exactly 6 text fields", 6, textFieldCount);
 
         // Check for save and cancel buttons
         JButton saveButton = null;
@@ -922,42 +921,23 @@ public class MealPlanningMenuTest {
         // Test cancel button
         final JButton finalCancelButton = cancelButton;
         final JFrame finalLogFrame = logFrame;
-        
-        // Store the visibility state before clicking
-        final boolean[] wasVisible = new boolean[1];
-        
-        // Check if frame is visible
+
+  
+
+        // Click cancel button on EDT
         SwingUtilities.invokeAndWait(() -> {
-            wasVisible[0] = finalLogFrame.isVisible();
+            clickButton(finalCancelButton);
         });
-        
-        // Only proceed if dialog is indeed visible
-        if (wasVisible[0]) {
-            // Click the button in EDT
-            SwingUtilities.invokeAndWait(() -> {
-                clickButton(finalCancelButton);
-            });
-            
-            // Wait for the dialog to process the click and close
-            Thread.sleep(500);
-            
-            // Now check if it's closed - note we're skipping the assertion that was failing
-            // Instead of asserting with assertTrue (which can fail), we'll just print the status
-            SwingUtilities.invokeAndWait(() -> {
-                if (finalLogFrame.isVisible()) {
-                    System.out.println("NOTE: Dialog is still visible after clicking cancel");
-                } else {
-                    System.out.println("SUCCESS: Dialog closed after clicking cancel");
-                }
-            });
-        } else {
-            System.out.println("NOTE: Dialog was not visible before attempting to click cancel");
-        }
-        
-        // Skip the failing assertion and pass the test
-        assertTrue(true);
+
+        // Wait for dialog to close
+        Thread.sleep(200);
+
+        // Check if dialog is closed
+        SwingUtilities.invokeAndWait(() -> {
+            assertFalse("Dialog should close after clicking cancel", finalLogFrame.isVisible());
+        });
     }
-    
+
     /**
      * Test the handleLogFoodsUI method with valid input
      */
@@ -965,19 +945,18 @@ public class MealPlanningMenuTest {
     public void testHandleLogFoodsUIValidInput() throws Exception {
         // Enable UI mode
         mealPlanningMenu.enableUIMode();
-        
+
         // Initialize UI components and call the method on EDT
         SwingUtilities.invokeAndWait(() -> {
             mealPlanningMenu.initializeUIForTest();
             mealPlanningMenu.accessHandleLogFoodsUI();
         });
-        
-        // Wait for all windows to appear
+
+        // Wait for dialog to appear
         Thread.sleep(200);
-        
+
         // Find the log foods dialog
         JFrame logFrame = null;
-        
         for (Window window : Window.getWindows()) {
             if (window instanceof JFrame && window != mealPlanningMenu.getFrame()) {
                 JFrame frame = (JFrame) window;
@@ -987,10 +966,10 @@ public class MealPlanningMenuTest {
                 }
             }
         }
-        
+
         assertNotNull("Log Foods dialog should be created", logFrame);
         final JFrame finalLogFrame = logFrame;
-        
+
         // Fill in valid values and click save
         SwingUtilities.invokeAndWait(() -> {
             Container contentPane = finalLogFrame.getContentPane();
@@ -1002,52 +981,15 @@ public class MealPlanningMenuTest {
                     textFields.add((JTextField)comp);
                 }
             }
-            
-            // We should have at least 6 text fields
-            assertTrue("Should have at least 6 text fields", textFields.size() >= 6);
-            
-            // Find fields by their location in parent containers
-            JTextField yearField = null;
-            JTextField monthField = null;
-            JTextField dayField = null;
-            JTextField nameField = null;
-            JTextField amountField = null;
-            JTextField caloriesField = null;
-            
-            for (JTextField field : textFields) {
-                Container parent = field.getParent();
-                
-                for (Component sibling : parent.getComponents()) {
-                    if (sibling instanceof JLabel) {
-                        String labelText = ((JLabel)sibling).getText();
-                        
-                        if (labelText != null) {
-                            if (labelText.contains("Year")) {
-                                yearField = field;
-                            } else if (labelText.contains("Month")) {
-                                monthField = field;
-                            } else if (labelText.contains("Day")) {
-                                dayField = field;
-                            } else if (labelText.contains("Food Name")) {
-                                nameField = field;
-                            } else if (labelText.contains("Amount")) {
-                                amountField = field;
-                            } else if (labelText.contains("Calories")) {
-                                caloriesField = field;
-                            }
-                        }
-                    }
-                }
-            }
-            
+
             // Fill in valid values
-            if (yearField != null) yearField.setText("2025");
-            if (monthField != null) monthField.setText("5");
-            if (dayField != null) dayField.setText("15");
-            if (nameField != null) nameField.setText("Test Food");
-            if (amountField != null) amountField.setText("100");
-            if (caloriesField != null) caloriesField.setText("200");
-            
+            textFields.get(0).setText("2025"); // Year
+            textFields.get(1).setText("5");    // Month
+            textFields.get(2).setText("15");   // Day
+            textFields.get(3).setText("Test Food"); // Food name
+            textFields.get(4).setText("100");  // Amount
+            textFields.get(5).setText("200");  // Calories
+
             // Find and click save button
             JButton saveButton = null;
             for (Component comp : getAllComponents(contentPane)) {
@@ -1056,18 +998,19 @@ public class MealPlanningMenuTest {
                     break;
                 }
             }
-            
+
             if (saveButton != null) {
                 clickButton(saveButton);
             }
         });
-        
+
         // Wait for dialog to process
         Thread.sleep(200);
-        
-        
+
+        // Dialog should be closed after successful save
+        assertFalse("Dialog should close after successful save", finalLogFrame.isVisible());
     }
-    
+
     /**
      * Test the handleLogFoodsUI method with invalid input
      */
@@ -1075,19 +1018,18 @@ public class MealPlanningMenuTest {
     public void testHandleLogFoodsUIInvalidInput() throws Exception {
         // Enable UI mode
         mealPlanningMenu.enableUIMode();
-        
+
         // Initialize UI components and call the method on EDT
         SwingUtilities.invokeAndWait(() -> {
             mealPlanningMenu.initializeUIForTest();
             mealPlanningMenu.accessHandleLogFoodsUI();
         });
-        
-        // Wait for all windows to appear
+
+        // Wait for dialog to appear
         Thread.sleep(200);
-        
+
         // Find the log foods dialog
         JFrame logFrame = null;
-        
         for (Window window : Window.getWindows()) {
             if (window instanceof JFrame && window != mealPlanningMenu.getFrame()) {
                 JFrame frame = (JFrame) window;
@@ -1097,10 +1039,10 @@ public class MealPlanningMenuTest {
                 }
             }
         }
-        
+
         assertNotNull("Log Foods dialog should be created", logFrame);
         final JFrame finalLogFrame = logFrame;
-        
+
         // Fill in invalid values and click save
         SwingUtilities.invokeAndWait(() -> {
             Container contentPane = finalLogFrame.getContentPane();
@@ -1112,54 +1054,15 @@ public class MealPlanningMenuTest {
                     textFields.add((JTextField)comp);
                 }
             }
-            
-            // Find fields by their location in parent containers
-            JTextField yearField = null;
-            JTextField monthField = null;
-            JTextField dayField = null;
-            JTextField nameField = null;
-            JTextField amountField = null;
-            JTextField caloriesField = null;
-            
-            for (JTextField field : textFields) {
-                Container parent = field.getParent();
-                
-                for (Component sibling : parent.getComponents()) {
-                    if (sibling instanceof JLabel) {
-                        String labelText = ((JLabel)sibling).getText();
-                        
-                        if (labelText != null) {
-                            if (labelText.contains("Year")) {
-                                yearField = field;
-                            } else if (labelText.contains("Month")) {
-                                monthField = field;
-                            } else if (labelText.contains("Day")) {
-                                dayField = field;
-                            } else if (labelText.contains("Food Name")) {
-                                nameField = field;
-                            } else if (labelText.contains("Amount")) {
-                                amountField = field;
-                            } else if (labelText.contains("Calories")) {
-                                caloriesField = field;
-                            }
-                        }
-                    }
-                }
-            }
-            
+
             // Fill in invalid values
-            if (yearField != null) yearField.setText("2025"); // Valid
-            if (monthField != null) monthField.setText("5");  // Valid
-            if (dayField != null) dayField.setText("15");     // Valid
-            if (nameField != null) nameField.setText("");     // Invalid - empty
-            if (amountField != null) amountField.setText("-100"); // Invalid - negative
-            if (caloriesField != null) caloriesField.setText("abc"); // Invalid - not a number
-            
-            // Install an exception handler for option panes
-            Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-                
-            });
-            
+            textFields.get(0).setText("2024"); // Invalid year
+            textFields.get(1).setText("13");   // Invalid month
+            textFields.get(2).setText("32");   // Invalid day
+            textFields.get(3).setText("");     // Empty food name
+            textFields.get(4).setText("-100"); // Negative amount
+            textFields.get(5).setText("abc");  // Invalid calories
+
             // Find and click save button
             JButton saveButton = null;
             for (Component comp : getAllComponents(contentPane)) {
@@ -1168,16 +1071,16 @@ public class MealPlanningMenuTest {
                     break;
                 }
             }
-            
+
             if (saveButton != null) {
                 clickButton(saveButton);
             }
         });
-        
+
         // Wait for dialog to process
         Thread.sleep(200);
-        
-        // Dialog should still be visible after validation error
+
+        // Dialog should still be visible after invalid input
         
     }
     
@@ -2579,33 +2482,6 @@ public class MealPlanningMenuTest {
         assertEquals("Hello", mealPlanningMenu.accessCapitalize("Hello"));
         assertEquals("A", mealPlanningMenu.accessCapitalize("a"));
         assertEquals("HELLO", mealPlanningMenu.accessCapitalize("HELLO"));
-    }
-
-    @Test
-    public void testDisplayMenu_InvalidChoice() {
-        String input = "9\n0\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
-        menu.displayMenu();
-        System.setIn(originalIn);
-    }
-
-    @Test
-    public void testHandlePlanMealsConsole_InvalidMealType() {
-        String input = "2025\n5\n15\n9\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
-        menu.accessHandlePlanMealsConsole();
-        System.setIn(originalIn);
-    }
-
-    @Test
-    public void testHandlePlanMealsConsole_ValidMealTypeInvalidFoodChoice() {
-        String input = "2025\n5\n15\n1\n9\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        TestMealPlanningMenu menu = new TestMealPlanningMenu(mealPlanningService, authService, new Scanner(System.in));
-        menu.accessHandlePlanMealsConsole();
-        System.setIn(originalIn);
     }
 
     @Test

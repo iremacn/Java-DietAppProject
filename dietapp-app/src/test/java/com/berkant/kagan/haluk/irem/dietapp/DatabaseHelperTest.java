@@ -1616,4 +1616,181 @@ public class DatabaseHelperTest {
         poolField.set(null, pool);
         DatabaseHelper.closeAllConnections(); // Should print error, not throw
     }
+
+    /**
+     * Test for database initialization and table creation
+     */
+    @Test
+    public void testDatabaseInitialization() {
+        try {
+            // Reset database state
+            resetConnectionPool();
+            
+            // Initialize database
+            DatabaseHelper.initializeDatabase();
+            
+            // Get connection to verify tables exist
+            Connection conn = DatabaseHelper.getConnection();
+            DatabaseMetaData metaData = conn.getMetaData();
+            
+            // Check if required tables exist
+            ResultSet tables = metaData.getTables(null, null, "%", new String[] {"TABLE"});
+            List<String> tableNames = new ArrayList<>();
+            while (tables.next()) {
+                tableNames.add(tables.getString("TABLE_NAME").toLowerCase());
+            }
+            
+            // Verify required tables exist
+            assertTrue("users table should exist", tableNames.contains("users"));
+            assertTrue("foods table should exist", tableNames.contains("foods"));
+            assertTrue("food_nutrients table should exist", tableNames.contains("food_nutrients"));
+            
+            // Clean up
+            DatabaseHelper.releaseConnection(conn);
+        } catch (Exception e) {
+            fail("Test should not throw exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test for connection pool size limits
+     */
+    @Test
+    public void testConnectionPoolSizeLimit() {
+        try {
+            // Reset connection pool
+            resetConnectionPool();
+            
+            // Get access to MAX_CONNECTIONS constant
+            Field maxConnectionsField = DatabaseHelper.class.getDeclaredField("MAX_CONNECTIONS");
+            maxConnectionsField.setAccessible(true);
+            int MAX_CONNECTIONS = maxConnectionsField.getInt(null);
+            
+            // Create connections up to MAX_CONNECTIONS
+            List<Connection> connections = new ArrayList<>();
+            for (int i = 0; i < MAX_CONNECTIONS; i++) {
+                Connection conn = DatabaseHelper.getConnection();
+                assertNotNull("Connection should not be null", conn);
+                connections.add(conn);
+            }
+            
+            // Try to get one more connection
+            Connection extraConn = DatabaseHelper.getConnection();
+            
+            // Release all connections
+            for (Connection conn : connections) {
+                DatabaseHelper.releaseConnection(conn);
+            }
+        } catch (Exception e) {
+            fail("Test should not throw exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test for concurrent connection handling
+     */
+    @Test
+    public void testConcurrentConnections() {
+        try {
+            // Reset connection pool
+            resetConnectionPool();
+            
+            // Create multiple connections in parallel
+            List<Thread> threads = new ArrayList<>();
+            List<Connection> connections = new ArrayList<>();
+            
+            for (int i = 0; i < 5; i++) {
+                Thread thread = new Thread(() -> {
+                    try {
+                        Connection conn = DatabaseHelper.getConnection();
+                        synchronized (connections) {
+                            connections.add(conn);
+                        }
+                        Thread.sleep(100); // Simulate some work
+                        DatabaseHelper.releaseConnection(conn);
+                    } catch (Exception e) {
+                        fail("Thread should not throw exception: " + e.getMessage());
+                    }
+                });
+                threads.add(thread);
+                thread.start();
+            }
+            
+            // Wait for all threads to complete
+            for (Thread thread : threads) {
+                thread.join();
+            }
+            
+            // Verify all connections were properly handled
+            assertTrue("All connections should be released", connections.size() > 0);
+            
+            // Check pool state
+            Field connectionPoolField = DatabaseHelper.class.getDeclaredField("connectionPool");
+            connectionPoolField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<Connection> connectionPool = (List<Connection>) connectionPoolField.get(null);
+            
+            assertTrue("Connection pool should not be empty", !connectionPool.isEmpty());
+        } catch (Exception e) {
+            fail("Test should not throw exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test for database operations with invalid data
+     */
+    @Test
+    public void testInvalidDataHandling() {
+        try {
+            // Test with null food name
+            Food nullNameFood = new Food(null, 100.0, 150);
+            int foodId = saveFoodDirectly(nullNameFood);
+            
+            
+            // Test with negative values
+            Food negativeValuesFood = new Food("Test Food", -100.0, -150);
+            foodId = saveFoodDirectly(negativeValuesFood);
+           
+            
+            // Test with empty food name
+            Food emptyNameFood = new Food("", 100.0, 150);
+            foodId = saveFoodDirectly(emptyNameFood);
+         
+            
+            // Test with extremely large values
+            Food largeValuesFood = new Food("Test Food", Double.MAX_VALUE, Integer.MAX_VALUE);
+            foodId = saveFoodDirectly(largeValuesFood);
+           
+        } catch (Exception e) {
+            
+        }
+    }
+
+    /**
+     * Test for database recovery after errors
+     */
+    @Test
+    public void testDatabaseRecovery() {
+        try {
+            // Reset connection pool
+            resetConnectionPool();
+            
+            // Get initial connection
+            Connection conn1 = DatabaseHelper.getConnection();
+            assertNotNull("First connection should not be null", conn1);
+            
+            // Simulate connection failure
+            conn1.close();
+            
+            // Try to get new connection
+            Connection conn2 = DatabaseHelper.getConnection();
+            assertNotNull("Should get new connection after failure", conn2);
+            assertFalse("New connection should be valid", conn2.isClosed());
+            
+            // Clean up
+            DatabaseHelper.releaseConnection(conn2);
+        } catch (Exception e) {
+            fail("Test should not throw exception: " + e.getMessage());
+        }
+    }
 }

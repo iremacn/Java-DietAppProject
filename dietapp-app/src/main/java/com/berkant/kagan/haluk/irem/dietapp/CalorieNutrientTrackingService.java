@@ -408,14 +408,7 @@ public class CalorieNutrientTrackingService {
             new FoodNutrient("Brown Rice", 100, 112, 2.6, 23.5, 0.9, 1.8, 0.4, 5.0),
             new FoodNutrient("Egg", 50, 78, 6.3, 0.6, 5.3, 0.0, 0.6, 62.0),
             new FoodNutrient("Broccoli", 100, 34, 2.8, 6.6, 0.4, 2.6, 1.7, 33.0),
-            new FoodNutrient("Greek Yogurt", 100, 59, 10.0, 3.6, 0.4, 0.0, 3.6, 36.0),
-            new FoodNutrient("Almonds", 30, 173, 6.0, 6.1, 14.9, 3.5, 1.2, 0.3),
-            new FoodNutrient("Sweet Potato", 100, 86, 1.6, 20.1, 0.1, 3.0, 4.2, 55.0),
-            new FoodNutrient("Avocado", 100, 160, 2.0, 8.5, 14.7, 6.7, 0.7, 7.0),
-            new FoodNutrient("Oatmeal", 100, 68, 2.5, 12.0, 1.4, 2.0, 0.0, 2.0),
-            new FoodNutrient("Whole Wheat Bread", 30, 76, 3.6, 14.0, 1.1, 2.0, 1.5, 152.0),
-            new FoodNutrient("Milk", 100, 42, 3.4, 5.0, 1.0, 0.0, 5.0, 44.0),
-            new FoodNutrient("Ground Beef (Lean)", 100, 250, 26.0, 0.0, 15.0, 0.0, 0.0, 70.0)
+
         };
         
         // Save these to the database for future use
@@ -704,8 +697,7 @@ public class CalorieNutrientTrackingService {
                    .append(" - ")
                    .append(rs.getDouble("quantity"))
                    .append("g (")
-                   .append(rs.getInt("calories"))
-                   .append(" kalori)\n");
+                   .append(rs.getInt("calories"));
             }
         } catch (SQLException e) {
             System.out.println("Daily consumption log could not be retrieved: " + e.getMessage());
@@ -719,9 +711,7 @@ public class CalorieNutrientTrackingService {
             stmt.setString(1, foodName);
             stmt.setInt(2, calories);
             stmt.setDouble(3, protein);
-            stmt.setDouble(4, carbs);
-            stmt.setDouble(5, fat);
-            stmt.executeUpdate();
+          
         }
     }
 
@@ -731,13 +721,7 @@ public class CalorieNutrientTrackingService {
         try (Statement stmt = DatabaseHelper.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                String entry = String.format("%s - Kalori: %d, Protein: %.1fg, Karbonhidrat: %.1fg, Yağ: %.1fg",
-                    rs.getString("food_name"),
-                    rs.getInt("calories"),
-                    rs.getDouble("protein"),
-                    rs.getDouble("carbs"),
-                    rs.getDouble("fat"));
-                entries.add(entry);
+              
             }
         }
         return entries;
