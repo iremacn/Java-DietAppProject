@@ -385,6 +385,9 @@ public class DatabaseHelper {
             // Insert sample data (optional)
             insertSampleData(statement);
             
+            // Inserts sample data into additional tables for demonstration and testing.
+            insertAdditionalSampleData(statement);
+            
             System.out.println("Database tables created successfully");
         }
     }
@@ -408,6 +411,32 @@ public class DatabaseHelper {
         } catch (SQLException e) {
             // Data may already exist, we can ignore this error
         }
+    }
+
+    /**
+     * Inserts sample data into additional tables for demonstration and testing.
+     */
+    private static void insertAdditionalSampleData(Statement statement) throws SQLException {
+        // food_nutrients örnek
+        try {
+            statement.executeUpdate("INSERT INTO food_nutrients (food_id, protein, carbs, fat, fiber, sugar, sodium) VALUES (1, 1.2, 15.0, 0.3, 2.0, 10.0, 1.0)");
+        } catch (SQLException e) { /* ignore if already exists */ }
+        // meals örnek
+        try {
+            statement.executeUpdate("INSERT INTO meals (user_id, date, day, meal_type, food_id) VALUES (1, '2024-05-23', 'Monday', 'Breakfast', 1)");
+        } catch (SQLException e) { /* ignore if already exists */ }
+        // excluded_foods örnek
+        try {
+            statement.executeUpdate("INSERT INTO excluded_foods (profile_id, food_name) VALUES (1, 'Peanut')");
+        } catch (SQLException e) { /* ignore if already exists */ }
+        // health_conditions örnek
+        try {
+            statement.executeUpdate("INSERT INTO health_conditions (profile_id, condition_name) VALUES (1, 'Diabetes')");
+        } catch (SQLException e) { /* ignore if already exists */ }
+        // recipe_ingredients örnek
+        try {
+            statement.executeUpdate("INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit) VALUES (1, 1, 100, 'g')");
+        } catch (SQLException e) { /* ignore if already exists */ }
     }
    
     /**

@@ -706,29 +706,38 @@ public class CalorieNutrientTrackingService {
     }
 
     public void addFoodEntry(String foodName, int calories, double protein, double carbs, double fat) throws SQLException {
-        String sql = "INSERT INTO food_entries (food_name, calories, protein, carbs, fat) VALUES (?, ?, ?, ?, ?)";
+        // foods tablosuna ekle, grams zorunlu olduğu için 100 olarak ekliyoruz
+        String sql = "INSERT INTO foods (name, grams, calories, protein, carbs, fat) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = DatabaseHelper.getConnection().prepareStatement(sql)) {
             stmt.setString(1, foodName);
-            stmt.setInt(2, calories);
-            stmt.setDouble(3, protein);
-          
+            stmt.setDouble(2, 100); // grams
+            stmt.setInt(3, calories);
+            stmt.setDouble(4, protein);
+            stmt.setDouble(5, carbs);
+            stmt.setDouble(6, fat);
+            stmt.executeUpdate();
         }
     }
 
     public List<String> viewFoodEntries() throws SQLException {
         List<String> entries = new ArrayList<>();
-        String sql = "SELECT * FROM food_entries";
+        String sql = "SELECT name, calories, protein, carbs, fat FROM foods";
         try (Statement stmt = DatabaseHelper.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-              
+                String entry = rs.getString("name") + ", " +
+                               rs.getInt("calories") + " kcal, " +
+                               rs.getDouble("protein") + "g protein, " +
+                               rs.getDouble("carbs") + "g carbs, " +
+                               rs.getDouble("fat") + "g fat";
+                entries.add(entry);
             }
         }
         return entries;
     }
 
     public void deleteFoodEntry(String foodName) throws SQLException {
-        String sql = "DELETE FROM food_entries WHERE food_name = ?";
+        String sql = "DELETE FROM foods WHERE name = ?";
         try (PreparedStatement stmt = DatabaseHelper.getConnection().prepareStatement(sql)) {
             stmt.setString(1, foodName);
             stmt.executeUpdate();
